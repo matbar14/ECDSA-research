@@ -1697,6 +1697,90 @@ checkpoint предыдущей сессии); found-флаг 0 во всех у
    long_cover_validation.json); canonical-файл (3 MB) остаётся
    единственным артифактом представителей в репозитории.
 
-Следующий шаг (без изменений по существу): реальные длинные прогоны
-поверх representatives_canonical_H400000.txt; при масштабировании до
-H = 4M - бинарный формат таблицы (решение зафиксировано ранее).
+### Аудит (1) от 30.10: --segment на H-кривой был ЯВНЫМ - TTS валидны
+
+Вопрос: не остались ли прогоны H-кривой на дефолтном segment_size =
+100000 (штраф ~18x, факт 1 выше) - тогда TTS между режимами/точками H
+несравнимы. Проверка по трём независимым линиям:
+
+1. Код: `table_representative_sweep.py:121`, run_engine() жёстко
+   добавляет `--segment str(size)` в КАЖДЫЙ вызов движка, size =
+   (3H)^2 = всё окно (1 сегмент); пути без --segment в скрипте нет.
+2. Логи (EC-арифметика): дефолтный сегмент дал бы окно 1.44e12 (H =
+   400k) порезать на 14.4M сегментов x 2 доп. point-adds (anchor +
+   step на сегмент) = +28.8M adds. В логах file-планы (expanded /
+   canonical / merge) всех четырёх H показывают excess = ровно 2 adds
+   над giant steps (anchor+step единственного сегмента); план
+   `--baby-rows` показывает excess = giant steps - это per-step walk
+   baby-подхода самого режима, не per-segment. Ничего, пропорционального
+   числу сегментов, в логах нет.
+3. Перекрёстное свидетельство: единственный случай дефолтного сегмента
+   в истории - первый прогон long-cover (17.8k шагов/с, факт 1 выше),
+   другой скрипт, позже починен на `--segment CHUNK`.
+
+Вердикт: H-кривая целиком снята при segment = окно; TTS, шаги/с и
+hit-экономика между canonical / expanded / merge и точками
+50k/100k/200k/400k сравнимы напрямую, пометка в memo не требует
+оговорок. Для будущих прогонов правило неизменно: `--segment` = размер
+окна/chunk (или --baby-rows), дефолт 100000 - ловушка только для
+диапазонов > ~1e7 кандидатов.
+
+### Длинный прогон (а) от 30.10: canonical 100 chunk x 5e11, checkpoint cost 1.24%
+
+Вопрос прогона: удерживает ли canonical 400k скорость/hit-экономику на
+многочанковом покрытии с kill/resume и сколько стоит checkpoint/resume
+(пересборка таблицы) в % от общего времени. Инструмент: новый
+`keyhunt/long_run_compare.py` (resume-safe, атомарный JSON,
+long_run_canonical.json).
+
+Дизайн: 100 внешних chunk по 5e11 = 5e13 кандидатов от 2^134; chunk =
+--size = --segment; canonical production config (--table-scalars
+representatives_canonical_H400000.txt, --glv-orbit, --phase-signature,
+--partner-table); цель - одна, chunk 85, гигант-индекс 625000, c =
+12345; сессии по 120s с SIGKILL, --resume между ними; тикер движка
+--progress-interval 60.
+
+Результат (3 сессии: 2 SIGKILL + находка, вердикт PASS):
+- цель восстановлена точно (recovered == seeded, chunk 85, offset
+  250000012345); search hits = 1, exact checks = 1, checks/hit = 1.0,
+  build hits = 0 (инвариант каноничности файла), stride line 400000;
+- steps/s по 60s-сэмплам трёх сессий: 326933 / 328621 / 331359
+  (разброс 1.4%, дрейф вверх к финальной сессии); RSS 80-82 MB;
+- TTS cumulative 329.09s (85 chunk x 1.25M = 106.25M гигант-шагов +
+  3 пересборки); checkpoint cost = 2 пересборки x 4.207s / 339.09s
+  wall = 1.24% - цена kill/resume пренебрежима против скана;
+- пересборка canonical-таблицы стабильна: 4.207s (ср. 5.36s на
+  h_curve при 2 потоках, та же величина).
+
+Попутные правки движка (все регрессии зелёные: test_canonical_k3,
+test_cover_checkpoint 9/9):
+1. build_hits/search_hits - раздельные счётчики хитов по фазам
+   (см. ENG_BSGS.md «Hit-счётчики по фазам»): search hits = один на
+   совпавшую гигант-позицию (сравнимо между режимами таблицы),
+   build hits = коллизии сборки (== canonical rows merged в
+   merge-режиме, == duplicate baby keys в plain); search hits
+   восстанавливается --resume, build hits - session-pure.
+2. exact candidate checks per hit теперь настоящий ratio
+   exact/search hits (раньше - сырой счётчик exact под этим именем).
+3. giant steps/second сессионно-честный: минус restored-шаги
+   checkpoint (после resume кумулятивный счётчик делил бы на время
+   одной сессии).
+4. --progress-interval N: тикер «progress: elapsed | giant steps |
+   steps/s | rss kB» раз в N секунд поиска (дефолт 60, 0 = off) для
+   внешних логов стабильности.
+5. Assert стрида: stored + canonical_rows_merged == raw_file_rows,
+   иначе exit 2; печат «giant stride (post-merge rows): N».
+6. Фикс SIGABRT на replay/fingerprint путях --resume (join тикера
+   перед ранними return; ранее exit -6 в двух фазах
+   test_cover_checkpoint).
+
+Нюанс чтения логов: giant steps суммируется по воркерам; при находке
+на границе сплита воркеров (наша цель легла ровно на begin воркера 1:
+625000 из 1.25M) счётчик в момент находки показывает шаги другого
+воркера (12-16), а не позицию находки. Проверено минимальным repro:
+base воркера 1 = chunk_start + 625000x4e5, его первый giant = (T -
+625000x4e5)G = 12345G, бакет строки c=12345, кандидат base+12345 = T.
+
+Следующий шаг: зеркальный прогон (б) expanded->merge тем же harness
+(сравнимые цифры по построению - те же счётчики/стрид-assert); далее
+масштабирование H (4M - бинарный формат таблицы).

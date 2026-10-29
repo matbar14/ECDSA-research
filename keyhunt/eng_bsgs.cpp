@@ -54,6 +54,20 @@ std::atomic<uint64_t> giant_steps{0};
 std::atomic<uint64_t> giant_steps_scheduled{0};
 std::atomic<uint64_t> giant_steps_planned{0};
 std::atomic<uint64_t> invariant_hits{0};
+// Hit accounting split by phase - comparable across table modes and
+// kill/resume cycles (each mode previously named its build collisions
+// differently: canonical rows merged / duplicate baby keys).
+//   build_hits  - key collisions absorbed while BUILDING the table
+//                 (session-pure, never restored by --resume);
+//   search_hits - giant-scan bucket matches, one per matched giant
+//                 position regardless of bucket row count (restored by
+//                 --resume, cumulative across sessions);
+//   invariant_hits stays the legacy row-level counter.
+std::atomic<uint64_t> build_hits{0};
+std::atomic<uint64_t> search_hits{0};
+// Giant steps restored from the checkpoint by --resume; subtracted from
+// the cumulative counter so steps/s rates stay per-session honest.
+std::atomic<uint64_t> restored_giant_steps{0};
 std::atomic<uint64_t> exact_candidate_checks{0};
 std::atomic<uint64_t> orbit_factor_checks{0};
 std::atomic<uint64_t> signature_routes{0};
@@ -569,6 +583,11 @@ void finalize_table(size_t raw_count) {
   raw_baby_rows.store(static_cast<uint64_t>(raw_count),
                       std::memory_order_relaxed);
   baby_rows.store(unique, std::memory_order_relaxed);
+  // Build-phase hits: rows collapsed into an existing key at build time -
+  // the unified cross-mode name for canonical-merge collapses and
+  // duplicate baby keys alike.
+  build_hits.store(raw_count > unique ? raw_count - unique : 0,
+                   std::memory_order_relaxed);
   shared_baby_rows = final_count;
 }
 
@@ -729,6 +748,12 @@ void search_slice(uint64_t local_start, uint64_t local_size,
             [](const BabyRow &row, const std::array<unsigned char, 33> &needle) {
               return row.key < needle;
             });
+        if (it != shared_table.end() && it->key == query_key) {
+          // One search hit per matched giant position (bucket), independent
+          // of how many rows the bucket holds - the cross-mode comparable
+          // hit count.
+          search_hits.fetch_add(1, std::memory_order_relaxed);
+        }
         bool bucket_checked = false;
         // Signature-path bucket state: the first routed pair and whether the
         // full six-branch set has been checked (anomaly fallback).
@@ -1007,6 +1032,7 @@ std::vector<CheckpointCounter> checkpoint_counter_list() {
       {"giant steps scheduled", giant_steps_scheduled},
       {"giant steps planned", giant_steps_planned},
       {"invariant hits", invariant_hits},
+      {"search hits", search_hits},
       {"orbit factor checks", orbit_factor_checks},
       {"exact candidate checks", exact_candidate_checks},
       {"EC scalar multiplications", ec_scalar_mults},
@@ -1166,8 +1192,54 @@ void restore_checkpoint_counters(
     auto it = fields.find(std::string("counter ") + cc.name);
     if (it == fields.end()) continue;  // counters added since the save
     uint64_t value = std::strtoull(it->second.c_str(), nullptr, 10);
+    if (std::string(cc.name) == "giant steps") {
+      restored_giant_steps.store(value, std::memory_order_relaxed);
+    }
     const_cast<std::atomic<uint64_t> &>(cc.counter).fetch_add(
         value, std::memory_order_relaxed);
+  }
+}
+
+// Progress ticker for long runs: one stdout line every progress_interval
+// seconds of search time - per-session giant steps/s (cumulative minus the
+// --resume restored offset) and current RSS, for external stability logs.
+static std::atomic<uint64_t> progress_interval{60};
+static std::atomic<bool> progress_stop{false};
+
+static long current_rss_kb() {
+  FILE *f = std::fopen("/proc/self/status", "r");
+  if (!f) return -1;
+  char line[256];
+  long rss = -1;
+  while (std::fgets(line, sizeof(line), f)) {
+    if (std::sscanf(line, "VmRSS: %ld kB", &rss) == 1) break;
+  }
+  std::fclose(f);
+  return rss;
+}
+
+static void progress_ticker(
+    std::chrono::steady_clock::time_point search_t0) {
+  const uint64_t interval = progress_interval.load();
+  if (interval == 0) return;
+  while (!progress_stop.load(std::memory_order_relaxed)) {
+    for (unsigned i = 0;
+         i < static_cast<unsigned>(interval) * 10 &&
+         !progress_stop.load(std::memory_order_relaxed);
+         ++i) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    if (progress_stop.load(std::memory_order_relaxed)) break;
+    const double elapsed = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - search_t0).count();
+    const uint64_t session_steps =
+        giant_steps.load() - restored_giant_steps.load();
+    std::printf("progress: elapsed %.1fs | giant steps %llu | "
+                "steps/s %.1f | rss kB %ld\n",
+                elapsed, static_cast<unsigned long long>(session_steps),
+                elapsed > 0 ? session_steps / elapsed : 0.0,
+                current_rss_kb());
+    std::fflush(stdout);
   }
 }
 
@@ -1192,6 +1264,7 @@ void usage(const char *name) {
       "      --checkpoint-file PATH  atomic progress checkpoint for --cover runs (one per cover chunk)\n"
       "      --checkpoint-steps N    write the checkpoint every N chunks (default 1)\n"
       "      --resume          resume the --cover plan from --checkpoint-file (fingerprint is verified)\n"
+      "      --progress-interval N  print a progress line (steps/s, RSS) every N seconds, 0 = off (default 60)\n"
       "      --lambda-dump     print the exact three Lambda values and exit\n"
       "  -t, --threads N       worker threads (default 1)\n"
       "  -h, --help            show this help\n", name);
@@ -1219,6 +1292,7 @@ int main(int argc, char **argv) {
       {"checkpoint-file", required_argument, nullptr, 'x'},
       {"checkpoint-steps", required_argument, nullptr, 'y'},
       {"resume", no_argument, nullptr, 'z'},
+      {"progress-interval", required_argument, nullptr, 'R'},
       {"lambda-dump", no_argument, nullptr, 'D'},
       {"threads", required_argument, nullptr, 't'},
       {"help", no_argument, nullptr, 'h'},
@@ -1230,7 +1304,7 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:c:C:x:y:zDh", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:c:C:x:y:zR:Dh", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
@@ -1250,6 +1324,15 @@ int main(int argc, char **argv) {
       case 'x': checkpoint_path = optarg; break;
       case 'y': if (!parse_u64(optarg, checkpoint_steps) || checkpoint_steps == 0) { usage(argv[0]); return 2; } break;
       case 'z': checkpoint_resume = true; break;
+      case 'R': {
+        uint64_t n;
+        if (!parse_u64(optarg, n)) {
+          usage(argv[0]);
+          return 2;
+        }
+        progress_interval.store(n, std::memory_order_relaxed);
+        break;
+      }
       case 'D': lambda_dump = true; break;
       case 't': { uint64_t n; if (!parse_u64(optarg, n) || n == 0 || n > 4096) { usage(argv[0]); return 2; } worker_count = static_cast<unsigned>(n); break; }
       case 'h': usage(argv[0]); return 0;
@@ -1413,6 +1496,8 @@ int main(int argc, char **argv) {
   // follow the stored table, not the raw input list. One point per orbit
   // instead of one point per input row; canonical_rows_merged counts input
   // rows dropped before the first scalar multiplication.
+  const uint64_t raw_table_scalars =
+      table_scalars.empty() ? 0 : static_cast<uint64_t>(table_scalars.size());
   if (!table_scalars.empty() && glv_orbit_mode && canonical_k3_mode) {
     size_t raw_input = table_scalars.size();
     std::vector<Int> canon;
@@ -1496,6 +1581,25 @@ int main(int argc, char **argv) {
               << " (canonical merge removed "
               << canonical_rows_merged.load() << ")\n";
   }
+  if (!table_scalars_path.empty()) {
+    // Hard invariant behind "giant stride == post-merge rows": the stored
+    // table plus the rows dropped by the canonical pre-pass/merge must
+    // reconstruct the raw scalar file exactly. A mismatch would mean the
+    // giant plan strides a different grid than the table covers.
+    const uint64_t stored = shared_baby_rows;
+    const uint64_t merged = canonical_rows_merged.load();
+    if (stored + merged != raw_table_scalars) {
+      std::fprintf(stderr,
+                   "[E] canonical stride accounting broken: stored %llu + "
+                   "merged %llu != raw %llu input rows\n",
+                   static_cast<unsigned long long>(stored),
+                   static_cast<unsigned long long>(merged),
+                   static_cast<unsigned long long>(raw_table_scalars));
+      std::exit(2);
+    }
+    std::cout << "  giant stride (post-merge rows): " << stored << "\n"
+              << std::flush;
+  }
 
   auto search_started = std::chrono::steady_clock::now();
   // Fresh-build EC snapshot: taken BEFORE the checkpoint counters are
@@ -1503,6 +1607,7 @@ int main(int argc, char **argv) {
   // prior-session work appears only in the cumulative totals.
   const uint64_t build_mults_snapshot = ec_scalar_mults.load();
   const uint64_t build_adds_snapshot = ec_point_adds.load();
+  std::thread ticker(progress_ticker, search_started);
   auto run_target = [&](Int &shift, uint64_t local_size, bool cover_check) {
     active_shift.Set(&shift);
     active_range_size = local_size;
@@ -1532,6 +1637,8 @@ int main(int argc, char **argv) {
                                  chunks_before, elapsed_before, resumed_found,
                                  saved_fields, resume_error)) {
         std::fprintf(stderr, "[E] --resume: %s\n", resume_error.c_str());
+        progress_stop.store(true, std::memory_order_relaxed);
+        ticker.join();
         return 2;
       }
       restore_checkpoint_counters(saved_fields);
@@ -1542,6 +1649,8 @@ int main(int argc, char **argv) {
                   << "  recovered private key: 0x"
                   << int_hex_64(found_scalar) << "\n"
                   << "  recovery correct: true (from checkpoint)\n";
+        progress_stop.store(true, std::memory_order_relaxed);
+        ticker.join();
         return 0;
       }
       char *resumed_hex = source_start.GetBase16();
@@ -1623,6 +1732,8 @@ int main(int argc, char **argv) {
       run_target(zero_shift, range_size, false);
     }
   }
+  progress_stop.store(true, std::memory_order_relaxed);
+  ticker.join();
   double search_seconds = std::chrono::duration<double>(
       std::chrono::steady_clock::now() - search_started).count();
   double seconds = std::chrono::duration<double>(
@@ -1640,6 +1751,8 @@ int main(int argc, char **argv) {
             << "  giant steps: " << giant_steps.load() << "\n"
             << "  giant steps scheduled: " << giant_steps_scheduled.load() << "\n"
             << "  invariant hits: " << invariant_hits.load() << "\n"
+            << "  search hits: " << search_hits.load() << "\n"
+            << "  build hits: " << build_hits.load() << "\n"
             << "  orbit factors scheduled: " << orbit_factor_checks.load() << "\n"
             << "  exact candidate checks: " << exact_candidate_checks.load() << "\n"
             << "  EC scalar multiplications: " << total_mults << "\n"
@@ -1682,7 +1795,11 @@ int main(int argc, char **argv) {
             << "  table build seconds: " << table_seconds << "\n"
             << "  giant search seconds: " << search_seconds << "\n"
             << "  giant steps/second: "
-            << (search_seconds > 0 ? giant_steps.load() / search_seconds : 0) << "\n"
+            << (search_seconds > 0
+                    ? (giant_steps.load() - restored_giant_steps.load()) /
+                          search_seconds
+                    : 0)
+            << "\n"
             << "  total seconds: " << seconds << "\n";
   if (automatic_coverage && checkpoint_resume) {
     std::cout << "  cumulative elapsed seconds (checkpoint): "
@@ -1693,7 +1810,12 @@ int main(int argc, char **argv) {
               << (static_cast<double>(found_run_us.load()) / 1e6)
               << " (includes table build)\n"
               << "  exact candidate checks per hit: "
-              << exact_candidate_checks.load() << "\n";
+              << (search_hits.load() > 0
+                      ? static_cast<double>(exact_candidate_checks.load()) /
+                            search_hits.load()
+                      : static_cast<double>(exact_candidate_checks.load()))
+              << " (exact " << exact_candidate_checks.load()
+              << " / search hits " << search_hits.load() << ")\n";
   }
   if (found.load()) {
     char *hex = found_scalar.GetBase16();

@@ -336,8 +336,51 @@ total EC operations: <total>
 
 ```text
 time to solution seconds: <с момента старта, включает build>
-exact candidate checks per hit: <точных проверок на найденный target>
+exact candidate checks per hit: <ratio exact/search hits> (exact E / search hits H)
 ```
+
+### Hit-счётчики по фазам: build hits / search hits (30.10)
+
+Хиты разделены на два явных счётчика, сравнимых между режимами таблицы и
+kill/resume-циклами (раньше у каждого режима было своё имя коллизий сборки:
+canonical rows merged / duplicate baby keys):
+
+```text
+search hits:    <бакет-совпадения гигант-скана, один на совпавшую
+                 гигант-позицию независимо от числа строк в бакете;
+                 восстанавливается --resume, кумулятивен>
+build hits:     <коллизии ключей, поглощённые при сборке таблицы
+                 (merge/dedup); session-pure, --resume не восстанавливает>
+invariant hits: <legacy row-level счётчик: строки совпавших бакетов,
+                 включая пропущенные дедупом>
+```
+
+`build hits == 0` на canonical-файле - инвариант каноничности (файл без
+дублей орбит); `build hits == canonical rows merged` в merge-режиме и
+`== duplicate baby keys` в plain-режиме. `exact candidate checks per hit`
+теперь настоящий ratio exact/search hits (раньше печатался сырой счётчик).
+`giant steps/second` - сессионно-честный: из кумулятивного счётчика
+вычитаются шаги, восстановленные из checkpoint.
+
+### Прогресс-тикер и assert стрида (30.10)
+
+`--progress-interval N` (секунды, default 60, 0 = off): поток движка
+раз в N секунд поиска печатает
+
+```text
+progress: elapsed 60.0s | giant steps 19628898 | steps/s 326933.3 | rss kB 81760
+```
+
+шаги/с - сессионные (минус restored offset), RSS - текущий VmRSS. Строки
+предназначены для внешних логов стабильности длинных прогонов.
+
+Assert стрида: после сборки из файла представителей движок проверяет
+`stored + canonical_rows_merged == raw_file_rows` (иначе exit 2) и печатает
+`giant stride (post-merge rows): <N>` - стрид гигант-плана равен строкам
+ПОСЛЕ merge (для canonical-файла H400000 это 400000). Нюанс чтения лога:
+`giant steps` кумулятивен по воркерам; при находке на границе сплита
+воркеров счётчик показывает шаги другого воркера (единицы-десятки), а не
+позицию находки - это не аномалия.
 
 Каждая точная проверка кандидата (`ec_mult(candidate)`, `ec_mult(recovered)`
 в шести-ветвевом, маршрутизованном, partner и plain путях) учитывается в

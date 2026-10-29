@@ -1,0 +1,120 @@
+{
+  "design": {
+    "seed": 20261104,
+    "question": "canonical 400k long cover: steps/s stability, hit economy, checkpoint cost pct",
+    "start": "0x4000000000000000000000000000000000",
+    "chunk": 500000000000,
+    "chunks": 100,
+    "cover size": 50000000000000,
+    "stride": 400000,
+    "target chunk": 85,
+    "target giant index": 625000,
+    "target residual c": 12345,
+    "target scalar": "0x400000000000000000000026e182909c39",
+    "target pubkey": "0350c788cb46de0a70f4dab216f24531f009f3c08e9338ad42ff189caae5b6b5a7",
+    "session cap s": 120.0
+  },
+  "sessions": [
+    {
+      "cmd": "--target 0350c788cb46de0a70f4dab216f24531f009f3c08e9338ad42ff189caae5b6b5a7 --start 0x4000000000000000000000000000000000 --size 500000000000 --segment 500000000000 --threads 2 --table-scalars /home/z/my-project/ECDSA-research/representatives_canonical_H400000.txt --glv-orbit --phase-signature --partner-table --cover-start 0x4000000000000000000000000000000000 --cover-size 0x2d79883d2000 --checkpoint-file /home/z/my-project/ECDSA-research/keyhunt/cp_long_run.txt --checkpoint-steps 1 --progress-interval 60",
+      "killed": true,
+      "returncode": -9,
+      "recovered": null,
+      "stride line": 400000,
+      "counters": {},
+      "timing": {},
+      "progress samples": [
+        {
+          "elapsed s": 60.0,
+          "giant steps": 19628898,
+          "steps/s": 326933.3,
+          "rss kb": 81760
+        }
+      ],
+      "stderr tail": [],
+      "peak rss kb": 81760,
+      "wall seconds": 120.0
+    },
+    {
+      "cmd": "--target 0350c788cb46de0a70f4dab216f24531f009f3c08e9338ad42ff189caae5b6b5a7 --start 0x4000000000000000000000000000000000 --size 500000000000 --segment 500000000000 --threads 2 --table-scalars /home/z/my-project/ECDSA-research/representatives_canonical_H400000.txt --glv-orbit --phase-signature --partner-table --cover-start 0x4000000000000000000000000000000000 --cover-size 0x2d79883d2000 --checkpoint-file /home/z/my-project/ECDSA-research/keyhunt/cp_long_run.txt --checkpoint-steps 1 --progress-interval 60 --resume",
+      "killed": true,
+      "returncode": -9,
+      "recovered": null,
+      "stride line": 400000,
+      "counters": {},
+      "timing": {},
+      "progress samples": [
+        {
+          "elapsed s": 60.0,
+          "giant steps": 19730729,
+          "steps/s": 328621.4,
+          "rss kb": 81356
+        }
+      ],
+      "stderr tail": [],
+      "peak rss kb": 81356,
+      "wall seconds": 120.0
+    },
+    {
+      "cmd": "--target 0350c788cb46de0a70f4dab216f24531f009f3c08e9338ad42ff189caae5b6b5a7 --start 0x4000000000000000000000000000000000 --size 500000000000 --segment 500000000000 --threads 2 --table-scalars /home/z/my-project/ECDSA-research/representatives_canonical_H400000.txt --glv-orbit --phase-signature --partner-table --cover-start 0x4000000000000000000000000000000000 --cover-size 0x2d79883d2000 --checkpoint-file /home/z/my-project/ECDSA-research/keyhunt/cp_long_run.txt --checkpoint-steps 1 --progress-interval 60 --resume",
+      "killed": false,
+      "returncode": 0,
+      "recovered": 21778071482940061661655974918383165545529,
+      "stride line": 400000,
+      "counters": {
+        "giant steps": 106250016,
+        "giant steps scheduled": 106250016,
+        "giant steps planned": 107500000,
+        "invariant hits": 1,
+        "search hits": 1,
+        "build hits": 0,
+        "exact candidate checks": 1,
+        "orbit factors scheduled": 1,
+        "EC scalar multiplications": 1200345,
+        "EC scalar multiplications (build)": 400000,
+        "EC point additions": 106250273,
+        "total EC operations": 107450618,
+        "orbit duplicate rows skipped": 0,
+        "partner recoveries": 0,
+        "raw baby rows built": 400000,
+        "unique baby rows built": 400000,
+        "duplicate baby keys": 0
+      },
+      "timing": {
+        "table build seconds": 4.20744,
+        "giant search seconds": 94.883,
+        "giant steps/second": 329353.0,
+        "total seconds": 99.0904,
+        "time to solution seconds": 99.0881,
+        "cumulative elapsed seconds (checkpoint)": 329.093
+      },
+      "progress samples": [
+        {
+          "elapsed s": 60.1,
+          "giant steps": 19901766,
+          "steps/s": 331359.4,
+          "rss kb": 80124
+        }
+      ],
+      "stderr tail": [],
+      "peak rss kb": 80124,
+      "wall seconds": 99.0904
+    }
+  ],
+  "checkpoint cost": {
+    "sessions": 3,
+    "killed": 2,
+    "rebuild seconds (sessions 2+)": 4.207,
+    "total seconds (all sessions)": 339.09,
+    "checkpoint cost pct": 1.24
+  },
+  "steps/s samples": [
+    326933.3,
+    328621.4,
+    331359.4
+  ],
+  "verdict block": {
+    "verdict": "PASS",
+    "reasons": []
+  }
+}
