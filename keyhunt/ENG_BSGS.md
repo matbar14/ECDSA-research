@@ -88,6 +88,34 @@ both modes. The 6-to-2 candidate reduction is verified structurally by
 1500/1500 candidate pairs contain the target offset). The table build costs
 about three Lambda computations per row in this mode.
 
+### Partner-table recovery of out-of-window orbit branches
+
+`--glv-orbit --partner-table` widens the recovery contract: orbit-branch
+candidates that fall outside the searched interval are no longer skipped by
+the interval pre-filter but are exact-verified against the target with a
+full EC check. This is safe because a K3 hit never fires spuriously — the
+roots of `X^3 - c` over F_p are exactly `x, beta*x, beta^2*x`, so a bucket
+match means the giant point IS `±lambda^a * jG` for a table row `j`, and a
+candidate `i*m ± lambda^a * j` that passes `ComputePublicKey` equals the
+target scalar. The mode recovers scalars of the form
+
+```text
+k = range_start + i*m ± lambda^r * j (mod n),  j < baby rows,
+```
+
+i.e. orbit partners of window scalars, which the default mode silently
+drops. The cover-range check is bypassed in this mode (the EC verification
+against the original target is the ultimate guard); partner-type recoveries
+are counted in the new `partner recoveries` output line. Verified by
+`test_partner_table.py` (black-box: negative control without the flag,
+six-branch recovery, signature-routed recovery, in-window regression).
+
+```bash
+./eng_bsgs --target PUBKEY --start 0x4000000000000000000000000000000000 \
+  --size 1048576 --segment 1048576 --glv-orbit --phase-signature \
+  --partner-table --threads 4
+```
+
 ### Automatic external coverage
 
 `--cover-start` and `--cover-size` describe an external scalar interval using

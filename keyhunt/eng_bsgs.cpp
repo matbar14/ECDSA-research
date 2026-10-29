@@ -55,6 +55,7 @@ std::atomic<uint64_t> orbit_factor_checks{0};
 std::atomic<uint64_t> signature_routes{0};
 std::atomic<uint64_t> signature_anomalies{0};
 std::atomic<uint64_t> orbit_duplicate_rows{0};
+std::atomic<uint64_t> partner_recoveries{0};
 std::atomic<uint64_t> lambda_calculations{0};
 std::atomic<uint64_t> priority_slices{0};
 std::atomic<uint64_t> fallback_slices{0};
@@ -77,6 +78,11 @@ Int cover_end;
 bool lambda_priority = false;
 uint64_t lambda_sector_count = 16;
 bool phase_signature = false;
+// --partner-table: exact-verify out-of-interval GLV orbit branches. A K3 hit
+// never fires spuriously (roots of X^3-c are exactly one orbit's x-triple),
+// so any branch candidate that passes the EC check IS the target scalar even
+// when it lies outside the searched interval (an orbit partner of a row).
+bool partner_table_mode = false;
 Int beta;
 Int beta_g;
 
@@ -276,7 +282,9 @@ bool check_orbit_candidate(Int &base_scalar, uint64_t j,
     candidate.Set(&base_scalar);
     candidate.Add(&factor);
     candidate.Mod(&curve.order);
-    if (candidate.IsLower(&range_start) || !candidate.IsLower(&segment_end)) continue;
+    bool in_interval = !candidate.IsLower(&range_start) &&
+                       candidate.IsLower(&segment_end);
+    if (!in_interval && !partner_table_mode) continue;
     exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
     Point check = curve.ComputePublicKey(&candidate);
     if (check.equals(search_target)) {
@@ -284,11 +292,18 @@ bool check_orbit_candidate(Int &base_scalar, uint64_t j,
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
       Point original_check = curve.ComputePublicKey(&recovered);
-      if (!original_check.equals(target) || !candidate_in_cover(recovered)) continue;
+      if (!original_check.equals(target) ||
+          (!partner_table_mode && !candidate_in_cover(recovered))) {
+        continue;
+      }
+      if (!in_interval) {
+        partner_recoveries.fetch_add(1, std::memory_order_relaxed);
+      }
       candidate_out.Set(&recovered);
       Int delta(&shifted_candidate);
       delta.Sub(&range_start);
-      offset_out = delta.GetInt64();
+      // Partner candidates sit far outside the 64-bit window offset range.
+      offset_out = in_interval ? delta.GetInt64() : 0;
       return true;
     }
   }
@@ -360,7 +375,9 @@ bool check_orbit_candidate_signature(Int &base_scalar, uint64_t j,
     candidate.Set(&base_scalar);
     candidate.Add(&factor);
     candidate.Mod(&curve.order);
-    if (candidate.IsLower(&range_start) || !candidate.IsLower(&segment_end)) continue;
+    bool in_interval = !candidate.IsLower(&range_start) &&
+                       candidate.IsLower(&segment_end);
+    if (!in_interval && !partner_table_mode) continue;
     exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
     Point check = curve.ComputePublicKey(&candidate);
     if (check.equals(search_target)) {
@@ -368,11 +385,18 @@ bool check_orbit_candidate_signature(Int &base_scalar, uint64_t j,
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
       Point original_check = curve.ComputePublicKey(&recovered);
-      if (!original_check.equals(target) || !candidate_in_cover(recovered)) continue;
+      if (!original_check.equals(target) ||
+          (!partner_table_mode && !candidate_in_cover(recovered))) {
+        continue;
+      }
+      if (!in_interval) {
+        partner_recoveries.fetch_add(1, std::memory_order_relaxed);
+      }
       candidate_out.Set(&recovered);
       Int delta(&shifted_candidate);
       delta.Sub(&range_start);
-      offset_out = delta.GetInt64();
+      // Partner candidates sit far outside the 64-bit window offset range.
+      offset_out = in_interval ? delta.GetInt64() : 0;
       return true;
     }
   }
@@ -650,6 +674,7 @@ void usage(const char *name) {
       "      --shift T         search Q+T*G before the original target (repeatable)\n"
       "      --glv-orbit       use K3=x^3 quotient plus exact GLV branches\n"
       "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
+      "      --partner-table  exact-verify out-of-interval orbit branches (requires --glv-orbit)\n"
       "      --lambda-priority order local slices by the Lambda triangle, then fallback\n"
       "      --lambda-sectors N number of local numeric slices (default 16)\n"
       "      --cover-start V   external coverage interval start (Int/hex)\n"
@@ -673,6 +698,7 @@ int main(int argc, char **argv) {
       {"lambda-priority", no_argument, nullptr, 'l'},
       {"lambda-sectors", required_argument, nullptr, 'L'},
       {"phase-signature", no_argument, nullptr, 'P'},
+      {"partner-table", no_argument, nullptr, 'p'},
       {"cover-start", required_argument, nullptr, 'c'},
       {"cover-size", required_argument, nullptr, 'C'},
       {"lambda-dump", no_argument, nullptr, 'D'},
@@ -686,7 +712,7 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:Pc:C:Dh", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:Ppc:C:Dh", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
@@ -698,6 +724,7 @@ int main(int argc, char **argv) {
       case 'l': lambda_priority = true; break;
       case 'L': if (!parse_u64(optarg, lambda_sector_count) || lambda_sector_count == 0) { usage(argv[0]); return 2; } break;
       case 'P': phase_signature = true; break;
+      case 'p': partner_table_mode = true; break;
       case 'c': cover_start_text = optarg; break;
       case 'C': cover_size_text = optarg; break;
       case 'D': lambda_dump = true; break;
@@ -711,6 +738,10 @@ int main(int argc, char **argv) {
   }
   if (phase_signature && !glv_orbit_mode) {
     std::fprintf(stderr, "[E] --phase-signature requires --glv-orbit\n");
+    return 2;
+  }
+  if (partner_table_mode && !glv_orbit_mode) {
+    std::fprintf(stderr, "[E] --partner-table requires --glv-orbit\n");
     return 2;
   }
   if (requested_baby_rows != 0) {
@@ -799,6 +830,7 @@ int main(int argc, char **argv) {
             << "  workers: " << worker_count << "\n"
             << "  GLV orbit quotient: " << (glv_orbit_mode ? "true" : "false") << "\n"
             << "  phase signature routing: " << (phase_signature ? "true" : "false") << "\n"
+            << "  partner table: " << (partner_table_mode ? "true" : "false") << "\n"
             << "  shifted targets: " << requested_shifts.size()
             << " (original target is always the fallback)\n"
             << "  baby rows (shared): " << m << "\n"
@@ -914,6 +946,10 @@ int main(int argc, char **argv) {
   if (glv_orbit_mode) {
     std::cout << "  orbit duplicate rows skipped: "
               << orbit_duplicate_rows.load() << "\n";
+    if (partner_table_mode) {
+      std::cout << "  partner recoveries: "
+                << partner_recoveries.load() << "\n";
+    }
   }
   std::cout << "  giant steps planned: " << giant_steps_planned.load() << "\n"
             << "  table build seconds: " << table_seconds << "\n"
