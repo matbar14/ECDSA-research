@@ -58,6 +58,9 @@ COUNTERS = (
     "invariant hits",
     "orbit factors scheduled",
     "exact candidate checks",
+    "EC scalar multiplications",
+    "EC point additions",
+    "total EC operations",
     "signature routes",
     "signature anomalies (6-branch fallback)",
     "signature pair collapses",
@@ -230,6 +233,9 @@ def main():
                 "unique baby keys": run["counters"].get("unique baby rows built"),
                 "canonical rows merged": run["counters"].get("canonical rows merged", 0),
                 "giant steps": run["counters"].get("giant steps"),
+                "EC scalar multiplications": run["counters"].get("EC scalar multiplications"),
+                "EC point additions": run["counters"].get("EC point additions"),
+                "total EC operations": run["counters"].get("total EC operations"),
                 "build seconds": run["timing"].get("table build seconds"),
                 "search seconds": run["timing"].get("giant search seconds"),
                 "giant steps/second": run["timing"].get("giant steps/second"),
@@ -243,6 +249,7 @@ def main():
                   f"{throughput[name]['table rows stored']}, "
                   f"steps={throughput[name]['giant steps']}, "
                   f"steps/s={steps_s_text}, "
+                  f"EC-ops={throughput[name]['total EC operations']}, "
                   f"rss={run['peak rss kb']} kB")
             if run["recovered"] is not None:
                 failures.append(f"throughput {name}: unexpected recovery")
@@ -302,6 +309,9 @@ def main():
                     **{k: v for k, v in run["counters"].items()
                        if k in ("exact candidate checks",
                                 "orbit factors scheduled",
+                                "EC scalar multiplications",
+                                "EC point additions",
+                                "total EC operations",
                                 "signature routes",
                                 "signature pair collapses",
                                 "signature pair mismatches",
@@ -316,6 +326,7 @@ def main():
                 print(f"[economy] {name}: head={t['head']} r={t['rotation']} "
                       f"sign={t['sign']:+d} -> {status}, "
                       f"exact={entry.get('exact candidate checks')}, "
+                      f"EC-ops={entry.get('total EC operations')}, "
                       f"routes={entry.get('signature routes')}")
                 if not ok:
                     failures.append(
@@ -323,12 +334,16 @@ def main():
                         f"sign={t['sign']} stride={stride}")
             exact = [r["exact candidate checks"] for r in runs
                      if r.get("exact candidate checks") is not None]
+            ec_ops = [r["total EC operations"] for r in runs
+                      if r.get("total EC operations") is not None]
             economy[name] = {
                 "stride": stride,
                 "table rows stored": runs[0].get("table rows stored"),
                 "all correct": all(r["correct"] for r in runs),
                 "avg exact checks per hit": round(sum(exact) / len(exact), 3)
                 if exact else None,
+                "avg total EC ops per run": round(sum(ec_ops) / len(ec_ops), 1)
+                if ec_ops else None,
                 "partner recoveries": sum(r.get("partner recoveries", 0)
                                           for r in runs),
                 "signature pair collapses": sum(
@@ -355,6 +370,7 @@ def main():
         steps_s_text = f"{steps_s:.0f}" if steps_s is not None else "n/a"
         print(f"throughput {name}: rows={tp['table rows stored']}, "
               f"steps/s={steps_s_text}, "
+              f"EC-ops={tp['total EC operations']}, "
               f"rss={tp['peak rss kb']} kB")
     for name, ec_data in economy.items():
         print(f"economy {name}: all_correct={ec_data['all correct']}, "

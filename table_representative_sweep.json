@@ -9,11 +9,14 @@
       "unique baby keys": 300000,
       "canonical rows merged": 0,
       "giant steps": 300000,
-      "build seconds": 3.04942,
-      "search seconds": 0.905381,
-      "giant steps/second": 331352.0,
-      "wall seconds": 3.9867,
-      "peak rss kb": 91548,
+      "EC scalar multiplications": 4,
+      "EC point additions": 600001,
+      "total EC operations": 600005,
+      "build seconds": 3.10015,
+      "search seconds": 0.916266,
+      "giant steps/second": 327416.0,
+      "wall seconds": 4.0481,
+      "peak rss kb": 91656,
       "recovered unexpectedly": false
     },
     "expanded 3H rows": {
@@ -21,11 +24,14 @@
       "unique baby keys": 100000,
       "canonical rows merged": 0,
       "giant steps": 300000,
-      "build seconds": 3.72463,
-      "search seconds": 0.871278,
-      "giant steps/second": 344322.0,
-      "wall seconds": 5.175,
-      "peak rss kb": 104064,
+      "EC scalar multiplications": 300003,
+      "EC point additions": 300002,
+      "total EC operations": 600005,
+      "build seconds": 3.74148,
+      "search seconds": 0.881563,
+      "giant steps/second": 340305.0,
+      "wall seconds": 5.1961,
+      "peak rss kb": 103428,
       "recovered unexpectedly": false
     },
     "canonical H rows": {
@@ -33,11 +39,14 @@
       "unique baby keys": 100000,
       "canonical rows merged": 0,
       "giant steps": 900000,
-      "build seconds": 1.03573,
-      "search seconds": 2.63653,
-      "giant steps/second": 341357.0,
-      "wall seconds": 3.7291,
-      "peak rss kb": 37920,
+      "EC scalar multiplications": 100003,
+      "EC point additions": 900002,
+      "total EC operations": 1000005,
+      "build seconds": 1.06754,
+      "search seconds": 2.60409,
+      "giant steps/second": 345610.0,
+      "wall seconds": 3.738,
+      "peak rss kb": 37384,
       "recovered unexpectedly": false
     },
     "expanded->canonical merge": {
@@ -45,11 +54,14 @@
       "unique baby keys": 100000,
       "canonical rows merged": 200000,
       "giant steps": 900000,
-      "build seconds": 3.80997,
-      "search seconds": 2.66113,
-      "giant steps/second": 338202.0,
-      "wall seconds": 7.049,
-      "peak rss kb": 103468,
+      "EC scalar multiplications": 100003,
+      "EC point additions": 900002,
+      "total EC operations": 1000005,
+      "build seconds": 1.04889,
+      "search seconds": 2.66139,
+      "giant steps/second": 338170.0,
+      "wall seconds": 4.3733,
+      "peak rss kb": 45504,
       "recovered unexpectedly": false
     }
   },
@@ -59,6 +71,7 @@
       "table rows stored": null,
       "all correct": true,
       "avg exact checks per hit": 2.833,
+      "avg total EC ops per run": 502000.7,
       "partner recoveries": 7,
       "signature pair collapses": 0,
       "signature pair mismatches": 0,
@@ -73,8 +86,11 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 61556,
+          "total EC operations": 161561,
           "partner recoveries": 0,
-          "search seconds": 0.157499
+          "search seconds": 0.171845
         },
         {
           "correct": true,
@@ -85,8 +101,11 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 666153,
+          "total EC operations": 766158,
           "partner recoveries": 0,
-          "search seconds": 1.95688
+          "search seconds": 1.90059
         },
         {
           "correct": true,
@@ -97,8 +116,11 @@
           "stride": 100000,
           "orbit factors scheduled": 5,
           "exact candidate checks": 5,
+          "EC scalar multiplications": 100009,
+          "EC point additions": 128416,
+          "total EC operations": 228425,
           "partner recoveries": 1,
-          "search seconds": 0.395615
+          "search seconds": 0.365797
         },
         {
           "correct": true,
@@ -109,8 +131,11 @@
           "stride": 100000,
           "orbit factors scheduled": 5,
           "exact candidate checks": 5,
+          "EC scalar multiplications": 100009,
+          "EC point additions": 95112,
+          "total EC operations": 195121,
           "partner recoveries": 1,
-          "search seconds": 0.264806
+          "search seconds": 0.256513
         },
         {
           "correct": true,
@@ -121,8 +146,11 @@
           "stride": 100000,
           "orbit factors scheduled": 3,
           "exact candidate checks": 3,
+          "EC scalar multiplications": 100007,
+          "EC point additions": 359366,
+          "total EC operations": 459373,
           "partner recoveries": 1,
-          "search seconds": 1.02876
+          "search seconds": 1.05108
         },
         {
           "correct": true,
@@ -133,8 +161,11 @@
           "stride": 100000,
           "orbit factors scheduled": 5,
           "exact candidate checks": 5,
+          "EC scalar multiplications": 100009,
+          "EC point additions": 106115,
+          "total EC operations": 206124,
           "partner recoveries": 1,
-          "search seconds": 0.32087
+          "search seconds": 0.292455
         },
         {
           "correct": true,
@@ -145,8 +176,11 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 699722,
+          "total EC operations": 799727,
           "partner recoveries": 0,
-          "search seconds": 2.01264
+          "search seconds": 2.02802
         },
         {
           "correct": true,
@@ -157,8 +191,11 @@
           "stride": 100000,
           "orbit factors scheduled": 6,
           "exact candidate checks": 6,
+          "EC scalar multiplications": 100010,
+          "EC point additions": 863544,
+          "total EC operations": 963554,
           "partner recoveries": 1,
-          "search seconds": 2.50586
+          "search seconds": 2.49361
         },
         {
           "correct": true,
@@ -169,8 +206,11 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 328944,
+          "total EC operations": 428949,
           "partner recoveries": 0,
-          "search seconds": 0.977773
+          "search seconds": 0.955449
         },
         {
           "correct": true,
@@ -181,8 +221,11 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 408773,
+          "total EC operations": 508778,
           "partner recoveries": 0,
-          "search seconds": 1.24754
+          "search seconds": 1.23871
         },
         {
           "correct": true,
@@ -193,8 +236,11 @@
           "stride": 100000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 470152,
+          "total EC operations": 570158,
           "partner recoveries": 1,
-          "search seconds": 1.3562
+          "search seconds": 1.36581
         },
         {
           "correct": true,
@@ -205,8 +251,11 @@
           "stride": 100000,
           "orbit factors scheduled": 3,
           "exact candidate checks": 3,
+          "EC scalar multiplications": 100007,
+          "EC point additions": 636073,
+          "total EC operations": 736080,
           "partner recoveries": 1,
-          "search seconds": 1.78945
+          "search seconds": 1.82074
         }
       ]
     },
@@ -215,6 +264,7 @@
       "table rows stored": null,
       "all correct": true,
       "avg exact checks per hit": 1.333,
+      "avg total EC ops per run": 507021.1,
       "partner recoveries": 7,
       "signature pair collapses": 0,
       "signature pair mismatches": 0,
@@ -229,12 +279,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 59822,
+          "total EC operations": 159827,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 0.168443
+          "search seconds": 0.168334
         },
         {
           "correct": true,
@@ -245,12 +298,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 663946,
+          "total EC operations": 763951,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 1.90503
+          "search seconds": 1.9162
         },
         {
           "correct": true,
@@ -261,12 +317,15 @@
           "stride": 100000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 125572,
+          "total EC operations": 225578,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.367972
+          "search seconds": 0.34526
         },
         {
           "correct": true,
@@ -277,12 +336,15 @@
           "stride": 100000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 95791,
+          "total EC operations": 195797,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.257904
+          "search seconds": 0.251939
         },
         {
           "correct": true,
@@ -293,12 +355,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 355415,
+          "total EC operations": 455420,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 1.20711
+          "search seconds": 1.03863
         },
         {
           "correct": true,
@@ -309,12 +374,15 @@
           "stride": 100000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 104582,
+          "total EC operations": 204588,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.313831
+          "search seconds": 0.28887
         },
         {
           "correct": true,
@@ -325,12 +393,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 707532,
+          "total EC operations": 807537,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 2.05383
+          "search seconds": 2.10346
         },
         {
           "correct": true,
@@ -341,12 +412,15 @@
           "stride": 100000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 883046,
+          "total EC operations": 983052,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 2.49352
+          "search seconds": 2.53031
         },
         {
           "correct": true,
@@ -357,12 +431,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 388417,
+          "total EC operations": 488422,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 0.939002
+          "search seconds": 1.21355
         },
         {
           "correct": true,
@@ -373,12 +450,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 431220,
+          "total EC operations": 531225,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 1.3326
+          "search seconds": 1.2717
         },
         {
           "correct": true,
@@ -389,12 +469,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 462932,
+          "total EC operations": 562937,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 1.3055
+          "search seconds": 1.30103
         },
         {
           "correct": true,
@@ -405,12 +488,15 @@
           "stride": 100000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 605914,
+          "total EC operations": 705919,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 1.76662
+          "search seconds": 1.71302
         }
       ]
     },
@@ -419,6 +505,7 @@
       "table rows stored": null,
       "all correct": true,
       "avg exact checks per hit": 1.667,
+      "avg total EC ops per run": 439677.2,
       "partner recoveries": 9,
       "signature pair collapses": 0,
       "signature pair mismatches": 0,
@@ -433,12 +520,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 82411,
+          "total EC operations": 382417,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.240279
+          "search seconds": 0.231798
         },
         {
           "correct": true,
@@ -449,12 +539,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 92895,
+          "total EC operations": 392901,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.259606
+          "search seconds": 0.258176
         },
         {
           "correct": true,
@@ -465,12 +558,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 54753,
+          "total EC operations": 354759,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.120872
+          "search seconds": 0.145585
         },
         {
           "correct": true,
@@ -481,12 +577,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 240556,
+          "total EC operations": 540562,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 0.711579
+          "search seconds": 0.721843
         },
         {
           "correct": true,
@@ -497,12 +596,15 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 300005,
+          "EC point additions": 57563,
+          "total EC operations": 357568,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.150846
+          "search seconds": 0.161523
         },
         {
           "correct": true,
@@ -513,12 +615,15 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 300005,
+          "EC point additions": 237075,
+          "total EC operations": 537080,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 0.694046
+          "search seconds": 0.677014
         },
         {
           "correct": true,
@@ -529,12 +634,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 87714,
+          "total EC operations": 387720,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.267308
+          "search seconds": 0.254569
         },
         {
           "correct": true,
@@ -545,12 +653,15 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 300005,
+          "EC point additions": 83172,
+          "total EC operations": 383177,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.219331
+          "search seconds": 0.237819
         },
         {
           "correct": true,
@@ -561,12 +672,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 266090,
+          "total EC operations": 566096,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.780745
+          "search seconds": 0.759346
         },
         {
           "correct": true,
@@ -577,12 +691,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 32484,
+          "total EC operations": 332490,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.0669758
+          "search seconds": 0.0868253
         },
         {
           "correct": true,
@@ -593,12 +710,15 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 300006,
+          "EC point additions": 157620,
+          "total EC operations": 457626,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 0,
-          "search seconds": 0.427983
+          "search seconds": 0.454496
         },
         {
           "correct": true,
@@ -609,12 +729,15 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 300005,
+          "EC point additions": 283725,
+          "total EC operations": 583730,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
           "signature pair mismatches": 0,
           "partner recoveries": 1,
-          "search seconds": 0.843366
+          "search seconds": 0.830318
         }
       ]
     },
@@ -623,6 +746,7 @@
       "table rows stored": 100000,
       "all correct": true,
       "avg exact checks per hit": 1.5,
+      "avg total EC ops per run": 529315.2,
       "partner recoveries": 9,
       "signature pair collapses": 0,
       "signature pair mismatches": 0,
@@ -637,6 +761,9 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 241710,
+          "total EC operations": 341716,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -644,7 +771,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.658978
+          "search seconds": 0.689928
         },
         {
           "correct": true,
@@ -655,6 +782,9 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 297559,
+          "total EC operations": 397565,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -662,7 +792,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.814474
+          "search seconds": 0.854611
         },
         {
           "correct": true,
@@ -673,6 +803,9 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 169124,
+          "total EC operations": 269130,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -680,7 +813,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.46923
+          "search seconds": 0.488534
         },
         {
           "correct": true,
@@ -691,6 +824,9 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 783069,
+          "total EC operations": 883074,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -698,7 +834,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 0,
           "table rows stored": 100000,
-          "search seconds": 2.12198
+          "search seconds": 2.25937
         },
         {
           "correct": true,
@@ -709,6 +845,9 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 178771,
+          "total EC operations": 278776,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -716,7 +855,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.472312
+          "search seconds": 0.499074
         },
         {
           "correct": true,
@@ -727,6 +866,9 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 707389,
+          "total EC operations": 807394,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -734,7 +876,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 0,
           "table rows stored": 100000,
-          "search seconds": 2.04515
+          "search seconds": 1.99244
         },
         {
           "correct": true,
@@ -745,6 +887,9 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 265951,
+          "total EC operations": 365957,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -752,7 +897,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.754928
+          "search seconds": 0.743956
         },
         {
           "correct": true,
@@ -763,6 +908,9 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 250987,
+          "total EC operations": 350992,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -770,7 +918,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.734205
+          "search seconds": 0.727983
         },
         {
           "correct": true,
@@ -781,6 +929,9 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 824453,
+          "total EC operations": 924459,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -788,7 +939,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 2.35882
+          "search seconds": 2.40355
         },
         {
           "correct": true,
@@ -799,6 +950,9 @@
           "stride": 300000,
           "orbit factors scheduled": 2,
           "exact candidate checks": 2,
+          "EC scalar multiplications": 100006,
+          "EC point additions": 92320,
+          "total EC operations": 192326,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -806,7 +960,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 0.232821
+          "search seconds": 0.257512
         },
         {
           "correct": true,
@@ -817,6 +971,9 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 459343,
+          "total EC operations": 559348,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -824,7 +981,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 0,
           "table rows stored": 100000,
-          "search seconds": 1.29912
+          "search seconds": 1.32654
         },
         {
           "correct": true,
@@ -835,6 +992,9 @@
           "stride": 300000,
           "orbit factors scheduled": 1,
           "exact candidate checks": 1,
+          "EC scalar multiplications": 100005,
+          "EC point additions": 881041,
+          "total EC operations": 981046,
           "signature routes": 1,
           "signature anomalies (6-branch fallback)": 0,
           "signature pair collapses": 0,
@@ -842,7 +1002,7 @@
           "canonical rows merged": 200000,
           "partner recoveries": 1,
           "table rows stored": 100000,
-          "search seconds": 2.41
+          "search seconds": 2.65486
         }
       ]
     }

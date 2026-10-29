@@ -60,6 +60,11 @@ std::atomic<uint64_t> signature_pair_collapses{0};
 std::atomic<uint64_t> signature_pair_mismatches{0};
 std::atomic<uint64_t> canonical_rows_merged{0};
 std::atomic<uint64_t> partner_recoveries{0};
+// Honest EC accounting: every scalar multiplication (ComputePublicKey) and
+// every real point addition (add_safe with both operands non-zero) counts
+// here, so builds and search paths compare on the same unit.
+std::atomic<uint64_t> ec_scalar_mults{0};
+std::atomic<uint64_t> ec_point_adds{0};
 std::atomic<uint64_t> lambda_calculations{0};
 std::atomic<uint64_t> priority_slices{0};
 std::atomic<uint64_t> fallback_slices{0};
@@ -114,6 +119,7 @@ std::vector<std::array<unsigned char, 32>> shared_scalars;
 Point add_safe(Point &a, Point &b) {
   if (a.isZero()) return Point(b);
   if (b.isZero()) return Point(a);
+  ec_point_adds.fetch_add(1, std::memory_order_relaxed);
   if (a.x.IsEqual(&b.x)) {
     if (a.y.IsEqual(&b.y)) return curve.DoubleDirect(a);
     Int y_sum(&a.y);
@@ -126,6 +132,14 @@ Point add_safe(Point &a, Point &b) {
     }
   }
   return curve.AddDirect(a, b);
+}
+
+// Counted scalar multiplication wrapper: every build row, anchor/step/shift
+// point and exact candidate check goes through here, so the printed
+// "EC scalar multiplications" covers the whole program run.
+Point ec_mult(Int &k) {
+  ec_scalar_mults.fetch_add(1, std::memory_order_relaxed);
+  return curve.ComputePublicKey(&k);
 }
 
 std::array<unsigned char, 33> point_key(Point &p) {
@@ -351,12 +365,12 @@ bool check_orbit_candidate(Int &base_scalar, Int &row_scalar,
                        candidate.IsLower(&segment_end);
     if (!in_interval && !partner_table_mode) continue;
     exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
-    Point check = curve.ComputePublicKey(&candidate);
+    Point check = ec_mult(candidate);
     if (check.equals(search_target)) {
       Int shifted_candidate(&candidate);
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
-      Point original_check = curve.ComputePublicKey(&recovered);
+      Point original_check = ec_mult(recovered);
       if (!original_check.equals(target) ||
           (!partner_table_mode && !candidate_in_cover(recovered))) {
         continue;
@@ -444,12 +458,12 @@ bool check_factor_pair(Int &base_factor, Int &base_scalar,
                        candidate.IsLower(&segment_end);
     if (!in_interval && !partner_table_mode) continue;
     exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
-    Point check = curve.ComputePublicKey(&candidate);
+    Point check = ec_mult(candidate);
     if (check.equals(search_target)) {
       Int shifted_candidate(&candidate);
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
-      Point original_check = curve.ComputePublicKey(&recovered);
+      Point original_check = ec_mult(recovered);
       if (!original_check.equals(target) ||
           (!partner_table_mode && !candidate_in_cover(recovered))) {
         continue;
@@ -573,7 +587,7 @@ void build_shared_table(uint64_t m) {
       } else {
         Int scalar;
         scalar.SetInt64(begin);
-        current = curve.ComputePublicKey(&scalar);
+        current = ec_mult(scalar);
       }
       for (uint64_t j = begin; j < end; ++j) {
         if (glv_orbit_mode) {
@@ -600,6 +614,9 @@ void build_shared_table(uint64_t m) {
 // scalar). The point of each scalar is computed directly; the giant plan then
 // strides by the stored row count, so targets of the form
 // start + i*m + s (s in the orbit set of the table) remain recoverable.
+// In --canonical-k3 mode main() has already canonicalized and deduped the
+// list (direct canonical pass before any EC work), so the builder receives
+// exactly one scalar per orbit.
 void build_table_from_scalars(std::vector<Int> &scalars) {
   size_t m = scalars.size();
   const bool sig_mode = glv_orbit_mode && phase_signature;
@@ -614,7 +631,7 @@ void build_table_from_scalars(std::vector<Int> &scalars) {
     if (begin == end) continue;
     builders.emplace_back([begin, end, sig_mode, &scalars]() {
       for (size_t i = begin; i < end; ++i) {
-        Point row_point = curve.ComputePublicKey(&scalars[i]);
+        Point row_point = ec_mult(scalars[i]);
         GlvRowData row = build_glv_row(scalars[i], row_point.x, sig_mode);
         shared_table[i] = {row.key, 0};
         shared_scalars[i] = row.scalar;
@@ -638,12 +655,12 @@ void search_slice(uint64_t local_start, uint64_t local_size,
   anchor_scalar.Add(local_start);
   Int segment_end(&anchor_scalar);
   segment_end.Add(local_size);
-  Point anchor = curve.ComputePublicKey(&anchor_scalar);
+  Point anchor = ec_mult(anchor_scalar);
   Point neg_anchor = curve.Negation(anchor);
   Point giant_zero = add_safe(search_target, neg_anchor);
 
   Int m_int(m);
-  Point step = curve.ComputePublicKey(&m_int);
+  Point step = ec_mult(m_int);
   Point neg_step = curve.Negation(step);
 
   std::vector<std::thread> workers;
@@ -662,7 +679,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
         delta.Mod(&curve.order);
         base_scalar.Add(&delta);
         base_scalar.Mod(&curve.order);
-        Point shift = curve.ComputePublicKey(&delta);
+        Point shift = ec_mult(delta);
         Point neg_shift = curve.Negation(shift);
         giant = add_safe(giant, neg_shift);
       }
@@ -774,12 +791,12 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               candidate.Set(&base_scalar);
               candidate.Add(j);
               exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
-              Point check = curve.ComputePublicKey(&candidate);
+              Point check = ec_mult(candidate);
               match = check.equals(search_target);
               if (match) {
                 Int recovered;
                 subtract_order_mod(recovered, candidate, active_shift);
-                Point original_check = curve.ComputePublicKey(&recovered);
+                Point original_check = ec_mult(recovered);
                 match = original_check.equals(target) && candidate_in_cover(recovered);
                 if (match) {
                   candidate.Set(&recovered);
@@ -1099,6 +1116,35 @@ int main(int argc, char **argv) {
     }
   }
 
+  // --canonical-k3 + --table-scalars: direct canonical pass. Every input
+  // scalar is canonicalized first (two order multiplications per scalar,
+  // no EC work) and equal canonical scalars - exactly one orbit - are
+  // deduped BEFORE any point is computed, so build cost and peak memory
+  // follow the stored table, not the raw input list. One point per orbit
+  // instead of one point per input row; canonical_rows_merged counts input
+  // rows dropped before the first scalar multiplication.
+  if (!table_scalars.empty() && glv_orbit_mode && canonical_k3_mode) {
+    size_t raw_input = table_scalars.size();
+    std::vector<Int> canon;
+    canon.reserve(raw_input);
+    for (Int &value : table_scalars) {
+      int rotation_unused;
+      canon.push_back(canonical_orbit_scalar(value, rotation_unused));
+    }
+    std::sort(canon.begin(), canon.end(), [](const Int &a, const Int &b) {
+      return const_cast<Int &>(a).IsLower(const_cast<Int *>(&b));
+    });
+    canon.erase(
+        std::unique(canon.begin(), canon.end(),
+                    [](const Int &a, const Int &b) {
+                      return const_cast<Int &>(a).IsEqual(const_cast<Int *>(&b));
+                    }),
+        canon.end());
+    canonical_rows_merged.fetch_add(raw_input - canon.size(),
+                                    std::memory_order_relaxed);
+    table_scalars.swap(canon);
+  }
+
   uint64_t segment_count = range_size / segment_size + (range_size % segment_size != 0);
   uint64_t m = table_scalars.empty()
       ? ceil_sqrt_u64(std::min(segment_size, range_size))
@@ -1169,7 +1215,7 @@ int main(int argc, char **argv) {
     normalized_shift.Mod(&curve.order);
     Point shift_point;
     if (normalized_shift.IsZero()) shift_point.Clear();
-    else shift_point = curve.ComputePublicKey(&normalized_shift);
+    else shift_point = ec_mult(normalized_shift);
     search_target = add_safe(target, shift_point);
     search_current_target();
   };
@@ -1230,6 +1276,10 @@ int main(int argc, char **argv) {
             << "  invariant hits: " << invariant_hits.load() << "\n"
             << "  orbit factors scheduled: " << orbit_factor_checks.load() << "\n"
             << "  exact candidate checks: " << exact_candidate_checks.load() << "\n"
+            << "  EC scalar multiplications: " << ec_scalar_mults.load() << "\n"
+            << "  EC point additions: " << ec_point_adds.load() << "\n"
+            << "  total EC operations: "
+            << (ec_scalar_mults.load() + ec_point_adds.load()) << "\n"
             << "  Lambda calculations: " << lambda_calculations.load() << "\n"
             << "  Lambda priority slices: " << priority_slices.load() << "\n"
             << "  Lambda fallback slices: " << fallback_slices.load() << "\n";

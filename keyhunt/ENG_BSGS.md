@@ -129,12 +129,21 @@ which is constant on the orbit and distinct across orbits. `K3 = x^3` and the
 `(d01, d12)` signature depend on x-coordinates only, so the canonical
 representative keeps the same bucket key, and its signature is read off the
 phi-rotated x-coordinate `beta^r * x` of the row point (negation does not
-change x), so canonicalization costs no extra scalar multiplication. At build
-time rows with equal keys are merged after sorting: `canonical rows merged`
-counts the removed duplicates and `table rows stored` shows the final size.
-On the continuous window table `[0, m)` the merge is a no-op (partners
-`lambda*j ~ 2^128` never co-occur there); it becomes active with
+change x), so canonicalization costs no extra scalar multiplication.
+With `--table-scalars` the build is a direct canonical pass: the input list
+is canonicalized and deduped BEFORE any point is computed (two order
+multiplications per scalar, no EC work), so exactly one point per orbit is
+multiplied and the build cost and peak memory follow the stored table, not
+the raw input list. `canonical rows merged` counts input rows dropped
+before the first scalar multiplication and `table rows stored` shows the
+final size. On the continuous window table `[0, m)` the merge is a no-op
+(partners `lambda*j ~ 2^128` never co-occur there); it becomes active with
 `--table-scalars`.
+
+Every `ComputePublicKey` (build rows, anchor/step/shift points, exact
+candidate checks) and every real point addition is counted; the output
+reports `EC scalar multiplications`, `EC point additions` and
+`total EC operations`, so builds and search modes compare on the same unit.
 
 The phase-signature path now performs candidate-pair level dedup inside a
 bucket: every row routes to its pair `{+o, -o}`, identical pairs are skipped
