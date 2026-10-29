@@ -1,0 +1,37 @@
+{
+ "file": "table_cbt1_H4000000.cbt1",
+ "bytes": 260000256,
+ "sha256": "62ac5f29640b4887c4b0c3e645b1edb7f5dd0526614f67c7038feaa0b2805266",
+ "row_count": 4000000,
+ "checks": {
+  "magic": true,
+  "canonical_version": true,
+  "payload_kind(giant_grid)": true,
+  "header_size": true,
+  "row_size": true,
+  "curve_id": true,
+  "orbit_size": true,
+  "flags(sorted)": true,
+  "row_count": true,
+  "stride": true,
+  "m": true,
+  "n": true,
+  "p": true,
+  "lambda": true,
+  "rows_per_head_source": true,
+  "created_unix": true
+ },
+ "header_fnv ok": true,
+ "payload_fnv tool": "1fbacaf7db37a003",
+ "payload_fnv stored": "1fbacaf7db37a003",
+ "sorted ascending": true,
+ "duplicate keys": 0,
+ "scalar column == heads 1..H": true,
+ "k3 keys sample": {
+  "rows": 512,
+  "ok": true,
+  "seed": 20261031
+ },
+ "validation seconds": 3.872,
+ "failures": []
+}

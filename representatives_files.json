@@ -64,6 +64,35 @@
       "median bit length": 18.0,
       "below 2^254 share": 1.0,
       "largest representative share of n/2": 0.0
+    },
+    {
+      "heads": 4000000,
+      "rows": 4000000,
+      "distinct representatives": 4000000,
+      "representatives equal heads": 4000000,
+      "file": "representatives_canonical_H4000000.txt",
+      "file bytes": 34882418,
+      "sha256": "ffe0edb5f5918ec05c6b02f47c6295e7ad5d86bff00897ad24f0653742979859",
+      "generation seconds": 6.471,
+      "min bit length": 1,
+      "max bit length": 22,
+      "mean bit length": 20.95,
+      "median bit length": 21.0,
+      "below 2^254 share": 1.0,
+      "largest representative share of n/2": 0.0
+    }
+  ],
+  "expanded_files": [
+    {
+      "kind": "expanded (3 rows per head, merge-mode input)",
+      "heads": 4000000,
+      "rows": 12000000,
+      "file": "representatives_expanded_H4000000.txt",
+      "file bytes": 570348298,
+      "sha256": "6ce07471b73d3ee8eeb84a49d6ba0e15bebb99d8b9a19cce8b5e4e332e1ef65b",
+      "generation seconds": 6.601,
+      "sample canonical checks": 4012,
+      "construction date": "2026-10-29"
     }
   ]
 }
