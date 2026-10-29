@@ -1,0 +1,28 @@
+cover checkpoint version: 1
+plan fingerprint: 3c73300321b78c6d
+next source chunk start: 0x0000000000000000000000000000004000000000000000000000045d964b8000
+chunks completed: 4
+cumulative elapsed seconds: 4.039
+found: 1
+recovered scalar: 0x0000000000000000000000000000004000000000000000000000045d964b7fff
+recovered private key: 0x0000000000000000000000000000004000000000000000000000045d964b7fff
+counter giant steps: 1196567
+counter giant steps scheduled: 1196567
+counter giant steps planned: 1200000
+counter invariant hits: 1
+counter search hits: 1
+counter orbit factor checks: 1
+counter exact candidate checks: 1
+counter EC scalar multiplications: 17
+counter EC point additions: 1196578
+counter hit EC scalar multiplications: 2
+counter signature routes: 0
+counter signature anomalies: 0
+counter signature pair collapses: 0
+counter signature pair mismatches: 0
+counter orbit duplicate rows: 0
+counter partner recoveries: 0
+counter lambda calculations: 0
+counter lambda priority slices: 0
+counter lambda fallback slices: 0
+counter segments done: 4

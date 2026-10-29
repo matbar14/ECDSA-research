@@ -35,6 +35,10 @@
 #include "secp256k1/Point.h"
 #include "secp256k1/Int.h"
 
+// hash/sha256.cpp, linked by the Makefile (global scope: not part of the
+// anonymous namespace below).
+bool sha256_file(const char *file_name, uint8_t *checksum);
+
 namespace {
 
 struct BabyRow {
@@ -666,6 +670,8 @@ static std::string table_binary_path;       // --table-binary (mmap load)
 static std::string dump_table_binary_path;  // --dump-table-binary (write)
 static const unsigned char *file_rows = nullptr;  // payload base (row 0)
 static uint64_t file_row_count = 0;
+static uint64_t file_payload_fnv = 0;  // payload checksum claimed by header
+static size_t file_bytes = 0;          // file size, part of plan identity
 
 struct MappedTable {
   const unsigned char *base = nullptr;
@@ -703,6 +709,48 @@ uint64_t get_u64be(const unsigned char *d) {
   uint64_t v = 0;
   for (int i = 0; i < 8; ++i) v = (v << 8) | d[i];
   return v;
+}
+
+// Sidecar "<table>.cache": binds the full-validation verdict (payload FNV
+// over every byte + sortedness over every row) to the exact file bytes via
+// (size, mtime_ns), with sha256 recording which bytes the verdict belongs
+// to. Written once after a full validation; later sessions with unchanged
+// size+mtime skip the full pass (a 260 MB sequential read at H=4M). Any
+// content edit rewrites mtime -> miss -> fresh full validation (damaged
+// files reject there). Threat model: accidental corruption, not an
+// adversary (who could rewrite both files consistently).
+static std::map<std::string, std::string> read_kv_file(const std::string &p) {
+  std::map<std::string, std::string> out;
+  std::ifstream in(p);
+  std::string line;
+  while (std::getline(in, line)) {
+    const size_t sep = line.find(": ");
+    if (sep != std::string::npos)
+      out[line.substr(0, sep)] = line.substr(sep + 2);
+  }
+  return out;
+}
+
+static void write_cache_sidecar(const std::string &path,
+                                const std::string &content) {
+  const std::string tmp = path + ".tmp";
+  int fd = ::open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (fd < 0) {
+    std::fprintf(stderr, "[W] table binary cache: cannot write %s\n",
+                 tmp.c_str());
+    return;
+  }
+  size_t off = 0;
+  while (off < content.size()) {
+    ssize_t n = ::write(fd, content.data() + off, content.size() - off);
+    if (n <= 0) break;
+    off += static_cast<size_t>(n);
+  }
+  ::fsync(fd);
+  ::close(fd);
+  if (::rename(tmp.c_str(), path.c_str()) != 0)
+    std::fprintf(stderr, "[W] table binary cache: rename failed %s\n",
+                 path.c_str());
 }
 
 int load_table_binary(const std::string &path) {
@@ -768,32 +816,95 @@ int load_table_binary(const std::string &path) {
   if (fnv1a_bytes(h, 248) != get_u64be(h + 248))
     return reject("header checksum mismatch");
   const unsigned char *payload = h + CBT1_HEADER_SIZE;
-  if (fnv1a_bytes(payload, static_cast<size_t>(rows) * CBT1_ROW_SIZE) !=
-      get_u64be(h + 240))
-    return reject("payload checksum mismatch");
-  for (uint64_t i = 1; i < rows; ++i) {
-    if (std::memcmp(payload + i * CBT1_ROW_SIZE,
-                    payload + (i - 1) * CBT1_ROW_SIZE, 33) < 0) {
+  const uint64_t stored_payload_fnv = get_u64be(h + 240);
+  const size_t payload_bytes = static_cast<size_t>(rows) * CBT1_ROW_SIZE;
+  const long long file_mtime_ns =
+      (static_cast<long long>(st.st_mtim.tv_sec) * 1000000000LL
+       + static_cast<long long>(st.st_mtim.tv_nsec));
+
+  // Validation cache lookup: skip the full pass iff a sidecar from a
+  // previous full validation matches (version, size, mtime_ns, row count,
+  // header-claimed payload checksum) and carries a sha256 identity.
+  const std::map<std::string, std::string> cache =
+      read_kv_file(path + ".cache");
+  auto cfield = [&](const char *k) {
+    auto it = cache.find(k);
+    return it == cache.end() ? std::string() : it->second;
+  };
+  char mtime_text[32], fnv_text[17];
+  std::snprintf(mtime_text, sizeof(mtime_text), "%lld", file_mtime_ns);
+  std::snprintf(fnv_text, sizeof(fnv_text), "%016llx",
+                static_cast<unsigned long long>(stored_payload_fnv));
+  const bool cache_hit =
+      cfield("cbt1 validation cache version") == "1"
+      && cfield("file bytes") == std::to_string(size)
+      && cfield("mtime ns") == mtime_text
+      && cfield("row count") == std::to_string(rows)
+      && cfield("payload fnv1a64") == fnv_text
+      && !cfield("file sha256").empty();
+
+  std::string sha_hex;
+  if (cache_hit) {
+    sha_hex = cfield("file sha256");
+  } else {
+    if (fnv1a_bytes(payload, payload_bytes) != stored_payload_fnv)
+      return reject("payload checksum mismatch");
+    for (uint64_t i = 1; i < rows; ++i) {
+      if (std::memcmp(payload + i * CBT1_ROW_SIZE,
+                      payload + (i - 1) * CBT1_ROW_SIZE, 33) < 0) {
+        std::fprintf(stderr,
+                     "[E] table binary %s: keys not sorted ascending at row "
+                     "%llu (reject)\n",
+                     path.c_str(), static_cast<unsigned long long>(i));
+        ::munmap(base, size);
+        return 2;
+      }
+    }
+    // Record the file identity for the sidecar (sha256 over all bytes).
+    uint8_t digest[32];
+    if (sha256_file(path.c_str(), digest)) {
+      char hex[65];
+      for (int i = 0; i < 32; ++i)
+        std::snprintf(hex + 2 * i, 3, "%02x", digest[i]);
+      sha_hex = hex;
+      char unix_text[32];
+      std::snprintf(unix_text, sizeof(unix_text), "%lld",
+                    static_cast<long long>(std::time(nullptr)));
+      write_cache_sidecar(path + ".cache",
+          std::string("cbt1 validation cache version: 1\n")
+          + "file bytes: " + std::to_string(size) + "\n"
+          + "mtime ns: " + mtime_text + "\n"
+          + "row count: " + std::to_string(rows) + "\n"
+          + "payload fnv1a64: " + fnv_text + "\n"
+          + "file sha256: " + sha_hex + "\n"
+          + "validated unix: " + unix_text + "\n");
+    } else {
       std::fprintf(stderr,
-                   "[E] table binary %s: keys not sorted ascending at row "
-                   "%llu (reject)\n",
-                   path.c_str(), static_cast<unsigned long long>(i));
-      ::munmap(base, size);
-      return 2;
+                   "[W] table binary %s: sha256 failed, no validation cache "
+                   "written (every start will re-validate)\n", path.c_str());
     }
   }
   table_map.base = static_cast<const unsigned char *>(base);
   table_map.size = size;
   file_rows = payload;
   file_row_count = rows;
-  // Validation touched every payload page; drop them from the working set
-  // so the scan re-faults pages on demand (read-only mapping faults back
-  // from the file). Keeps RSS at the scan working set, not the file size.
+  file_payload_fnv = stored_payload_fnv;
+  file_bytes = size;
+  // Full validation touched every payload page; drop them from the working
+  // set so the scan re-faults pages on demand (read-only mapping faults
+  // back from the file). On a cache hit no payload page was faulted, the
+  // madvise is a harmless no-op there.
   ::madvise(const_cast<unsigned char *>(table_map.base), table_map.size,
             MADV_DONTNEED);
   std::cout << "  table binary file: " << path << " (" << rows
-            << " rows, payload giant_grid, 65 B/row, checksum + sortedness"
-            << " validated)\n"
+            << " rows, payload giant_grid, 65 B/row)\n"
+            << "  table binary validation: "
+            << (cache_hit
+                    ? "cache hit (size+mtime bound to full pass, sha256 "
+                          + sha_hex.substr(0, 16) + "...)"
+                    : "full pass (payload FNV + sortedness, sha256 "
+                          "-> sidecar)")
+            << "\n"
             << "  table binary H: " << get_u64be(h + 56)
             << "  rows/head(source): " << get_u32be(h + 72) << "\n";
   if (stride != rows) {
@@ -1568,7 +1679,8 @@ void usage(const char *name) {
       "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
       "      --canonical-k3   store one canonical row per C6 orbit: scalar min(k, n-k) over lambda^r*k (requires --glv-orbit)\n"
       "      --table-scalars FILE  build baby rows from explicit hex scalars, one per line (requires --glv-orbit)\n"
-      "      --table-binary FILE  mmap a CBT1 canonical table as the table backend (payload giant_grid)\n"
+      "      --table-binary FILE  mmap a CBT1 canonical table as the table backend (payload giant_grid;\n"
+      "                          full validation cached in FILE.cache, keyed by sha256+mtime)\n"
       "      --dump-table-binary FILE  write the built table as a CBT1 file (65 B/row, sorted, checksummed)\n"
       "      --partner-table  exact-verify out-of-interval orbit branches (requires --glv-orbit)\n"
       "      --lambda-priority order local slices by the Lambda triangle, then fallback\n"
@@ -2024,9 +2136,22 @@ int main(int argc, char **argv) {
   };
 
   if (automatic_coverage) {
+    // Plan-table binding: RAM mode binds the scalars file path; CBT1 file
+    // mode binds the exact table identity (path, size, row count == giant
+    // stride, validated payload checksum). A checkpoint written against
+    // one table never resumes against a different one.
+    std::string table_identity = table_scalars_path;
+    if (file_rows != nullptr) {
+      char fnv_hex[17];
+      std::snprintf(fnv_hex, sizeof(fnv_hex), "%016llx",
+                    static_cast<unsigned long long>(file_payload_fnv));
+      table_identity = "cbt1|" + table_binary_path + "|"
+          + std::to_string(file_bytes) + "|" + std::to_string(file_row_count)
+          + "|" + fnv_hex;
+    }
     const std::string plan_fingerprint = cover_fingerprint(
         target_hex, start_text, range_size, cover_start_text,
-        cover_size_text, segment_size, table_scalars_path, glv_orbit_mode,
+        cover_size_text, segment_size, table_identity, glv_orbit_mode,
         phase_signature, partner_table_mode, canonical_k3_mode,
         lambda_priority);
     Int source_start(&cover_start);

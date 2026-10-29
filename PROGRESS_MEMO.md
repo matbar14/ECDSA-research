@@ -2069,3 +2069,98 @@ steady RSS            254 MB  vs 473.8 MB   0.54x
    ALL PASS подтверждён и на 100k (включая reject-политику, 6 мутаций).
 3. По мере накопления сценариев - релизная цепочка make_expanded ->
    run_cbt1_build -> validate как один запуск (сейчас три скрипта).
+
+
+## 30.10 (ночь, II): file-mode в long-cover, кеш валидации, эквивалентность трёх источников
+
+Весь блок по плану: fingerprint поля -> sha256+mtime-кеш -> 5 тестов ->
+--table-binary в long-cover -> 100k equivalence -> H=4M long-cover.
+Движок пересобран; все артефакты в репозитории.
+
+### (1) Fingerprint: план привязан к таблице
+
+`cover_fingerprint` получает table_identity: RAM-режим - путь
+scalars-файла (как раньше); CBT1-режим - "cbt1|path|size|row_count|
+payload_fnv64" (payload FNV берётся из заголовка, уже покрытого header
+FNV). Чекпоинт, написанный против одной таблицы, не резюмируется против
+другой: exit 2 "checkpoint belongs to a different plan". row_count в
+идентичности закрывает и смену стрида.
+
+### (2) Кеш валидации: sha256 + mtime sidecar
+
+Полная валидация CBT1 (payload FNV по всем байтам + sortedness по всем
+строкам) - это последовательное чтение всего файла на КАЖДЫЙ старт
+(260 MB на 4M). Sidecar "<table>.cache" (атомарная запись) связывает
+вердикт с байтами: version, file bytes, mtime_ns, row count, payload
+fnv1a64, file sha256, validated unix. Заголовок (magic, версия, размеры,
+параметры кривой, header FNV, row_count vs размер) валидируется ВСЕГДА -
+кешуется только дорогой проход по payload. Любое изменение контента
+переписывает mtime -> miss -> полный проход (битый файл отвергается
+там же, протухший пропуск невозможен); sha256 фиксирует, каким именно
+байтам принадлежит вердикт. Угроза - случайная порча, не противник
+(тот, кто правит таблицу, может править и sidecar).
+
+Замер старта сессии на 4M (cbt1_cache_timing.py): полный проход с диска
+8.3 c; полный проход при тёплом page cache 1.6 c; кеш-хит - ВСЯ сессия
+(загрузка + восстановление цели) 0.03 c. Цена sidecar: один sha256-
+проход по тёплым страницам при первой валидации.
+
+### (3) Пять тестов (keyhunt/test_cbt1_cache.py) - ALL PASS
+
+[1] full pass -> sidecar -> cache hit на втором старте, k бит-в-бит;
+[2] utime -> miss -> полный проход, sidecar обновлён с новым mtime;
+[3] битый payload при свежем mtime -> reject "payload checksum" (кеш
+    не может пропустить битый файл);
+[4] resume с ДРУГОЙ валидной CBT1 (иные байты, пересчитанные обе
+    checksum'ы) -> "different plan" reject; resume с той же таблицей ->
+    accepted (already-recovered путь);
+[5] контракт sidecar: sha256 == реальный дайджест файла, row count /
+    file bytes / payload fnv согласованы с заголовком.
+Регрессии пересобранного движка: test_binary_table ALL PASS (включая
+все 6 reject-мутаций), test_canonical_k3 ALL PASS, test_partner_table
+ALL PASS.
+
+### (4) Эквивалентность трёх источников (keyhunt/equivalence_cover.py)
+
+План: 4 внешних chunk по G=300k гигантов (chunk = G*stride), цели в
+chunk 2 и chunk 3 (j в [1, H]), последняя точка покрытия, miss-цель вне
+покрытия. Три источника одной таблицы: in-memory (canonical-текст ->
+RAM-build), file (CBT1 mmap), resume (file + SIGKILL на границе chunk
+по poll чекпоинта + --resume). Прогнан на H=100k и H=4M - ALL PASS:
+
+  - k бит-в-бит во всех источниках на всех целях обоих масштабов;
+  - строгие счётчики бит-в-бит: invariant hits, search hits, orbit
+    factors scheduled, exact candidate checks, partner recoveries,
+    merged rows, insert collisions, giant steps planned;
+  - гигант-шаги бит-в-бит на miss-плане: полный проход (chunks+1)*G =
+    1,500,000 шагов точно во всех трёх источниках, оба масштаба;
+  - на found-целях «giant steps» зависят от планировщика: второй поток
+    успевает доделать свой хвост на десятки-сотни шагов после попадания
+    (наблюдалось 1194970-1200000 на одной и той же last-цели) - это
+    величина момента остановки, не семантика поиска; семантика
+    закреплена строгими счётчиками и k;
+  - цепочка чекпоинта: found=0 в убитой сессии, "chunks completed
+    before this session" == чанкам убитой сессии, found=1 в финальной;
+  - EC-суммы не сравниваются по конструкции: build-EC есть в RAM-режиме
+    (4M умножений), в file-mode равен 0.
+
+Методологическая заметка: полный проход cover-плана стоит
+(chunks+1)*G шагов - исходный интервал [--size] сканируется как
+fallback ПОСЛЕ cover-цикла (в miss-прогоне: 4 chunk + 1 исходный
+интервал). Артефакты: equivalence_100k.json, equivalence_4m.json.
+
+### (5) Критерий готовности
+
+Эквивалентность трёх источников (in-memory, файл, resume с чекпоинта)
+даёт бит-в-бит совпадение k и search_hits на 100k и на 4M - путь готов
+к длинному прогону в file-mode.
+
+### Дальше (v2)
+
+1. SoA-раскладка CBT1 (payload_kind=2): ключи 33 Б/строку в отдельной
+   непрерывной зоне (4M x 33 = 132 MB против 260 MB сейчас), скаляры -
+   отдельной. Бинарный поиск трогает только ключи -> рабочий множитель
+   скана вдвое меньше (~254 -> ~130 MB RSS на 4M), скаляр читается
+   только на hit. Загрузчик v1 сохраняется (обратная совместимость).
+2. Длинный прогон покрытия в file-mode на CBT1 4M: release-сценарии
+   long_cover_validation (kill/resume-цепочки) поверх --table-binary.

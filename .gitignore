@@ -31,3 +31,6 @@ keyhunt/cp_*.txt
 # --- CBT1 regenerable artifacts (deterministic: make_expanded -> run_cbt1_build) ---
 table_cbt1_*.cbt1
 keyhunt/fnv1a64_tool
+
+# --- CBT1 validation sidecars ---
+*.cbt1.cache
