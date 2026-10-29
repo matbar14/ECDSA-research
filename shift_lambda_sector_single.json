@@ -1,0 +1,19 @@
+{
+  "source_start": 4096,
+  "source_width": 1000,
+  "covered_start": 1,
+  "covered_width": 100,
+  "sectors": 16,
+  "shift_count": 1,
+  "shifts": [
+    0
+  ],
+  "scalar_coverage_fraction": 0.0,
+  "triangle_sector_hit_fraction": 0.0,
+  "triangle_hit_baseline_per_window": 0.1875,
+  "minimum_inside_shifts_per_key": 0,
+  "maximum_inside_shifts_per_key": 0,
+  "point_identity_failures": 0,
+  "verification_samples": 32,
+  "seed": 20260926
+}

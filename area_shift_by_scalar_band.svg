@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="350" viewBox="0 0 820 350" role="img" aria-labelledby="title description">
+  <title id="title">Средняя площадь Lambda-треугольника по полосам скаляра</title>
+  <desc id="description">Точки показывают условные средние площади, вертикальные отрезки -- стандартные ошибки. Пунктирная линия -- среднее по всей выборке.</desc>
+  <style>
+    .title { font: 600 16px sans-serif; fill: #18212b; }
+    .label { font: 12px sans-serif; fill: #425466; }
+    .axis { stroke: #607586; stroke-width: 1; }
+    .reference { stroke: #be185d; stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .error { stroke: #0f766e; stroke-width: 1.5; }
+    .mean { fill: #0f766e; }
+  </style>
+  <rect width="820" height="350" fill="#ffffff" />
+  <text x="72" y="24" class="title">Средняя площадь по полосам нормированной высоты k</text>
+  <line x1="72" y1="42" x2="72" y2="288" class="axis" />
+  <line x1="72" y1="288" x2="786" y2="288" class="axis" />
+  <line x1="72" y1="183.62" x2="786" y2="183.62" class="reference" />
+  <text x="62" y="177.62" text-anchor="end" class="label">0.476723</text>
+  <line x1="116.62" y1="171.72" x2="116.62" y2="259.62" class="error" /><line x1="111.62" y1="171.72" x2="121.62" y2="171.72" class="error" /><line x1="111.62" y1="259.62" x2="121.62" y2="259.62" class="error" /><circle cx="116.62" cy="215.67" r="4" class="mean" /><line x1="205.88" y1="105.09" x2="205.88" y2="194.53" class="error" /><line x1="200.88" y1="105.09" x2="210.88" y2="105.09" class="error" /><line x1="200.88" y1="194.53" x2="210.88" y2="194.53" class="error" /><circle cx="205.88" cy="149.81" r="4" class="mean" /><line x1="295.12" y1="70.38" x2="295.12" y2="159.66" class="error" /><line x1="290.12" y1="70.38" x2="300.12" y2="70.38" class="error" /><line x1="290.12" y1="159.66" x2="300.12" y2="159.66" class="error" /><circle cx="295.12" cy="115.02" r="4" class="mean" /><line x1="384.38" y1="165.69" x2="384.38" y2="253.06" class="error" /><line x1="379.38" y1="165.69" x2="389.38" y2="165.69" class="error" /><line x1="379.38" y1="253.06" x2="389.38" y2="253.06" class="error" /><circle cx="384.38" cy="209.38" r="4" class="mean" /><line x1="473.62" y1="159.61" x2="473.62" y2="249.84" class="error" /><line x1="468.62" y1="159.61" x2="478.62" y2="159.61" class="error" /><line x1="468.62" y1="249.84" x2="478.62" y2="249.84" class="error" /><circle cx="473.62" cy="204.73" r="4" class="mean" /><line x1="562.88" y1="167.76" x2="562.88" y2="256.65" class="error" /><line x1="557.88" y1="167.76" x2="567.88" y2="167.76" class="error" /><line x1="557.88" y1="256.65" x2="567.88" y2="256.65" class="error" /><circle cx="562.88" cy="212.20" r="4" class="mean" /><line x1="652.12" y1="140.03" x2="652.12" y2="230.65" class="error" /><line x1="647.12" y1="140.03" x2="657.12" y2="140.03" class="error" /><line x1="647.12" y1="230.65" x2="657.12" y2="230.65" class="error" /><circle cx="652.12" cy="185.34" r="4" class="mean" /><line x1="741.38" y1="132.25" x2="741.38" y2="221.39" class="error" /><line x1="736.38" y1="132.25" x2="746.38" y2="132.25" class="error" /><line x1="736.38" y1="221.39" x2="746.38" y2="221.39" class="error" /><circle cx="741.38" cy="176.82" r="4" class="mean" />
+  <text x="116.62" y="320" text-anchor="middle" class="label">0</text><text x="205.88" y="320" text-anchor="middle" class="label">1</text><text x="295.12" y="320" text-anchor="middle" class="label">2</text><text x="384.38" y="320" text-anchor="middle" class="label">3</text><text x="473.62" y="320" text-anchor="middle" class="label">4</text><text x="562.88" y="320" text-anchor="middle" class="label">5</text><text x="652.12" y="320" text-anchor="middle" class="label">6</text><text x="741.38" y="320" text-anchor="middle" class="label">7</text>
+  <text x="410.00" y="342" text-anchor="middle" class="label">полоса k</text>
+  <text x="14" y="175.00" transform="rotate(-90 14 175.00)" text-anchor="middle" class="label">площадь S(kG)</text>
+</svg>

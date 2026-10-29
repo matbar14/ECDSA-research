@@ -1,0 +1,25 @@
+# --- build artifacts ---
+keyhunt/eng_bsgs
+keyhunt/keyhunt
+keyhunt/keyhunt_legacy
+keyhunt/bsgsd
+keyhunt/*.o
+keyhunt/*/*.o
+keyhunt/**/*.o
+
+# --- temporary / cache ---
+*.bin.temporary
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+*~
+
+# --- local scratch docs ---
+Пустой документ*
+Несохранённый документ*
+
+# --- secrets / env ---
+.env
+*.token
+*_token.txt

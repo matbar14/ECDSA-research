@@ -1,0 +1,17 @@
+{
+  "source_start": 4096,
+  "source_width": 1000,
+  "covered_start": 1,
+  "covered_width": 100,
+  "sectors": 16,
+  "shift_count": 10,
+  "scalar_coverage_fraction": 1.0,
+  "all_shift_full_candidates": 1000000,
+  "all_shift_vertex_candidates": 195216,
+  "all_shift_candidate_fraction": 0.195216,
+  "true_shift_full_candidates": 100000,
+  "true_shift_vertex_candidates": 19600,
+  "true_shift_candidate_fraction": 0.196,
+  "true_shift_recall": 0.23,
+  "missed_keys": 770
+}

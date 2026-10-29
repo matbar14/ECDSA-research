@@ -1,0 +1,28 @@
+{
+  "source_start": 4096,
+  "source_width": 1000,
+  "covered_start": 1,
+  "covered_width": 100,
+  "shift_count": 10,
+  "shifts": [
+    -4095,
+    -4195,
+    -4295,
+    -4395,
+    -4495,
+    -4595,
+    -4695,
+    -4795,
+    -4895,
+    -4995
+  ],
+  "covered_keys": 1000,
+  "uncovered_keys": 0,
+  "coverage_fraction": 1.0,
+  "minimum_hits_per_key": 1,
+  "maximum_hits_per_key": 1,
+  "point_identity_failures": 0,
+  "recovery_failures": 0,
+  "verification_samples": 32,
+  "seed": 20260926
+}

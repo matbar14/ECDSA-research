@@ -1,0 +1,55 @@
+{
+  "parameters": {
+    "trials": 1500,
+    "window": 65536,
+    "m": 0,
+    "seed": 20261029,
+    "json": "phase_signature_135bit.json"
+  },
+  "window_mode": {
+    "trials": 1495,
+    "bucket_matches": 1495,
+    "routes": {
+      "0": 1495,
+      "1": 0,
+      "2": 0
+    },
+    "anomalies": 0,
+    "routed_correctly": 1495,
+    "factor_checks_baseline": 1495,
+    "factor_checks_signature": 1495,
+    "recoveries": 1495,
+    "sig_seconds": 0.09206155101219338,
+    "baseline_seconds": 0.0018114800113835372,
+    "mean_sig_ms": 0.061579632784075834,
+    "mean_baseline_ms": 0.0012116923153067138,
+    "window": {
+      "start": "0x4000000000000000000000000000000000",
+      "width": 65536,
+      "baby_rows": 257,
+      "table_entries": 256
+    }
+  },
+  "orbit_mode": {
+    "trials": 1500,
+    "routes": {
+      "0": 498,
+      "1": 499,
+      "2": 503
+    },
+    "anomalies": 0,
+    "route_correct": 1500,
+    "candidate_reduction_checked": 1500,
+    "candidate_reduction_ok": 1500,
+    "neg_partner_same_x": 1500,
+    "sig_seconds": 0.09318566599449696,
+    "mean_sig_ms": 0.06212377732966464,
+    "degenerate_signatures": 0,
+    "baby_rows": 1000
+  },
+  "constants": {
+    "beta": "0x7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee",
+    "lambda": "0x5363ad4cc05c30e0a5261c028812645a122e22ea20816678df02967c1b23bd72",
+    "lambda2": "0xac9c52b33fa3cf1f5ad9e3fd77ed9ba4a880b9fc8ec739c2e0cfc810b51283ce"
+  }
+}
