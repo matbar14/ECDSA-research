@@ -49,11 +49,11 @@ SEED = 20261104
 
 COUNTER_KEYS = (
     "giant steps", "giant steps scheduled", "giant steps planned",
-    "invariant hits", "search hits", "build hits",
+    "invariant hits", "search hits", "merged rows", "insert collisions",
     "exact candidate checks", "orbit factors scheduled",
     "EC scalar multiplications", "EC scalar multiplications (build)",
     "EC point additions", "total EC operations",
-    "canonical rows merged", "orbit duplicate rows skipped",
+    "orbit duplicate rows skipped",
     "partner recoveries", "raw baby rows built", "unique baby rows built",
     "duplicate baby keys",
 )
@@ -163,14 +163,19 @@ def verdict(results, expect_scalar):
         bad.append(f"giant stride lines {strides} != {{{STRIDE}}}")
     mode = results.get("design", {}).get("mode", "canonical")
     if mode == "merge":
-        # build hits == canonical rows merged (pre-pass drop of 1.2M -> 400k)
-        merged = last["counters"].get("canonical rows merged", 0)
-        bhits = last["counters"].get("build hits", 0)
-        if bhits != merged or merged != 2 * STRIDE:
-            bad.append(f"merge accounting: build hits {bhits} != merged "
-                       f"{merged} (expected {2 * STRIDE})")
-    elif last["counters"].get("build hits", 0) != 0:
-        bad.append("build hits != 0 on a canonical file")
+        # merged rows == 2 per head (3-row expanded file folds to 1 canonical
+        # row per head); insert collisions must stay 0 on full C6 orbits.
+        merged = last["counters"].get("merged rows", 0)
+        collisions = last["counters"].get("insert collisions", -1)
+        if merged != 2 * STRIDE:
+            bad.append(f"merge accounting: merged rows {merged} "
+                       f"(expected {2 * STRIDE})")
+        if collisions != 0:
+            bad.append(f"insert collisions {collisions} != 0")
+    elif last["counters"].get("merged rows", 0) != 0:
+        bad.append("merged rows != 0 on a canonical file")
+    if last["counters"].get("insert collisions", 0) != 0:
+        bad.append("insert collisions != 0 on a canonical file")
     if last["counters"].get("search hits", 0) < 1:
         bad.append("search hits < 1 at TTS")
     scans = [s for s in sessions if s["timing"].get("giant search seconds", 0) > 60]
@@ -317,7 +322,7 @@ def main():
               f"search {session['timing'].get('giant search seconds', 0):.1f}s, "
               f"samples {len(session['progress samples'])}, "
               f"search hits {session['counters'].get('search hits')}, "
-              f"build hits {session['counters'].get('build hits')}",
+              f"merged rows {session['counters'].get('merged rows')}",
               flush=True)
 
     sessions = results["sessions"]

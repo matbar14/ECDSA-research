@@ -12,11 +12,15 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <malloc.h>
 #include <fcntl.h>
 #include <fstream>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <ctime>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <getopt.h>
 #include <iostream>
 #include <limits>
@@ -54,20 +58,50 @@ std::atomic<uint64_t> giant_steps{0};
 std::atomic<uint64_t> giant_steps_scheduled{0};
 std::atomic<uint64_t> giant_steps_planned{0};
 std::atomic<uint64_t> invariant_hits{0};
-// Hit accounting split by phase - comparable across table modes and
-// kill/resume cycles (each mode previously named its build collisions
-// differently: canonical rows merged / duplicate baby keys).
-//   build_hits  - key collisions absorbed while BUILDING the table
-//                 (session-pure, never restored by --resume);
-//   search_hits - giant-scan bucket matches, one per matched giant
-//                 position regardless of bucket row count (restored by
-//                 --resume, cumulative across sessions);
+// Build/search accounting split - comparable across table modes and
+// kill/resume cycles. Names state what each counter actually counts:
+//   merged_rows       - input rows folded into an existing row while
+//                       BUILDING the table (orbit collapse: equal canonical
+//                       scalar or equal K3 key). Expected by construction,
+//                       not a search event: 2 per head on a 3-row expanded
+//                       file, 0 on a canonical file and on the continuous
+//                       window. Session-pure, never restored by --resume.
+//   insert_collisions - rows whose K3 key equals an existing row's key but
+//                       whose stored scalar differs - a genuine cross-orbit
+//                       collision. Must stay 0 on full C6 orbits (equal K3
+//                       key implies exactly one orbit); nonzero means a
+//                       broken invariant: the row is dropped and stderr
+//                       warns. Detectable only in --canonical-k3 mode,
+//                       where the stored scalar is the orbit minimum.
+//   search_hits       - giant-scan bucket matches, one per matched giant
+//                       position regardless of bucket row count (restored
+//                       by --resume, cumulative across sessions).
 //   invariant_hits stays the legacy row-level counter.
-std::atomic<uint64_t> build_hits{0};
+std::atomic<uint64_t> merged_rows{0};
+std::atomic<uint64_t> insert_collisions{0};
 std::atomic<uint64_t> search_hits{0};
 // Giant steps restored from the checkpoint by --resume; subtracted from
 // the cumulative counter so steps/s rates stay per-session honest.
 std::atomic<uint64_t> restored_giant_steps{0};
+// Phase-granular RSS timeline (kB). External progress samples every 60 s
+// miss malloc transients (glibc mmap blocks are freed and returned to the
+// OS before the first sample), so the build phases sample VmRSS at their
+// boundaries and VmHWM (high-water mark) records the true peak so far.
+// current_rss_kb() is defined next to the progress ticker; VmHWM here.
+static long peak_rss_kb() {
+  FILE *f = std::fopen("/proc/self/status", "r");
+  if (!f) return -1;
+  char line[256];
+  long hwm = -1;
+  while (std::fgets(line, sizeof(line), f)) {
+    if (std::sscanf(line, "VmHWM: %ld kB", &hwm) == 1) break;
+  }
+  std::fclose(f);
+  return hwm;
+}
+static long rss_after_load_kb = 0, hwm_after_load_kb = 0;
+static long rss_after_prepass_kb = 0, hwm_after_prepass_kb = 0;
+static long rss_after_build_kb = 0, hwm_after_build_kb = 0;
 std::atomic<uint64_t> exact_candidate_checks{0};
 std::atomic<uint64_t> orbit_factor_checks{0};
 std::atomic<uint64_t> signature_routes{0};
@@ -75,7 +109,6 @@ std::atomic<uint64_t> signature_anomalies{0};
 std::atomic<uint64_t> orbit_duplicate_rows{0};
 std::atomic<uint64_t> signature_pair_collapses{0};
 std::atomic<uint64_t> signature_pair_mismatches{0};
-std::atomic<uint64_t> canonical_rows_merged{0};
 std::atomic<uint64_t> partner_recoveries{0};
 // Honest EC accounting: every scalar multiplication (ComputePublicKey) and
 // every real point addition (add_safe with both operands non-zero) counts
@@ -562,7 +595,16 @@ void finalize_table(size_t raw_count) {
     size_t w = 0;
     for (size_t i = 0; i < raw_count; ++i) {
       if (w > 0 && shared_table[i].key == shared_table[w - 1].key) {
-        canonical_rows_merged.fetch_add(1, std::memory_order_relaxed);
+        // Equal K3 key: same orbit when the stored scalars agree (they are
+        // orbit minima here), a genuine cross-orbit collision otherwise.
+        if (std::memcmp(shared_scalars[i].data(),
+                        shared_scalars[w - 1].data(), 32) != 0) {
+          insert_collisions.fetch_add(1, std::memory_order_relaxed);
+          std::fprintf(stderr,
+                       "[W] insert collision: equal K3 key with a different "
+                       "stored scalar (row dropped)\n");
+        }
+        merged_rows.fetch_add(1, std::memory_order_relaxed);
         continue;
       }
       shared_table[w] = shared_table[i];
@@ -583,13 +625,256 @@ void finalize_table(size_t raw_count) {
   raw_baby_rows.store(static_cast<uint64_t>(raw_count),
                       std::memory_order_relaxed);
   baby_rows.store(unique, std::memory_order_relaxed);
-  // Build-phase hits: rows collapsed into an existing key at build time -
-  // the unified cross-mode name for canonical-merge collapses and
-  // duplicate baby keys alike. Accumulative: the --canonical-k3
-  // pre-pass adds its drops before the table build.
-  build_hits.fetch_add(raw_count > unique ? raw_count - unique : 0,
-                       std::memory_order_relaxed);
+  // Generic build-phase merges (duplicate keys): counted only outside the
+  // canonical path, where finalize_table already merged those rows above
+  // (raw_count - unique == compaction drops there; adding both would
+  // double-count one collapse).
+  if (!(glv_orbit_mode && canonical_k3_mode)) {
+    merged_rows.fetch_add(raw_count > unique ? raw_count - unique : 0,
+                          std::memory_order_relaxed);
+  }
   shared_baby_rows = final_count;
+}
+
+// ---------------- CBT1: canonical baby table, binary format v1 -------------
+// payload_kind 1 (giant_grid): rows of {K3 key: 33 B} + {canonical scalar:
+// 32 B}, 65 B/row, sorted ascending by key. The file is the serialized
+// search state of the in-RAM canonical table: the giant scan binary-searches
+// the mmap'd keys directly, so a cold start needs no build EC work and no
+// in-RAM table (RSS stays at the scan working set even at H=4M, where the
+// text loader would hold ~576 MB of Int vectors).
+// Header: 256 bytes, big-endian, fixed offsets:
+//    0 magic "CBT1" |  4 canonical_version |  8 payload_kind
+//   12 header_size  | 16 row_size         | 20 curve_id (1 = secp256k1)
+//   24 orbit_size(6)| 28 flags (bit0: keys sorted)
+//   32 row_count    | 40 stride           | 48 m | 56 H | 64 window
+//   72 rows_per_head_source | 76 reserved
+//   80 n (32 B) | 112 p (32 B) | 144 lambda (32 B)
+//  176 created_unix | 184..239 reserved
+//  240 payload_fnv1a64 | 248 header_fnv1a64 (bytes 0..247)
+// Reject policy: any mismatch (version, kind, sizes, curve params, checksums,
+// sortedness, row_count vs file size) exits with code 2 - never "read how
+// much there is". canonical_version future-proofs the format: a file written
+// by an older generator cannot silently load as a newer layout.
+static constexpr char CBT1_MAGIC[4] = {'C', 'B', 'T', '1'};
+static constexpr uint32_t CBT1_VERSION = 1;
+static constexpr uint32_t CBT1_PAYLOAD_GIANT_GRID = 1;
+static constexpr uint32_t CBT1_CURVE_SECP256K1 = 1;
+static constexpr uint32_t CBT1_HEADER_SIZE = 256;
+static constexpr uint32_t CBT1_ROW_SIZE = 65;
+static std::string table_binary_path;       // --table-binary (mmap load)
+static std::string dump_table_binary_path;  // --dump-table-binary (write)
+static const unsigned char *file_rows = nullptr;  // payload base (row 0)
+static uint64_t file_row_count = 0;
+
+struct MappedTable {
+  const unsigned char *base = nullptr;
+  size_t size = 0;
+  ~MappedTable() {
+    if (base) ::munmap(const_cast<unsigned char *>(base), size);
+  }
+};
+static MappedTable table_map;
+
+uint64_t fnv1a_bytes(const unsigned char *data, size_t n) {
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  for (size_t i = 0; i < n; ++i) {
+    hash ^= data[i];
+    hash *= 0x100000001b3ULL;
+  }
+  return hash;
+}
+
+void put_u32be(unsigned char *d, uint32_t v) {
+  d[0] = (unsigned char)(v >> 24); d[1] = (unsigned char)(v >> 16);
+  d[2] = (unsigned char)(v >> 8);  d[3] = (unsigned char)v;
+}
+
+void put_u64be(unsigned char *d, uint64_t v) {
+  for (int i = 0; i < 8; ++i) d[i] = (unsigned char)(v >> (56 - 8 * i));
+}
+
+uint32_t get_u32be(const unsigned char *d) {
+  return (uint32_t(d[0]) << 24) | (uint32_t(d[1]) << 16) |
+         (uint32_t(d[2]) << 8) | uint32_t(d[3]);
+}
+
+uint64_t get_u64be(const unsigned char *d) {
+  uint64_t v = 0;
+  for (int i = 0; i < 8; ++i) v = (v << 8) | d[i];
+  return v;
+}
+
+int load_table_binary(const std::string &path) {
+  int fd = ::open(path.c_str(), O_RDONLY);
+  if (fd < 0) {
+    std::fprintf(stderr, "[E] table binary: cannot open %s\n", path.c_str());
+    return 2;
+  }
+  struct stat st {};
+  if (::fstat(fd, &st) != 0 ||
+      st.st_size < static_cast<off_t>(CBT1_HEADER_SIZE)) {
+    std::fprintf(stderr, "[E] table binary: %s too small for a CBT1 header\n",
+                 path.c_str());
+    ::close(fd);
+    return 2;
+  }
+  const size_t size = static_cast<size_t>(st.st_size);
+  void *base = ::mmap(nullptr, size, PROT_READ, MAP_PRIVATE, fd, 0);
+  ::close(fd);
+  if (base == MAP_FAILED) {
+    std::fprintf(stderr, "[E] table binary: mmap failed for %s\n",
+                 path.c_str());
+    return 2;
+  }
+  const unsigned char *h = static_cast<const unsigned char *>(base);
+  auto reject = [&](const char *reason) {
+    std::fprintf(stderr, "[E] table binary %s: %s (reject)\n",
+                 path.c_str(), reason);
+    ::munmap(base, size);
+    return 2;
+  };
+  if (std::memcmp(h, CBT1_MAGIC, 4) != 0) return reject("bad magic");
+  const uint32_t version = get_u32be(h + 4);
+  if (version != CBT1_VERSION) {
+    std::fprintf(stderr,
+                 "[E] table binary %s: canonical_version %u != %u - the file "
+                 "was written by a different format generation\n",
+                 path.c_str(), version, CBT1_VERSION);
+    ::munmap(base, size);
+    return 2;
+  }
+  if (get_u32be(h + 8) != CBT1_PAYLOAD_GIANT_GRID)
+    return reject("unsupported payload_kind");
+  if (get_u32be(h + 12) != CBT1_HEADER_SIZE) return reject("header_size");
+  if (get_u32be(h + 16) != CBT1_ROW_SIZE) return reject("row_size");
+  if (get_u32be(h + 20) != CBT1_CURVE_SECP256K1) return reject("curve_id");
+  const uint64_t rows = get_u64be(h + 32);
+  const uint64_t stride = get_u64be(h + 40);
+  if (rows == 0) return reject("row_count is zero");
+  if (CBT1_HEADER_SIZE + rows * CBT1_ROW_SIZE != size ||
+      (size - CBT1_HEADER_SIZE) / CBT1_ROW_SIZE != rows)
+    return reject("row_count does not match file size");
+  alignas(8) unsigned char expect[32];
+  curve.order.Get32Bytes(expect);
+  if (std::memcmp(h + 80, expect, 32) != 0)
+    return reject("group order mismatch");
+  curve.P.Get32Bytes(expect);
+  if (std::memcmp(h + 112, expect, 32) != 0)
+    return reject("field prime mismatch");
+  glv_lambda.Get32Bytes(expect);
+  if (std::memcmp(h + 144, expect, 32) != 0)
+    return reject("GLV lambda mismatch");
+  if (fnv1a_bytes(h, 248) != get_u64be(h + 248))
+    return reject("header checksum mismatch");
+  const unsigned char *payload = h + CBT1_HEADER_SIZE;
+  if (fnv1a_bytes(payload, static_cast<size_t>(rows) * CBT1_ROW_SIZE) !=
+      get_u64be(h + 240))
+    return reject("payload checksum mismatch");
+  for (uint64_t i = 1; i < rows; ++i) {
+    if (std::memcmp(payload + i * CBT1_ROW_SIZE,
+                    payload + (i - 1) * CBT1_ROW_SIZE, 33) < 0) {
+      std::fprintf(stderr,
+                   "[E] table binary %s: keys not sorted ascending at row "
+                   "%llu (reject)\n",
+                   path.c_str(), static_cast<unsigned long long>(i));
+      ::munmap(base, size);
+      return 2;
+    }
+  }
+  table_map.base = static_cast<const unsigned char *>(base);
+  table_map.size = size;
+  file_rows = payload;
+  file_row_count = rows;
+  // Validation touched every payload page; drop them from the working set
+  // so the scan re-faults pages on demand (read-only mapping faults back
+  // from the file). Keeps RSS at the scan working set, not the file size.
+  ::madvise(const_cast<unsigned char *>(table_map.base), table_map.size,
+            MADV_DONTNEED);
+  std::cout << "  table binary file: " << path << " (" << rows
+            << " rows, payload giant_grid, 65 B/row, checksum + sortedness"
+            << " validated)\n"
+            << "  table binary H: " << get_u64be(h + 56)
+            << "  rows/head(source): " << get_u32be(h + 72) << "\n";
+  if (stride != rows) {
+    std::cout << "  table binary stride field: " << stride
+              << " (row_count " << rows << " wins as the giant stride)\n";
+  }
+  return 0;
+}
+
+int dump_table_binary(const std::string &path) {
+  const size_t rows = shared_table.size();
+  if (rows == 0 || rows != shared_scalars.size()) {
+    std::fprintf(stderr,
+                 "[E] dump table binary: table/scalars size mismatch "
+                 "(%zu vs %zu)\n",
+                 rows, shared_scalars.size());
+    return 2;
+  }
+  std::vector<unsigned char> buf(CBT1_HEADER_SIZE +
+                                 rows * CBT1_ROW_SIZE);
+  unsigned char *h = buf.data();
+  std::memcpy(h, CBT1_MAGIC, 4);
+  put_u32be(h + 4, CBT1_VERSION);
+  put_u32be(h + 8, CBT1_PAYLOAD_GIANT_GRID);
+  put_u32be(h + 12, CBT1_HEADER_SIZE);
+  put_u32be(h + 16, CBT1_ROW_SIZE);
+  put_u32be(h + 20, CBT1_CURVE_SECP256K1);
+  put_u32be(h + 24, 6);            // orbit_size: full C6 GLV orbit
+  put_u32be(h + 28, 1);            // flags: keys sorted ascending
+  put_u64be(h + 32, rows);
+  put_u64be(h + 40, shared_baby_rows);  // giant stride == stored rows
+  put_u64be(h + 48, rows);              // m
+  put_u64be(h + 56, 0);                 // H unknown for a generic table
+  put_u64be(h + 64, 0);                 // window unknown
+  put_u32be(h + 72, 1);                 // canonical source rows/head
+  curve.order.Get32Bytes(h + 80);
+  curve.P.Get32Bytes(h + 112);
+  glv_lambda.Get32Bytes(h + 144);
+  put_u64be(h + 176, static_cast<uint64_t>(std::time(nullptr)));
+  unsigned char *payload = h + CBT1_HEADER_SIZE;
+  for (size_t i = 0; i < rows; ++i) {
+    unsigned char *row = payload + i * CBT1_ROW_SIZE;
+    std::memcpy(row, shared_table[i].key.data(), 33);
+    std::memcpy(row + 33, shared_scalars[i].data(), 32);
+    if (i > 0 && std::memcmp(row, row - CBT1_ROW_SIZE, 33) < 0) {
+      std::fprintf(stderr,
+                   "[E] dump table binary: table not sorted ascending at "
+                   "row %zu\n",
+                   i);
+      return 2;
+    }
+  }
+  put_u64be(h + 240, fnv1a_bytes(payload, rows * CBT1_ROW_SIZE));
+  put_u64be(h + 248, fnv1a_bytes(h, 248));
+  // Atomic write (tmp + fsync + rename), same discipline as checkpoints.
+  const std::string tmp = path + ".tmp";
+  int fd = ::open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (fd < 0) {
+    std::fprintf(stderr, "[E] dump table binary: cannot open %s\n",
+                 tmp.c_str());
+    return 2;
+  }
+  size_t off = 0;
+  while (off < buf.size()) {
+    ssize_t n = ::write(fd, buf.data() + off, buf.size() - off);
+    if (n <= 0) {
+      std::fprintf(stderr, "[E] dump table binary: write failed\n");
+      ::close(fd);
+      return 2;
+    }
+    off += static_cast<size_t>(n);
+  }
+  ::fsync(fd);
+  ::close(fd);
+  if (::rename(tmp.c_str(), path.c_str()) != 0) {
+    std::fprintf(stderr, "[E] dump table binary: rename failed\n");
+    return 2;
+  }
+  std::cout << "  dumped canonical table: " << path << " (" << rows
+            << " rows, " << buf.size() << " bytes, payload giant_grid)\n";
+  return 0;
 }
 
 // Per-row GLV payload: K3 key, 32-byte row scalar and (optionally) the phase
@@ -740,16 +1025,37 @@ void search_slice(uint64_t local_start, uint64_t local_size,
       std::array<unsigned char, 64> giant_sig{};
       bool giant_sig_ready = false;
 
+      // Table backend: in-RAM rows or CBT1 mmap rows (65 B stride = 33-byte
+      // key + 32-byte canonical scalar). Both are sorted ascending by key;
+      // memcmp order == unsigned lexicographic order of
+      // std::array<unsigned char, 33>, so one index-based binary search
+      // serves both backends.
+      const bool file_mode = file_rows != nullptr;
+      const size_t row_count = file_mode
+          ? static_cast<size_t>(file_row_count)
+          : shared_table.size();
+      auto row_key = [&](size_t idx) -> const unsigned char * {
+        return file_mode ? file_rows + idx * 65
+                         : shared_table[idx].key.data();
+      };
+
       for (uint64_t i = begin; i < end &&
                               !found.load(std::memory_order_relaxed); ++i) {
         giant_steps_scheduled.fetch_add(1, std::memory_order_relaxed);
         giant_steps.fetch_add(1, std::memory_order_relaxed);
         auto query_key = glv_orbit_mode ? invariant_key(giant) : point_key(giant);
-        auto it = std::lower_bound(shared_table.begin(), shared_table.end(), query_key,
-            [](const BabyRow &row, const std::array<unsigned char, 33> &needle) {
-              return row.key < needle;
-            });
-        if (it != shared_table.end() && it->key == query_key) {
+        auto key_matches = [&](size_t idx) -> bool {
+          return idx < row_count &&
+                 std::memcmp(row_key(idx), query_key.data(), 33) == 0;
+        };
+        size_t lo = 0, hi = row_count;
+        while (lo < hi) {
+          size_t mid = lo + (hi - lo) / 2;
+          if (std::memcmp(row_key(mid), query_key.data(), 33) < 0) lo = mid + 1;
+          else hi = mid;
+        }
+        size_t row_index = lo;
+        if (key_matches(row_index)) {
           // One search hit per matched giant position (bucket), independent
           // of how many rows the bucket holds - the cross-mode comparable
           // hit count.
@@ -762,7 +1068,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
         bool have_pair = false;
         Int pair_b;
         Int pair_neg_b;
-        while (it != shared_table.end() && it->key == query_key &&
+        while (key_matches(row_index) &&
                !found.load(std::memory_order_relaxed)) {
           if (glv_orbit_mode) {
             invariant_hits.fetch_add(1, std::memory_order_relaxed);
@@ -774,11 +1080,10 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               // In non-GLV mode rows give distinct candidates (base + j),
               // so no dedup is applied there.
               orbit_duplicate_rows.fetch_add(1, std::memory_order_relaxed);
-              ++it;
+              ++row_index;
               continue;
             }
           }
-          size_t row_index = static_cast<size_t>(it - shared_table.begin());
           Int candidate;
           uint64_t local_offset = 0;
           bool match = false;
@@ -787,11 +1092,17 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               // The six-branch set of this orbit was already checked; any
               // routed pair is a subset of it.
               orbit_duplicate_rows.fetch_add(1, std::memory_order_relaxed);
-              ++it;
+              ++row_index;
               continue;
             }
             Int row_scalar;
-            row_scalar.Set32Bytes(shared_scalars[row_index].data());
+            if (file_mode) {
+              row_scalar.Set32Bytes(
+                  const_cast<unsigned char *>(file_rows + row_index * 65 +
+                                              33));
+            } else {
+              row_scalar.Set32Bytes(shared_scalars[row_index].data());
+            }
             if (phase_signature) {
               if (!giant_sig_ready) {
                 giant_sig = phase_signature_of(giant);
@@ -824,7 +1135,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
                     // so the first row's exact check already covered them.
                     signature_pair_collapses.fetch_add(
                         1, std::memory_order_relaxed);
-                    ++it;
+                    ++row_index;
                     continue;
                   }
                   // Structural-invariant violation: verify defensively.
@@ -845,7 +1156,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
                                             local_offset);
             }
           } else {
-            uint64_t j = it->j;
+            uint64_t j = shared_table[row_index].j;
             local_offset = local_start + i * m + j;
             if (local_offset < local_start + local_size) {
               candidate.Set(&base_scalar);
@@ -883,7 +1194,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
           if (glv_orbit_mode) {
             bucket_checked = true;
           }
-          ++it;
+          ++row_index;
         }
         giant = add_safe(giant, neg_step);
         base_scalar.Add(&m_int);
@@ -1257,6 +1568,8 @@ void usage(const char *name) {
       "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
       "      --canonical-k3   store one canonical row per C6 orbit: scalar min(k, n-k) over lambda^r*k (requires --glv-orbit)\n"
       "      --table-scalars FILE  build baby rows from explicit hex scalars, one per line (requires --glv-orbit)\n"
+      "      --table-binary FILE  mmap a CBT1 canonical table as the table backend (payload giant_grid)\n"
+      "      --dump-table-binary FILE  write the built table as a CBT1 file (65 B/row, sorted, checksummed)\n"
       "      --partner-table  exact-verify out-of-interval orbit branches (requires --glv-orbit)\n"
       "      --lambda-priority order local slices by the Lambda triangle, then fallback\n"
       "      --lambda-sectors N number of local numeric slices (default 16)\n"
@@ -1288,6 +1601,8 @@ int main(int argc, char **argv) {
       {"partner-table", no_argument, nullptr, 'p'},
       {"canonical-k3", no_argument, nullptr, 'k'},
       {"table-scalars", required_argument, nullptr, 'S'},
+      {"table-binary", required_argument, nullptr, 'B'},
+      {"dump-table-binary", required_argument, nullptr, 'T'},
       {"cover-start", required_argument, nullptr, 'c'},
       {"cover-size", required_argument, nullptr, 'C'},
       {"checkpoint-file", required_argument, nullptr, 'x'},
@@ -1305,7 +1620,7 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:c:C:x:y:zR:Dh", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:B:T:c:C:x:y:zR:Dh", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
@@ -1320,6 +1635,8 @@ int main(int argc, char **argv) {
       case 'p': partner_table_mode = true; break;
       case 'k': canonical_k3_mode = true; break;
       case 'S': table_scalars_path = optarg; break;
+      case 'B': table_binary_path = optarg; break;
+      case 'T': dump_table_binary_path = optarg; break;
       case 'c': cover_start_text = optarg; break;
       case 'C': cover_size_text = optarg; break;
       case 'x': checkpoint_path = optarg; break;
@@ -1395,6 +1712,39 @@ int main(int argc, char **argv) {
   beta2.ModMulK1(&beta, &beta);
   glv_lambda.SetBase16("5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72");
   glv_lambda2.SetBase16("AC9C52B33FA3CF1F5AD9E3FD77ED9BA4A880B9FC8EC739C2E0CFC810B51283CE");
+  // --table-binary: mmap a CBT1 file as the table backend. Mutually
+  // exclusive with --table-scalars; requires --glv-orbit (the payload keys
+  // are K3 invariant keys). Phase-signature routing is unavailable in file
+  // mode (the payload carries keys and scalars, not row signatures), but the
+  // hit path degrades to the direct orbit check with checks/hit still 1.0.
+  if (!table_binary_path.empty()) {
+    if (!table_scalars_path.empty()) {
+      std::fprintf(stderr,
+                   "[E] --table-binary cannot be combined with --table-scalars\n");
+      return 2;
+    }
+    if (!dump_table_binary_path.empty()) {
+      std::fprintf(stderr,
+                   "[E] --table-binary cannot be combined with "
+                   "--dump-table-binary\n");
+      return 2;
+    }
+    if (!glv_orbit_mode) {
+      std::fprintf(stderr,
+                   "[E] --table-binary requires --glv-orbit (payload keys are "
+                   "K3 invariant keys)\n");
+      return 2;
+    }
+    int rc = load_table_binary(table_binary_path);
+    if (rc != 0) return rc;
+    if (phase_signature) {
+      std::fprintf(stderr,
+                   "[W] --table-binary has no row signatures: disabling "
+                   "phase-signature routing (hit path falls back to the "
+                   "direct orbit check)\n");
+      phase_signature = false;
+    }
+  }
   if (!parse_int(start_text, range_start)) {
     std::fprintf(stderr, "[E] start must be hexadecimal (0x...) or decimal\n");
     return 2;
@@ -1489,44 +1839,56 @@ int main(int argc, char **argv) {
       return 2;
     }
   }
+  rss_after_load_kb = current_rss_kb();
+  hwm_after_load_kb = peak_rss_kb();
 
   // --canonical-k3 + --table-scalars: direct canonical pass. Every input
   // scalar is canonicalized first (two order multiplications per scalar,
   // no EC work) and equal canonical scalars - exactly one orbit - are
   // deduped BEFORE any point is computed, so build cost and peak memory
   // follow the stored table, not the raw input list. One point per orbit
-  // instead of one point per input row; canonical_rows_merged counts input
+  // instead of one point per input row; merged_rows counts input
   // rows dropped before the first scalar multiplication.
   const uint64_t raw_table_scalars =
       table_scalars.empty() ? 0 : static_cast<uint64_t>(table_scalars.size());
   if (!table_scalars.empty() && glv_orbit_mode && canonical_k3_mode) {
-    size_t raw_input = table_scalars.size();
-    std::vector<Int> canon;
-    canon.reserve(raw_input);
+    const size_t raw_input = table_scalars.size();
+    // In-place canonical pass: canonicalize every input scalar (two order
+    // multiplications per scalar, no EC work), then sort+unique in the same
+    // buffer. The previous two-vector version (table_scalars + canon) held
+    // 2 x raw_input Ints and left the merged table living in a
+    // raw_input-capacity buffer after the swap - the whole +61 MB steady
+    // RSS tax of merge mode at H=400k. In-place + shrink_to_fit keeps the
+    // peak at one input buffer and the steady state at the stored table.
     for (Int &value : table_scalars) {
       int rotation_unused;
-      canon.push_back(canonical_orbit_scalar(value, rotation_unused));
+      value = canonical_orbit_scalar(value, rotation_unused);
     }
-    std::sort(canon.begin(), canon.end(), [](const Int &a, const Int &b) {
-      return const_cast<Int &>(a).IsLower(const_cast<Int *>(&b));
-    });
-    canon.erase(
-        std::unique(canon.begin(), canon.end(),
+    std::sort(table_scalars.begin(), table_scalars.end(),
+              [](const Int &a, const Int &b) {
+                return const_cast<Int &>(a).IsLower(const_cast<Int *>(&b));
+              });
+    table_scalars.erase(
+        std::unique(table_scalars.begin(), table_scalars.end(),
                     [](const Int &a, const Int &b) {
                       return const_cast<Int &>(a).IsEqual(const_cast<Int *>(&b));
                     }),
-        canon.end());
-    canonical_rows_merged.fetch_add(raw_input - canon.size(),
-                                    std::memory_order_relaxed);
-    // pre-pass drops are build-phase key collisions too (unified name)
-    build_hits.fetch_add(raw_input - canon.size(),
-                         std::memory_order_relaxed);
-    table_scalars.swap(canon);
+        table_scalars.end());
+    // Pre-pass drops: input rows folded into their orbit representative
+    // before any point is computed. Deterministic canonicalization makes
+    // these merges by construction - they are never search events.
+    merged_rows.fetch_add(raw_input - table_scalars.size(),
+                          std::memory_order_relaxed);
+    table_scalars.shrink_to_fit();
   }
+  rss_after_prepass_kb = current_rss_kb();
+  hwm_after_prepass_kb = peak_rss_kb();
 
   uint64_t segment_count = range_size / segment_size + (range_size % segment_size != 0);
   uint64_t m = table_scalars.empty()
-      ? ceil_sqrt_u64(std::min(segment_size, range_size))
+      ? (file_rows != nullptr
+             ? file_row_count
+             : ceil_sqrt_u64(std::min(segment_size, range_size)))
       : static_cast<uint64_t>(table_scalars.size());
   shared_baby_rows = m;
   std::cout << "Experimental bounded segmented BSGS\n"
@@ -1544,6 +1906,10 @@ int main(int argc, char **argv) {
   if (!table_scalars.empty()) {
     std::cout << "  table scalars file: " << table_scalars_path << " ("
               << table_scalars.size() << " rows)\n";
+  }
+  if (file_rows != nullptr) {
+    std::cout << "  table backend: mmap (CBT1 payload, no in-RAM table, "
+              << "no build EC work)\n";
   }
   std::cout << "  estimated shared table bytes: " << (m * sizeof(BabyRow)) << "\n"
             << "  table copies: 1 (read-only, shared by workers)\n";
@@ -1575,24 +1941,45 @@ int main(int argc, char **argv) {
   program_started = started;
   if (!table_scalars.empty()) {
     build_table_from_scalars(table_scalars);
+  } else if (file_rows != nullptr) {
+    // CBT1 file mode: the mmap payload IS the table. No build, no in-RAM
+    // rows; the giant scan binary-searches the file directly. The stride is
+    // the stored row count by construction (stride == merged rows).
+    m = file_row_count;
+    shared_baby_rows = m;
   } else {
     build_shared_table(m);
   }
   double table_seconds = std::chrono::duration<double>(
       std::chrono::steady_clock::now() - table_started).count();
+  rss_after_build_kb = current_rss_kb();
+  hwm_after_build_kb = peak_rss_kb();
+  // Return freed build transients (finalize_table sorted copies, the
+  // shrink_to_fit victim buffer) to the OS. glibc raises the mmap
+  // threshold after a large mmap'd block is freed, so those copies land in
+  // the arena and stay cached as resident pages (~30 MB at H=400k) - the
+  // printed RSS timeline should reflect live data, not allocator caching.
+  malloc_trim(0);
+  rss_after_build_kb = current_rss_kb();
   if (canonical_k3_mode) {
     std::cout << "  table rows stored: " << shared_baby_rows
-              << " (canonical merge removed "
-              << canonical_rows_merged.load() << ")\n";
+              << " (build merged rows " << merged_rows.load() << ")\n";
   }
   if (!table_scalars_path.empty()) {
     // Hard invariant behind "giant stride == post-merge rows": the stored
-    // table plus the rows dropped by the canonical pre-pass/merge must
-    // reconstruct the raw scalar file exactly. A mismatch would mean the
-    // giant plan strides a different grid than the table covers.
+    // table plus the rows merged away while building (pre-pass canonical
+    // drops + finalize_table compaction) must reconstruct the raw scalar
+    // file exactly. A mismatch would mean the giant plan strides a
+    // different grid than the table covers.
     const uint64_t stored = shared_baby_rows;
-    const uint64_t merged = canonical_rows_merged.load();
-    if (stored + merged != raw_table_scalars) {
+    const uint64_t merged = merged_rows.load();
+    // Canonical mode removes rows from the table (pre-pass dedup +
+    // finalize_table compaction), so raw == stored + merged. Non-canonical
+    // mode keeps every row (duplicate keys share a bucket), so nothing is
+    // removed and raw == stored; merged_rows there counts duplicate keys.
+    const uint64_t expected_raw =
+        canonical_k3_mode ? stored + merged : stored;
+    if (expected_raw != raw_table_scalars) {
       std::fprintf(stderr,
                    "[E] canonical stride accounting broken: stored %llu + "
                    "merged %llu != raw %llu input rows\n",
@@ -1603,6 +1990,17 @@ int main(int argc, char **argv) {
     }
     std::cout << "  giant stride (post-merge rows): " << stored << "\n"
               << std::flush;
+  } else if (file_rows != nullptr) {
+    // CBT1 file mode: stride == stored row_count by construction (the
+    // payload IS the post-merge table), asserted by the loader's
+    // row_count-vs-file-size check.
+    std::cout << "  giant stride (post-merge rows): " << shared_baby_rows
+              << "\n"
+              << std::flush;
+  }
+  if (!dump_table_binary_path.empty()) {
+    int rc = dump_table_binary(dump_table_binary_path);
+    if (rc != 0) return rc;
   }
 
   auto search_started = std::chrono::steady_clock::now();
@@ -1756,7 +2154,8 @@ int main(int argc, char **argv) {
             << "  giant steps scheduled: " << giant_steps_scheduled.load() << "\n"
             << "  invariant hits: " << invariant_hits.load() << "\n"
             << "  search hits: " << search_hits.load() << "\n"
-            << "  build hits: " << build_hits.load() << "\n"
+            << "  merged rows: " << merged_rows.load() << "\n"
+            << "  insert collisions: " << insert_collisions.load() << "\n"
             << "  orbit factors scheduled: " << orbit_factor_checks.load() << "\n"
             << "  exact candidate checks: " << exact_candidate_checks.load() << "\n"
             << "  EC scalar multiplications: " << total_mults << "\n"
@@ -1786,10 +2185,6 @@ int main(int argc, char **argv) {
   if (glv_orbit_mode) {
     std::cout << "  orbit duplicate rows skipped: "
               << orbit_duplicate_rows.load() << "\n";
-    if (canonical_k3_mode) {
-      std::cout << "  canonical rows merged: "
-                << canonical_rows_merged.load() << "\n";
-    }
     if (partner_table_mode) {
       std::cout << "  partner recoveries: "
                 << partner_recoveries.load() << "\n";
@@ -1797,6 +2192,14 @@ int main(int argc, char **argv) {
   }
   std::cout << "  giant steps planned: " << giant_steps_planned.load() << "\n"
             << "  table build seconds: " << table_seconds << "\n"
+            << "  RSS after table load: " << rss_after_load_kb
+            << " kB (peak " << hwm_after_load_kb << " kB)\n";
+  if (hwm_after_prepass_kb != 0) {
+    std::cout << "  RSS after canonical pre-pass: " << rss_after_prepass_kb
+              << " kB (peak " << hwm_after_prepass_kb << " kB)\n";
+  }
+  std::cout << "  RSS after table build: " << rss_after_build_kb
+            << " kB (peak " << hwm_after_build_kb << " kB)\n"
             << "  giant search seconds: " << search_seconds << "\n"
             << "  giant steps/second: "
             << (search_seconds > 0

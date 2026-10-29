@@ -66,7 +66,7 @@ COUNTERS = (
     "signature pair collapses",
     "signature pair mismatches",
     "orbit duplicate rows skipped",
-    "canonical rows merged",
+    "merged rows",
     "partner recoveries",
     "raw baby rows built",
     "unique baby rows built",
@@ -296,7 +296,7 @@ def main():
                 tp_entry = {
                     "table rows stored": rows_stored,
                     "unique baby keys": run["counters"].get("unique baby rows built"),
-                    "canonical rows merged": run["counters"].get("canonical rows merged", 0),
+                    "merged rows": run["counters"].get("merged rows", 0),
                     "giant steps": run["counters"].get("giant steps"),
                     "EC scalar multiplications": run["counters"].get("EC scalar multiplications"),
                     "EC point additions": run["counters"].get("EC point additions"),
@@ -365,7 +365,7 @@ def main():
                                     "signature anomalies (6-branch fallback)",
                                     "partner recoveries",
                                     "table rows stored",
-                                    "canonical rows merged")},
+                                    "merged rows")},
                         "search seconds": run["timing"].get("giant search seconds"),
                     }
                     runs.append(entry)

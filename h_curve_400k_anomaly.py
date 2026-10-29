@@ -87,7 +87,7 @@ def run_engine(binary, target, size, extra, threads):
         if m:
             timing[name] = float(m.group(1))
     counters = {}
-    for name in ("giant steps", "table rows stored", "canonical rows merged",
+    for name in ("giant steps", "table rows stored", "merged rows",
                  "raw baby rows built", "unique baby rows built",
                  "EC scalar multiplications", "EC point additions",
                  "total EC operations"):
@@ -205,7 +205,7 @@ def main():
                 "run index": run_index, "mode": name,
                 **run["timing"], "giant steps": run["counters"].get("giant steps"),
                 "table rows stored": run["counters"].get("table rows stored"),
-                "canonical rows merged": run["counters"].get("canonical rows merged"),
+                "merged rows": run["counters"].get("merged rows"),
                 "raw baby rows built": run["counters"].get("raw baby rows built"),
                 "unique baby rows built": run["counters"].get("unique baby rows built"),
                 "total EC operations": run["counters"].get("total EC operations"),
@@ -220,7 +220,7 @@ def main():
                   f"search={entry['giant search seconds']}s "
                   f"steps/s={entry['giant steps/second']:,.0f} "
                   f"rss={entry['peak rss kb'] // 1024} MB "
-                  f"merged={entry['canonical rows merged']}")
+                  f"merged={entry['merged rows']}")
 
     # ---- вердикт по завершённым прогонам ----
     runs = base["runs"]

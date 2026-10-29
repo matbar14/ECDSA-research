@@ -48,7 +48,7 @@ def run(binary, target, size, extra):
     recovered = int(match.group(1), 16) if match else None
     counter = {}
     for name in ("signature routes", "signature pair collapses",
-                 "signature pair mismatches", "canonical rows merged",
+                 "signature pair mismatches", "merged rows", "insert collisions",
                  "partner recoveries", "exact candidate checks",
                  "orbit factors scheduled", "table rows stored"):
         m = re.search(rf"{re.escape(name)}: (\d+)", result.stdout)
@@ -143,7 +143,7 @@ def main():
                           ["--glv-orbit", "--partner-table",
                            "--phase-signature", "--canonical-k3"] + table_file())
         ok = (rec == partner_canon
-              and ctr.get("canonical rows merged", 0) == 2
+              and ctr.get("merged rows", 0) == 2
               and ctr.get("table rows stored", 0) == merged_rows
               and ctr.get("signature routes", 0) == 1
               and ctr.get("signature pair collapses", 0) == 0
@@ -151,7 +151,7 @@ def main():
               and ctr.get("partner recoveries", 0) >= 1
               and 1 <= ctr.get("exact candidate checks", 99) <= 2)
         print(f"[3] canonical storage, merged bucket: correct={rec == partner_canon}, "
-              f"merged={ctr.get('canonical rows merged', '?')}, "
+              f"merged={ctr.get('merged rows', '?')}, "
               f"stored={ctr.get('table rows stored', '?')}, "
               f"routes={ctr.get('signature routes', '?')}, "
               f"exact={ctr.get('exact candidate checks', '?')} -> "
@@ -165,7 +165,7 @@ def main():
                           ["--glv-orbit", "--phase-signature",
                            "--canonical-k3"] + table_file())
         ok = (rec == window_scalar
-              and ctr.get("canonical rows merged", 0) == 2
+              and ctr.get("merged rows", 0) == 2
               and ctr.get("partner recoveries", 0) == 0
               and ctr.get("exact candidate checks", 99) == 1)
         print(f"[4] canonical in-window regression: correct={rec == window_scalar}, "
@@ -180,11 +180,11 @@ def main():
         rec, ctr, _ = run(args.binary, pubkey_hex(scalar), SIZE,
                           ["--glv-orbit", "--phase-signature",
                            "--canonical-k3", "--baby-rows", "1024"])
-        ok = (rec == scalar and ctr.get("canonical rows merged", -1) == 0
+        ok = (rec == scalar and ctr.get("merged rows", -1) == 0
               and ctr.get("exact candidate checks", 99) == 1)
         print(f"[5] canonical continuous-window regression: "
               f"correct={rec == scalar}, "
-              f"merged={ctr.get('canonical rows merged', '?')} -> "
+              f"merged={ctr.get('merged rows', '?')} -> "
               f"{'PASS' if ok else 'FAIL'}")
         if not ok:
             failures.append(5)

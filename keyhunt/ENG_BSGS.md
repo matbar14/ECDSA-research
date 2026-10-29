@@ -134,7 +134,7 @@ With `--table-scalars` the build is a direct canonical pass: the input list
 is canonicalized and deduped BEFORE any point is computed (two order
 multiplications per scalar, no EC work), so exactly one point per orbit is
 multiplied and the build cost and peak memory follow the stored table, not
-the raw input list. `canonical rows merged` counts input rows dropped
+the raw input list. `merged rows` counts input rows dropped
 before the first scalar multiplication and `table rows stored` shows the
 final size. On the continuous window table `[0, m)` the merge is a no-op
 (partners `lambda*j ~ 2^128` never co-occur there); it becomes active with
@@ -202,7 +202,7 @@ Two operational facts validated by the long cover run
   segment per cover chunk) the full ~330k steps/second is restored.
 - **Stride under `--canonical-k3`.** The canonicalization pre-pass runs
   before `m = table_scalars.size()`, so the stride is the POST-merge row
-  count (1.2M input rows merge to 400k, `canonical rows merged: 800000`),
+  count (1.2M input rows merge to 400k, `merged rows: 800000`),
   not the file's line count. The merged mode therefore has the same
   stride, giant-step count and full coverage as the canonical file;
   the plain 3H-row file without `--canonical-k3` strides by 3H and
@@ -339,28 +339,42 @@ time to solution seconds: <с момента старта, включает buil
 exact candidate checks per hit: <ratio exact/search hits> (exact E / search hits H)
 ```
 
-### Hit-счётчики по фазам: build hits / search hits (30.10)
+### Счётчики по фазам: merged rows / insert collisions / search hits
+### (30.10, семантика зафиксирована)
 
-Хиты разделены на два явных счётчика, сравнимых между режимами таблицы и
-kill/resume-циклами (раньше у каждого режима было своё имя коллизий сборки:
-canonical rows merged / duplicate baby keys):
+Раньше один и тот же счётчик за сессию менял имя и смысл (build hits ->
+canonical rows merged -> «это вставки»), и в merge-логе
+`build hits: 800000` читалось как «движок нашёл 800k целей до начала
+поиска». Теперь имена говорят, что именно считается:
 
 ```text
-search hits:    <бакет-совпадения гигант-скана, один на совпавшую
-                 гигант-позицию независимо от числа строк в бакете;
-                 восстанавливается --resume, кумулятивен>
-build hits:     <коллизии ключей, поглощённые при сборке таблицы
-                 (merge/dedup); session-pure, --resume не восстанавливает>
-invariant hits: <legacy row-level счётчик: строки совпавших бакетов,
-                 включая пропущенные дедупом>
+merged rows:       <входные строки, схлопнутые в существующую строку
+                   при СБОРКЕ таблицы (орбита-коллапс: равный канонический
+                   скаляр или равный K3-ключ). Ожидаемо по построению,
+                   НЕ поисковое событие: 2 на голову на 3-строчном
+                   expanded-файле, 0 на canonical-файле и непрерывном
+                   окне. Session-pure, --resume не восстанавливает>
+insert collisions: <строки с равным K3-ключом, но другим сохранённым
+                   скаляром - настоящая межорбитальная коллизия. На полных
+                   C6-орбитах обязана быть 0 (равный K3-ключ = ровно одна
+                   орбита); ненулевое значение - сломанный инвариант:
+                   строка отбрасывается, stderr предупреждает. Детектируется
+                   только в --canonical-k3, где сохранённый скаляр -
+                   минимум орбиты>
+search hits:       <бакет-совпадения гигант-скана, один на совпавшую
+                   гигант-позицию независимо от числа строк в бакете;
+                   восстанавливается --resume, кумулятивен>
+invariant hits:    <legacy row-level счётчик: строки совпавших бакетов,
+                   включая пропущенные дедупом>
 ```
 
-`build hits == 0` на canonical-файле - инвариант каноничности (файл без
-дублей орбит); `build hits == canonical rows merged` в merge-режиме и
-`== duplicate baby keys` в plain-режиме. `exact candidate checks per hit`
-теперь настоящий ratio exact/search hits (раньше печатался сырой счётчик).
-`giant steps/second` - сессионно-честный: из кумулятивного счётчика
-вычитаются шаги, восстановленные из checkpoint.
+`merged rows == 0` на canonical-файле - инвариант каноничности (файл без
+дублей орбит); `merged rows == 2 * heads` в merge-режиме (1.2M входных
+строк -> 400k орбит). `exact candidate checks per hit` - ratio
+exact/search hits, переименованием не задет. `duplicate baby keys`
+остаётся метрикой качества таблицы (raw vs unique), а не счётчиком
+событий. `giant steps/second` - сессионно-честный: из кумулятивного
+счётчика вычитаются шаги, восстановленные из checkpoint.
 
 ### Прогресс-тикер и assert стрида (30.10)
 
