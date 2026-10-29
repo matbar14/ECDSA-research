@@ -34,3 +34,6 @@ keyhunt/fnv1a64_tool
 
 # --- CBT1 validation sidecars ---
 *.cbt1.cache
+
+# --- equivalence run checkpoints (repo root) ---
+/cp_eq_*.txt
