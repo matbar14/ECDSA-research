@@ -23,3 +23,7 @@ __pycache__/
 .env
 *.token
 *_token.txt
+
+# --- long cover validation artifacts ---
+representatives_expanded_H*.txt
+keyhunt/cp_*.txt

@@ -1,0 +1,1249 @@
+{
+  "heads": 400000,
+  "chunk": 500000000000,
+  "cover chunks": 16,
+  "cover size": 8000000000000,
+  "start": "0x4000000000000000000000000000000000",
+  "threads": 2,
+  "canonical file": {
+    "path": "../representatives_canonical_H400000.txt",
+    "sha256": "57a39b7a69b601ba1a279b3a4fc65147a6129014d0a40558fdaf484e4846857b"
+  },
+  "expanded file": {
+    "rows": 1200000,
+    "sha256": "a73f6dc70caedf72fb2a1c85479521cf4fdd2de31dbec5fad2a12925a227683e",
+    "stride": 1200000
+  },
+  "scenarios": {
+    "canonical_A": {
+      "mode": "canonical",
+      "target": "A",
+      "expect found": true,
+      "expect chunks": 1,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 4.392,
+          "returncode": 0,
+          "recovered": "0x4000000000000000000000003a352359b9",
+          "chunks attempted": 1,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 17,
+            "invariant hits": 1,
+            "exact candidate checks": 2,
+            "EC scalar multiplications": 400006,
+            "EC point additions": 19,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 3,
+            "EC scalar multiplications (exact candidate checks)": 3,
+            "total EC operations": 400025,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.25659,
+            "giant search seconds": 0.000394889,
+            "giant steps/second": 43050.1,
+            "total seconds": 4.25699,
+            "time to solution seconds": 4.25681
+          },
+          "peak rss kb": 136696,
+          "checkpoint after": {
+            "chunks completed": 1,
+            "found": "1",
+            "giant steps": 17,
+            "exact checks": 2
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 1,
+        "total seconds": 4.25699,
+        "build seconds": 4.25659,
+        "giant steps/second": 43050.1,
+        "tts seconds": 4.25681,
+        "checks per hit": 2,
+        "peak rss kb": 136696
+      }
+    },
+    "canonical_B": {
+      "mode": "canonical",
+      "target": "B",
+      "expect found": true,
+      "expect chunks": 2,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 8.232,
+          "returncode": 0,
+          "recovered": "0x400000000000000000000000746a64f5e1",
+          "chunks attempted": 2,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 1250008,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "EC scalar multiplications": 400009,
+            "EC point additions": 1250013,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 7,
+            "EC scalar multiplications (exact candidate checks)": 2,
+            "total EC operations": 1650022,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.33187,
+            "giant search seconds": 3.76164,
+            "giant steps/second": 332304.0,
+            "total seconds": 8.09351,
+            "time to solution seconds": 8.09331
+          },
+          "peak rss kb": 136468,
+          "checkpoint after": {
+            "chunks completed": 2,
+            "found": "1",
+            "giant steps": 1250008,
+            "exact checks": 1
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 2,
+        "total seconds": 8.09351,
+        "build seconds": 4.33187,
+        "giant steps/second": 332304.0,
+        "tts seconds": 8.09331,
+        "checks per hit": 1,
+        "peak rss kb": 136468
+      }
+    },
+    "canonical_E": {
+      "mode": "canonical",
+      "target": "E",
+      "expect found": true,
+      "expect chunks": 9,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 37.287,
+          "returncode": 0,
+          "recovered": "0xae7144be38ed3cb9229e233c6579e40ca47cdd528e01c38b82cafe2ff2929d1b",
+          "chunks attempted": 9,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 10718611,
+            "invariant hits": 1,
+            "exact candidate checks": 2,
+            "EC scalar multiplications": 400038,
+            "EC point additions": 10718637,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 35,
+            "EC scalar multiplications (exact candidate checks)": 3,
+            "total EC operations": 11118675,
+            "partner recoveries": 1,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.25428,
+            "giant search seconds": 32.8953,
+            "giant steps/second": 325840.0,
+            "total seconds": 37.1496,
+            "time to solution seconds": 37.1493
+          },
+          "peak rss kb": 136308,
+          "checkpoint after": {
+            "chunks completed": 9,
+            "found": "1",
+            "giant steps": 10718611,
+            "exact checks": 2
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 9,
+        "total seconds": 37.1496,
+        "build seconds": 4.25428,
+        "giant steps/second": 325840.0,
+        "tts seconds": 37.1493,
+        "checks per hit": 2,
+        "peak rss kb": 136308
+      }
+    },
+    "canonical_C": {
+      "mode": "canonical",
+      "target": "C",
+      "expect found": true,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": true,
+          "wall seconds": 12.007,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": null,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136660,
+          "checkpoint after": {
+            "chunks completed": 1,
+            "found": "0",
+            "giant steps": 1250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.004,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 1,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137812,
+          "checkpoint after": {
+            "chunks completed": 2,
+            "found": "0",
+            "giant steps": 2500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.027,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 2,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136188,
+          "checkpoint after": {
+            "chunks completed": 3,
+            "found": "0",
+            "giant steps": 3750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.002,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 3,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137856,
+          "checkpoint after": {
+            "chunks completed": 5,
+            "found": "0",
+            "giant steps": 6250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.004,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 5,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137048,
+          "checkpoint after": {
+            "chunks completed": 6,
+            "found": "0",
+            "giant steps": 7500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 6,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136640,
+          "checkpoint after": {
+            "chunks completed": 7,
+            "found": "0",
+            "giant steps": 8750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 7,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137852,
+          "checkpoint after": {
+            "chunks completed": 8,
+            "found": "0",
+            "giant steps": 10000000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 8,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136160,
+          "checkpoint after": {
+            "chunks completed": 9,
+            "found": "0",
+            "giant steps": 11250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.006,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 9,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 135992,
+          "checkpoint after": {
+            "chunks completed": 10,
+            "found": "0",
+            "giant steps": 12500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.006,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 10,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137112,
+          "checkpoint after": {
+            "chunks completed": 11,
+            "found": "0",
+            "giant steps": 13750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 11,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137412,
+          "checkpoint after": {
+            "chunks completed": 12,
+            "found": "0",
+            "giant steps": 15000000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.006,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 12,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136712,
+          "checkpoint after": {
+            "chunks completed": 13,
+            "found": "0",
+            "giant steps": 16250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 13,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137180,
+          "checkpoint after": {
+            "chunks completed": 14,
+            "found": "0",
+            "giant steps": 17500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": false,
+          "wall seconds": 9.321,
+          "returncode": 0,
+          "recovered": "0x400000000000000000000006d27672a440",
+          "chunks attempted": 2,
+          "resumed chunks before": 14,
+          "counters": {
+            "giant steps": 18754903,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "EC scalar multiplications": 5600065,
+            "EC point additions": 18754950,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 5200063,
+            "EC scalar multiplications (exact candidate checks)": 2,
+            "total EC operations": 24355015,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 5.29247,
+            "giant search seconds": 3.87118,
+            "giant steps/second": 4844750.0,
+            "total seconds": 9.16365,
+            "time to solution seconds": 9.16339
+          },
+          "peak rss kb": 137632,
+          "checkpoint after": {
+            "chunks completed": 16,
+            "found": "1",
+            "giant steps": 18754903,
+            "exact checks": 1
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 14,
+        "killed sessions": 13,
+        "chunks completed": 16,
+        "total seconds": 9.16365,
+        "build seconds": 5.29247,
+        "giant steps/second": 4844750.0,
+        "tts seconds": 9.16339,
+        "checks per hit": 1,
+        "peak rss kb": 137856
+      }
+    },
+    "canonical_D": {
+      "mode": "canonical",
+      "target": "D",
+      "expect found": true,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": true,
+          "wall seconds": 12.033,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": null,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137324,
+          "checkpoint after": {
+            "chunks completed": 1,
+            "found": "0",
+            "giant steps": 1250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 1,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136948,
+          "checkpoint after": {
+            "chunks completed": 2,
+            "found": "0",
+            "giant steps": 2500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.004,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 2,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 138172,
+          "checkpoint after": {
+            "chunks completed": 3,
+            "found": "0",
+            "giant steps": 3750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 3,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137192,
+          "checkpoint after": {
+            "chunks completed": 4,
+            "found": "0",
+            "giant steps": 5000000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.004,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 4,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137956,
+          "checkpoint after": {
+            "chunks completed": 5,
+            "found": "0",
+            "giant steps": 6250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 5,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 138212,
+          "checkpoint after": {
+            "chunks completed": 6,
+            "found": "0",
+            "giant steps": 7500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.003,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 6,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 136864,
+          "checkpoint after": {
+            "chunks completed": 7,
+            "found": "0",
+            "giant steps": 8750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 7,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137036,
+          "checkpoint after": {
+            "chunks completed": 8,
+            "found": "0",
+            "giant steps": 10000000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.002,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 8,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137888,
+          "checkpoint after": {
+            "chunks completed": 10,
+            "found": "0",
+            "giant steps": 12500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 10,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137588,
+          "checkpoint after": {
+            "chunks completed": 11,
+            "found": "0",
+            "giant steps": 13750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.006,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 11,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137320,
+          "checkpoint after": {
+            "chunks completed": 12,
+            "found": "0",
+            "giant steps": 15000000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 12,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137188,
+          "checkpoint after": {
+            "chunks completed": 13,
+            "found": "0",
+            "giant steps": 16250000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.005,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 13,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 137232,
+          "checkpoint after": {
+            "chunks completed": 14,
+            "found": "0",
+            "giant steps": 17500000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": true,
+          "wall seconds": 12.024,
+          "returncode": null,
+          "recovered": null,
+          "chunks attempted": null,
+          "resumed chunks before": 14,
+          "counters": {},
+          "timing": {},
+          "peak rss kb": 138012,
+          "checkpoint after": {
+            "chunks completed": 15,
+            "found": "0",
+            "giant steps": 18750000,
+            "exact checks": 0
+          }
+        },
+        {
+          "killed": false,
+          "wall seconds": 8.127,
+          "returncode": 0,
+          "recovered": "0x40000000000000000000000746a5287fff",
+          "chunks attempted": 1,
+          "resumed chunks before": 15,
+          "counters": {
+            "giant steps": 19954558,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "EC scalar multiplications": 6000065,
+            "EC point additions": 19954605,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 5600063,
+            "EC scalar multiplications (exact candidate checks)": 2,
+            "total EC operations": 25954670,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.2869,
+            "giant search seconds": 3.70273,
+            "giant steps/second": 5389140.0,
+            "total seconds": 7.98963,
+            "time to solution seconds": 7.98926
+          },
+          "peak rss kb": 137856,
+          "checkpoint after": {
+            "chunks completed": 16,
+            "found": "1",
+            "giant steps": 19954558,
+            "exact checks": 1
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 15,
+        "killed sessions": 14,
+        "chunks completed": 16,
+        "total seconds": 7.98963,
+        "build seconds": 4.2869,
+        "giant steps/second": 5389140.0,
+        "tts seconds": 7.98926,
+        "checks per hit": 1,
+        "peak rss kb": 138212
+      }
+    },
+    "expanded_A": {
+      "mode": "expanded",
+      "target": "A",
+      "expect found": true,
+      "expect chunks": 1,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 6.838,
+          "returncode": 0,
+          "recovered": "0x4000000000000000000000003a352359b9",
+          "chunks attempted": 1,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 21,
+            "invariant hits": 1,
+            "exact candidate checks": 2,
+            "EC scalar multiplications": 400006,
+            "EC point additions": 23,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 3,
+            "EC scalar multiplications (exact candidate checks)": 3,
+            "total EC operations": 400029,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.3247,
+            "giant search seconds": 0.000351332,
+            "giant steps/second": 59772.5,
+            "total seconds": 4.32506,
+            "time to solution seconds": 4.32492
+          },
+          "peak rss kb": 167204,
+          "checkpoint after": {
+            "chunks completed": 1,
+            "found": "1",
+            "giant steps": 21,
+            "exact checks": 2
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 1,
+        "total seconds": 4.32506,
+        "build seconds": 4.3247,
+        "giant steps/second": 59772.5,
+        "tts seconds": 4.32492,
+        "checks per hit": 2,
+        "peak rss kb": 167204
+      }
+    },
+    "expanded_B": {
+      "mode": "expanded",
+      "target": "B",
+      "expect found": true,
+      "expect chunks": 2,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 10.654,
+          "returncode": 0,
+          "recovered": "0x400000000000000000000000746a64f5e1",
+          "chunks attempted": 2,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 1250007,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "EC scalar multiplications": 400009,
+            "EC point additions": 1250012,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 7,
+            "EC scalar multiplications (exact candidate checks)": 2,
+            "total EC operations": 1650021,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.39748,
+            "giant search seconds": 3.78083,
+            "giant steps/second": 330617.0,
+            "total seconds": 8.17831,
+            "time to solution seconds": 8.17816
+          },
+          "peak rss kb": 167404,
+          "checkpoint after": {
+            "chunks completed": 2,
+            "found": "1",
+            "giant steps": 1250007,
+            "exact checks": 1
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 2,
+        "total seconds": 8.17831,
+        "build seconds": 4.39748,
+        "giant steps/second": 330617.0,
+        "tts seconds": 8.17816,
+        "checks per hit": 1,
+        "peak rss kb": 167404
+      }
+    },
+    "expanded_plain_C": {
+      "mode": "expanded_plain",
+      "target": "C",
+      "expect found": false,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 40.327,
+          "returncode": 1,
+          "recovered": null,
+          "chunks attempted": 16,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 7083339,
+            "invariant hits": 0,
+            "exact candidate checks": 0,
+            "EC scalar multiplications": 1200066,
+            "EC point additions": 7083388,
+            "EC scalar multiplications (build)": 1200000,
+            "EC scalar multiplications (giant search, cumulative)": 66,
+            "EC scalar multiplications (exact candidate checks)": 0,
+            "total EC operations": 8283454,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 15.5215,
+            "giant search seconds": 22.6091,
+            "giant steps/second": 313296.0,
+            "total seconds": 38.1306
+          },
+          "peak rss kb": 399508
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": null,
+        "total seconds": 38.1306,
+        "build seconds": 15.5215,
+        "giant steps/second": 313296.0,
+        "tts seconds": null,
+        "checks per hit": 0,
+        "peak rss kb": 399508
+      }
+    },
+    "expanded_plain_D": {
+      "mode": "expanded_plain",
+      "target": "D",
+      "expect found": false,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 39.283,
+          "returncode": 1,
+          "recovered": null,
+          "chunks attempted": 16,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 7083339,
+            "invariant hits": 0,
+            "exact candidate checks": 0,
+            "EC scalar multiplications": 1200066,
+            "EC point additions": 7083388,
+            "EC scalar multiplications (build)": 1200000,
+            "EC scalar multiplications (giant search, cumulative)": 66,
+            "EC scalar multiplications (exact candidate checks)": 0,
+            "total EC operations": 8283454,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 14.9089,
+            "giant search seconds": 22.1853,
+            "giant steps/second": 319281.0,
+            "total seconds": 37.0942
+          },
+          "peak rss kb": 398536
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": null,
+        "total seconds": 37.0942,
+        "build seconds": 14.9089,
+        "giant steps/second": 319281.0,
+        "tts seconds": null,
+        "checks per hit": 0,
+        "peak rss kb": 398536
+      }
+    },
+    "expanded_plain_E": {
+      "mode": "expanded_plain",
+      "target": "E",
+      "expect found": false,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 40.355,
+          "returncode": 1,
+          "recovered": null,
+          "chunks attempted": 16,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 7083339,
+            "invariant hits": 0,
+            "exact candidate checks": 0,
+            "EC scalar multiplications": 1200066,
+            "EC point additions": 7083388,
+            "EC scalar multiplications (build)": 1200000,
+            "EC scalar multiplications (giant search, cumulative)": 66,
+            "EC scalar multiplications (exact candidate checks)": 0,
+            "total EC operations": 8283454,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 15.3843,
+            "giant search seconds": 22.7768,
+            "giant steps/second": 310990.0,
+            "total seconds": 38.1611
+          },
+          "peak rss kb": 399220
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": null,
+        "total seconds": 38.1611,
+        "build seconds": 15.3843,
+        "giant steps/second": 310990.0,
+        "tts seconds": null,
+        "checks per hit": 0,
+        "peak rss kb": 399220
+      }
+    },
+    "expanded_C": {
+      "mode": "expanded",
+      "target": "C",
+      "expect found": true,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 64.338,
+          "returncode": 0,
+          "recovered": "0x400000000000000000000006d27672a440",
+          "chunks attempted": 16,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 18754937,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "EC scalar multiplications": 400065,
+            "EC point additions": 18754984,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 63,
+            "EC scalar multiplications (exact candidate checks)": 2,
+            "total EC operations": 19155049,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.30783,
+            "giant search seconds": 57.5148,
+            "giant steps/second": 326089.0,
+            "total seconds": 61.8227,
+            "time to solution seconds": 61.8225
+          },
+          "peak rss kb": 167152,
+          "checkpoint after": {
+            "chunks completed": 16,
+            "found": "1",
+            "giant steps": 18754937,
+            "exact checks": 1
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 16,
+        "total seconds": 61.8227,
+        "build seconds": 4.30783,
+        "giant steps/second": 326089.0,
+        "tts seconds": 61.8225,
+        "checks per hit": 1,
+        "peak rss kb": 167152
+      }
+    },
+    "expanded_D": {
+      "mode": "expanded",
+      "target": "D",
+      "expect found": true,
+      "expect chunks": 16,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 68.775,
+          "returncode": 0,
+          "recovered": "0x40000000000000000000000746a5287fff",
+          "chunks attempted": 16,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 19969056,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "EC scalar multiplications": 400065,
+            "EC point additions": 19969103,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 63,
+            "EC scalar multiplications (exact candidate checks)": 2,
+            "total EC operations": 20369168,
+            "partner recoveries": 0,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.46817,
+            "giant search seconds": 61.8182,
+            "giant steps/second": 323029.0,
+            "total seconds": 66.2864,
+            "time to solution seconds": 66.286
+          },
+          "peak rss kb": 167380,
+          "checkpoint after": {
+            "chunks completed": 16,
+            "found": "1",
+            "giant steps": 19969056,
+            "exact checks": 1
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 16,
+        "total seconds": 66.2864,
+        "build seconds": 4.46817,
+        "giant steps/second": 323029.0,
+        "tts seconds": 66.286,
+        "checks per hit": 1,
+        "peak rss kb": 167380
+      }
+    },
+    "expanded_E": {
+      "mode": "expanded",
+      "target": "E",
+      "expect found": true,
+      "expect chunks": 9,
+      "sessions": [
+        {
+          "killed": false,
+          "wall seconds": 40.15,
+          "returncode": 0,
+          "recovered": "0xae7144be38ed3cb9229e233c6579e40ca47cdd528e01c38b82cafe2ff2929d1b",
+          "chunks attempted": 9,
+          "resumed chunks before": null,
+          "counters": {
+            "giant steps": 10796506,
+            "invariant hits": 1,
+            "exact candidate checks": 2,
+            "EC scalar multiplications": 400038,
+            "EC point additions": 10796532,
+            "EC scalar multiplications (build)": 400000,
+            "EC scalar multiplications (giant search, cumulative)": 35,
+            "EC scalar multiplications (exact candidate checks)": 3,
+            "total EC operations": 11196570,
+            "partner recoveries": 1,
+            "signature pair collapses": 0,
+            "signature pair mismatches": 0,
+            "signature anomalies (6-branch fallback)": 0
+          },
+          "timing": {
+            "table build seconds": 4.38497,
+            "giant search seconds": 33.2771,
+            "giant steps/second": 324442.0,
+            "total seconds": 37.6621,
+            "time to solution seconds": 37.6618
+          },
+          "peak rss kb": 167164,
+          "checkpoint after": {
+            "chunks completed": 9,
+            "found": "1",
+            "giant steps": 10796506,
+            "exact checks": 2
+          }
+        }
+      ],
+      "verdict": {
+        "verdict": "PASS",
+        "reasons": [],
+        "sessions": 1,
+        "killed sessions": 0,
+        "chunks completed": 9,
+        "total seconds": 37.6621,
+        "build seconds": 4.38497,
+        "giant steps/second": 324442.0,
+        "tts seconds": 37.6618,
+        "checks per hit": 2,
+        "peak rss kb": 167164
+      }
+    }
+  },
+  "targets": {
+    "A": {
+      "offset": 249999612345,
+      "scalar": "0x4000000000000000000000003a352359b9",
+      "pubkey": "03c4172d4b9477e80888edadebf576d98e0a7ecdf19197fc04f7253524c4ecd8e7",
+      "chunk index": 0
+    },
+    "B": {
+      "offset": 500001207777,
+      "scalar": "0x400000000000000000000000746a64f5e1",
+      "pubkey": "02bea1f784852ef4791c08cf5f21c16d5fd33c318e6583d27519440e1dfa2ebc7a",
+      "chunk index": 1
+    },
+    "C": {
+      "offset": 7501000123456,
+      "scalar": "0x400000000000000000000006d27672a440",
+      "pubkey": "028a16e345bbd89f796dbb82b5e0d3d9b72553e269d457aef9b63b6ca81ab7287d",
+      "chunk index": 15
+    },
+    "D": {
+      "offset": 7999999999999,
+      "scalar": "0x40000000000000000000000746a5287fff",
+      "pubkey": "036aeb66c5bcd83443924945d2ec3ea1cfc81aa1004914ab711a888797675d3b0c",
+      "chunk index": 15
+    },
+    "E": {
+      "offset": 78902563818944839580016207690862768052782126780462396977814312867976451366171,
+      "partner": [
+        11000000,
+        313159,
+        1,
+        -1
+      ],
+      "scalar": "0xae7144be38ed3cb9229e233c6579e40ca47cdd528e01c38b82cafe2ff2929d1b",
+      "pubkey": "0385ea9dd987a7d2af2aeb638a0df55f0db82d153187721ad39b6f68c5720b7781",
+      "chunk index": 15
+    }
+  }
+}

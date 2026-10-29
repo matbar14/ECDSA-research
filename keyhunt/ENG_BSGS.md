@@ -186,15 +186,36 @@ partners are of order `n`), so the file's core is the contiguous tiling
 `+-lambda^a * j` at every giant position via `--partner-table`:
 
 ```bash
-./eng_bsgs --target PUB --start ... --size ... --glv-orbit \
-  --phase-signature --partner-table \
+./eng_bsgs --target PUB --start ... --size CHUNK --segment CHUNK \
+  --glv-orbit --phase-signature --partner-table \
   --table-scalars ../representatives_canonical_H400000.txt
 ```
 
-The giant stride equals the file's row count. The H-curve measurements
-(50k/100k/200k/400k) and the black-box round-trip verification are
-covered by `test_representatives_file.py` and PROGRESS_MEMO.md; file
-checksums are pinned in `../representatives_files.json`.
+Two operational facts validated by the long cover run
+(`long_cover_validation.py`, PROGRESS_MEMO.md):
+
+- **Set `--segment` explicitly.** Without `--baby-rows` the default
+  `segment_size` is 100000; a `--size 5e11` range is then split into
+  5M segments, each paying its own anchor/step scalar multiplications
+  (the giant walk itself does none) - measured 17.8k giant steps/second
+  instead of ~330k, an ~18x slowdown. With `--segment CHUNK` (one
+  segment per cover chunk) the full ~330k steps/second is restored.
+- **Stride under `--canonical-k3`.** The canonicalization pre-pass runs
+  before `m = table_scalars.size()`, so the stride is the POST-merge row
+  count (1.2M input rows merge to 400k, `canonical rows merged: 800000`),
+  not the file's line count. The merged mode therefore has the same
+  stride, giant-step count and full coverage as the canonical file;
+  the plain 3H-row file without `--canonical-k3` strides by 3H and
+  covers only `[1, H]` after each giant position (holes in `(H, 3H)`),
+  which the negative controls of the long cover run demonstrate.
+
+The giant stride equals the stored row count. The H-curve measurements
+(50k/100k/200k/400k), the long cover validation (13/13 scenarios, 27
+SIGKILL/resume cycles, hole-free and double-count-free chunk accounting)
+and the black-box round-trip verification are covered by
+`test_representatives_file.py`, `long_cover_validation.py` and
+PROGRESS_MEMO.md; file checksums are pinned in
+`../representatives_files.json`.
 
 Format roles of the representatives artifacts. Today the engine reads the
 `.txt` file directly through its own parser (`--table-scalars`: one hex
