@@ -1,0 +1,282 @@
+{
+  "points": [
+    {
+      "heads": 50000,
+      "window size": 22500000000,
+      "throughput": {
+        "continuous 3H rows": {
+          "table rows stored": 150000,
+          "giant steps": 150000,
+          "giant steps/second": 343030.0,
+          "EC scalar multiplications": 4,
+          "EC point additions": 300001,
+          "total EC operations": 300005,
+          "build seconds": 1.52553,
+          "search seconds": 0.437279,
+          "wall seconds": 1.9951,
+          "peak rss mb": 47.0,
+          "table bytes per row": 328.7
+        },
+        "expanded 3H rows": {
+          "table rows stored": 150000,
+          "giant steps": 150000,
+          "giant steps/second": 352955.0,
+          "EC scalar multiplications": 150003,
+          "EC point additions": 150002,
+          "total EC operations": 300005,
+          "build seconds": 1.89904,
+          "search seconds": 0.424983,
+          "wall seconds": 2.6386,
+          "peak rss mb": 54.0,
+          "table bytes per row": 377.5
+        },
+        "canonical H rows": {
+          "table rows stored": 50000,
+          "giant steps": 450000,
+          "giant steps/second": 340831.0,
+          "EC scalar multiplications": 50003,
+          "EC point additions": 450002,
+          "total EC operations": 500005,
+          "build seconds": 0.519214,
+          "search seconds": 1.3203,
+          "wall seconds": 1.8923,
+          "peak rss mb": 20.7,
+          "table bytes per row": 435.1
+        },
+        "expanded->canonical merge": {
+          "table rows stored": 50000,
+          "giant steps": 450000,
+          "giant steps/second": 339887.0,
+          "EC scalar multiplications": 50003,
+          "EC point additions": 450002,
+          "total EC operations": 500005,
+          "build seconds": 0.529851,
+          "search seconds": 1.32397,
+          "wall seconds": 2.193,
+          "peak rss mb": 24.4,
+          "table bytes per row": 511.7
+        }
+      }
+    },
+    {
+      "heads": 100000,
+      "window size": 90000000000,
+      "throughput": {
+        "continuous 3H rows": {
+          "table rows stored": 300000,
+          "giant steps": 300000,
+          "giant steps/second": 311567.0,
+          "EC scalar multiplications": 4,
+          "EC point additions": 600001,
+          "total EC operations": 600005,
+          "build seconds": 3.11203,
+          "search seconds": 0.962874,
+          "wall seconds": 4.1071,
+          "peak rss mb": 89.4,
+          "table bytes per row": 312.6
+        },
+        "expanded 3H rows": {
+          "table rows stored": 300000,
+          "giant steps": 300000,
+          "giant steps/second": 337543.0,
+          "EC scalar multiplications": 300003,
+          "EC point additions": 300002,
+          "total EC operations": 600005,
+          "build seconds": 3.86495,
+          "search seconds": 0.888776,
+          "wall seconds": 5.3264,
+          "peak rss mb": 100.9,
+          "table bytes per row": 352.8
+        },
+        "canonical H rows": {
+          "table rows stored": 100000,
+          "giant steps": 900000,
+          "giant steps/second": 343672.0,
+          "EC scalar multiplications": 100003,
+          "EC point additions": 900002,
+          "total EC operations": 1000005,
+          "build seconds": 1.04004,
+          "search seconds": 2.61878,
+          "wall seconds": 3.716,
+          "peak rss mb": 36.6,
+          "table bytes per row": 383.4
+        },
+        "expanded->canonical merge": {
+          "table rows stored": 100000,
+          "giant steps": 900000,
+          "giant steps/second": 338597.0,
+          "EC scalar multiplications": 100003,
+          "EC point additions": 900002,
+          "total EC operations": 1000005,
+          "build seconds": 1.06186,
+          "search seconds": 2.65802,
+          "wall seconds": 4.3722,
+          "peak rss mb": 44.4,
+          "table bytes per row": 466.0
+        }
+      }
+    },
+    {
+      "heads": 200000,
+      "window size": 360000000000,
+      "throughput": {
+        "continuous 3H rows": {
+          "table rows stored": 600000,
+          "giant steps": 600000,
+          "giant steps/second": 319733.0,
+          "EC scalar multiplications": 4,
+          "EC point additions": 1200001,
+          "total EC operations": 1200005,
+          "build seconds": 6.26933,
+          "search seconds": 1.87656,
+          "wall seconds": 8.1777,
+          "peak rss mb": 174.0,
+          "table bytes per row": 304.1
+        },
+        "expanded 3H rows": {
+          "table rows stored": 600000,
+          "giant steps": 600000,
+          "giant steps/second": 316302.0,
+          "EC scalar multiplications": 600003,
+          "EC point additions": 600002,
+          "total EC operations": 1200005,
+          "build seconds": 7.66435,
+          "search seconds": 1.89692,
+          "wall seconds": 10.676,
+          "peak rss mb": 197.4,
+          "table bytes per row": 344.9
+        },
+        "canonical H rows": {
+          "table rows stored": 200000,
+          "giant steps": 1800000,
+          "giant steps/second": 330892.0,
+          "EC scalar multiplications": 200003,
+          "EC point additions": 1800002,
+          "total EC operations": 2000005,
+          "build seconds": 2.12697,
+          "search seconds": 5.43984,
+          "wall seconds": 7.6515,
+          "peak rss mb": 69.7,
+          "table bytes per row": 365.6
+        },
+        "expanded->canonical merge": {
+          "table rows stored": 200000,
+          "giant steps": 1800000,
+          "giant steps/second": 330626.0,
+          "EC scalar multiplications": 200003,
+          "EC point additions": 1800002,
+          "total EC operations": 2000005,
+          "build seconds": 2.13521,
+          "search seconds": 5.44422,
+          "wall seconds": 8.867,
+          "peak rss mb": 84.1,
+          "table bytes per row": 440.9
+        }
+      }
+    },
+    {
+      "heads": 400000,
+      "window size": 1440000000000,
+      "throughput": {
+        "continuous 3H rows": {
+          "table rows stored": 1200000,
+          "giant steps": 1200000,
+          "giant steps/second": 304900.0,
+          "EC scalar multiplications": 4,
+          "EC point additions": 2400001,
+          "total EC operations": 2400005,
+          "build seconds": 12.5345,
+          "search seconds": 3.93572,
+          "wall seconds": 16.5029,
+          "peak rss mb": 343.5,
+          "table bytes per row": 300.2
+        },
+        "expanded 3H rows": {
+          "table rows stored": 1200000,
+          "giant steps": 1200000,
+          "giant steps/second": 309937.0,
+          "EC scalar multiplications": 1200003,
+          "EC point additions": 1200002,
+          "total EC operations": 2400005,
+          "build seconds": 15.1721,
+          "search seconds": 3.87175,
+          "wall seconds": 21.2377,
+          "peak rss mb": 389.7,
+          "table bytes per row": 340.5
+        },
+        "canonical H rows": {
+          "table rows stored": 400000,
+          "giant steps": 3600000,
+          "giant steps/second": 309918.0,
+          "EC scalar multiplications": 400003,
+          "EC point additions": 3600002,
+          "total EC operations": 4000005,
+          "build seconds": 5.35654,
+          "search seconds": 11.616,
+          "wall seconds": 17.1452,
+          "peak rss mb": 133.0,
+          "table bytes per row": 348.5
+        },
+        "expanded->canonical merge": {
+          "table rows stored": 400000,
+          "giant steps": 3600000,
+          "giant steps/second": 322533.0,
+          "EC scalar multiplications": 400003,
+          "EC point additions": 3600002,
+          "total EC operations": 4000005,
+          "build seconds": 4.40591,
+          "search seconds": 11.1616,
+          "wall seconds": 18.6163,
+          "peak rss mb": 163.3,
+          "table bytes per row": 428.0
+        }
+      }
+    }
+  ],
+  "economy": {
+    "canonical six-branch": {
+      "avg exact per hit by H": {
+        "50000": 2.75,
+        "100000": 2.75,
+        "200000": 2.75,
+        "400000": 2.75
+      },
+      "mean over H": 2.75,
+      "all correct everywhere": true
+    },
+    "canonical routed": {
+      "avg exact per hit by H": {
+        "50000": 1.167,
+        "100000": 1.167,
+        "200000": 1.167,
+        "400000": 1.167
+      },
+      "mean over H": 1.167,
+      "all correct everywhere": true
+    }
+  },
+  "notes": {
+    "rss compression canonical/expanded": {
+      "50000": 2.61,
+      "100000": 2.76,
+      "200000": 2.83,
+      "400000": 2.93
+    },
+    "build speedup canonical/expanded": {
+      "50000": 3.66,
+      "100000": 3.72,
+      "200000": 3.6,
+      "400000": 2.83
+    },
+    "giant steps canonical / expanded": {
+      "50000": 3.0,
+      "100000": 3.0,
+      "200000": 3.0,
+      "400000": 3.0
+    },
+    "steps-per-second range over all variants and H": [
+      304900.0,
+      352955.0
+    ]
+  }
+}

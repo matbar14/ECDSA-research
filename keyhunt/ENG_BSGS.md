@@ -174,6 +174,28 @@ regressions) and `economy_engine_sweep.py` (24 targets: baseline six-branch
 3.04 exact EC checks per hit vs 1.33 routed, ~2.28x; canonical storage halves
 the table with the same pair economy).
 
+### Representatives file for long runs
+
+`make_representatives_file.py` generates persistent canonical
+representative files (`representatives_canonical_H*.txt`) for
+`--table-scalars`: one canonical orbit representative per row, heads
+`j = 1..H`, deterministic and prefix-nested across H. For heads `j <= H`
+the canonical representative equals `j` itself (the lambda-rotated
+partners are of order `n`), so the file's core is the contiguous tiling
+`i*stride + [1, H]`; the full range comes from orbit partners
+`+-lambda^a * j` at every giant position via `--partner-table`:
+
+```bash
+./eng_bsgs --target PUB --start ... --size ... --glv-orbit \
+  --phase-signature --partner-table \
+  --table-scalars ../representatives_canonical_H400000.txt
+```
+
+The giant stride equals the file's row count. The H-curve measurements
+(50k/100k/200k/400k) and the black-box round-trip verification are
+covered by `test_representatives_file.py` and PROGRESS_MEMO.md; file
+checksums are pinned in `../representatives_files.json`.
+
 ### Automatic external coverage
 
 `--cover-start` and `--cover-size` describe an external scalar interval using

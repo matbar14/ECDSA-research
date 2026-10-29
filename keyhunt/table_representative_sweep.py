@@ -164,6 +164,32 @@ def run_engine(binary, target, size, extra):
     }
 
 
+def partner_targets(rng, stride, giant_count, count, heads):
+    """Детерминированный список орбитальных целей для данного seed-потока."""
+    targets = []
+    for _ in range(count):
+        j = rng.randrange(heads)
+        a = rng.randrange(3)
+        sign = rng.choice((1, -1))
+        i = rng.randrange(giant_count // 2, giant_count)
+        s = sign * pow(LAMBDA, a, N) * j % N
+        # скаляр цели обязан лежать в [1, n) для derive_private_key;
+        # сравнение восстановленного значения идёт по модулю n
+        scalar = (START + i * stride + s) % N
+        targets.append({
+            "scalar": scalar, "head": j, "rotation": a, "sign": sign,
+            "stride index": i, "pubkey": pubkey_hex(scalar),
+        })
+    return targets
+
+
+def save_json(out, results):
+    """Атомарная запись частичных результатов (resume между вызовами)."""
+    tmp = out.with_suffix(".tmp")
+    tmp.write_text(json.dumps(results, indent=2) + "\n")
+    os.replace(tmp, out)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", default="./eng_bsgs")
@@ -173,21 +199,51 @@ def main():
                         help="орбитальных целей на таблицу")
     parser.add_argument("--threads", type=int,
                         default=min(8, os.cpu_count() or 1))
+    parser.add_argument("--phases", default="tp,ec",
+                        help="запускаемые фазы: tp (throughput), ec (economy)")
     parser.add_argument("--output", default="../table_representative_sweep.json")
     global args
     args = parser.parse_args()
+    run_tp = "tp" in args.phases.split(",")
+    run_ec = "ec" in args.phases.split(",")
 
-    rng = random.Random(20261101)
-    # j = 0 даёт нулевые скаляры орбиты, движок их отвергает - головы с 1.
     heads = list(range(1, args.heads + 1))
     stride_c = args.heads                    # canonical: одна строка на орбиту
     stride_e = 3 * args.heads                # expanded: три строки на орбиту
     size = stride_e * stride_e               # одно и то же окно для всех
 
-    failures = []
-    results = {"heads": args.heads, "window size": size,
-               "start": hex(START), "trials": args.trials,
-               "throughput": {}, "economy": {}}
+    # ---- resume: дозапуск в существующий JSON, цели детерминированы ----
+    out = Path(args.output)
+    results = None
+    if out.exists():
+        try:
+            loaded = json.loads(out.read_text())
+            if loaded.get("heads") == args.heads:
+                results = loaded
+        except (json.JSONDecodeError, OSError):
+            results = None
+    fresh = results is None
+    if fresh:
+        results = {"heads": args.heads, "window size": size,
+                   "start": hex(START), "trials": args.trials,
+                   "throughput": {}, "economy": {}, "failures": []}
+    results.setdefault("throughput", {})
+    results.setdefault("economy", {})
+    results.setdefault("failures", [])
+    results["trials"] = args.trials
+    results["window size"] = size
+    results["start"] = hex(START)
+
+    # Детерминированные цели: отдельные seed-потоки, независимые от того,
+    # какие фазы/планы уже выполнены (устойчивый resume).
+    rng_out = random.Random(20261101)
+    outside = START + size + rng_out.randrange(1, 1 << 32)
+    giant_count_c = (size - 1) // stride_c + 1
+    giant_count_e = (size - 1) // stride_e + 1
+    targets_c = partner_targets(random.Random(20261102), stride_c,
+                                giant_count_c, args.trials, args.heads)
+    targets_e = partner_targets(random.Random(20261103), stride_e,
+                                giant_count_e, args.trials, args.heads)
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
@@ -206,14 +262,18 @@ def main():
             "expanded rows": len(expanded),
             "canonical rows": len(canonical),
         }
-        print(f"[setup] heads={args.heads}, window size={size}, "
-              f"expanded rows={len(expanded)}, canonical rows={len(canonical)}")
+        if fresh:
+            print(f"[setup] heads={args.heads}, window size={size}, "
+                  f"expanded rows={len(expanded)}, canonical rows={len(canonical)}")
+        else:
+            done_tp = len(results["throughput"])
+            done_ec = sum(1 for v in results["economy"].values()
+                          if v.get("all correct"))
+            print(f"[resume] heads={args.heads}: throughput планов готово "
+                  f"{done_tp}/4, economy планов готово {done_ec}/4")
 
         # ---------- throughput: цель вне покрытия, полный проход ----------
-        outside = START + size + rng.randrange(1, 1 << 32)
-        target_out = pubkey_hex(outside)
-        throughput = {}
-        plans = [
+        throughput_plans = [
             ("continuous 3H rows", ["--baby-rows", str(stride_e),
                                     "--glv-orbit", "--phase-signature"]),
             ("expanded 3H rows", ["--table-scalars", str(expanded_path),
@@ -224,62 +284,45 @@ def main():
              ["--table-scalars", str(expanded_path), "--glv-orbit",
               "--phase-signature", "--canonical-k3"]),
         ]
-        for name, extra in plans:
-            run = run_engine(args.binary, target_out, size, extra)
-            rows_stored = (run["counters"].get("table rows stored")
-                           or run["counters"].get("raw baby rows built"))
-            throughput[name] = {
-                "table rows stored": rows_stored,
-                "unique baby keys": run["counters"].get("unique baby rows built"),
-                "canonical rows merged": run["counters"].get("canonical rows merged", 0),
-                "giant steps": run["counters"].get("giant steps"),
-                "EC scalar multiplications": run["counters"].get("EC scalar multiplications"),
-                "EC point additions": run["counters"].get("EC point additions"),
-                "total EC operations": run["counters"].get("total EC operations"),
-                "build seconds": run["timing"].get("table build seconds"),
-                "search seconds": run["timing"].get("giant search seconds"),
-                "giant steps/second": run["timing"].get("giant steps/second"),
-                "wall seconds": run["wall seconds"],
-                "peak rss kb": run["peak rss kb"],
-                "recovered unexpectedly": run["recovered"] is not None,
-            }
-            steps_s = throughput[name]["giant steps/second"]
-            steps_s_text = f"{steps_s:.0f}" if steps_s is not None else "n/a"
-            print(f"[throughput] {name}: rows="
-                  f"{throughput[name]['table rows stored']}, "
-                  f"steps={throughput[name]['giant steps']}, "
-                  f"steps/s={steps_s_text}, "
-                  f"EC-ops={throughput[name]['total EC operations']}, "
-                  f"rss={run['peak rss kb']} kB")
-            if run["recovered"] is not None:
-                failures.append(f"throughput {name}: unexpected recovery")
-        results["throughput"] = throughput
+        if run_tp:
+            for name, extra in throughput_plans:
+                if results["throughput"].get(name, {}).get(
+                        "table rows stored") is not None:
+                    print(f"[throughput] {name}: уже выполнен, пропуск")
+                    continue
+                run = run_engine(args.binary, pubkey_hex(outside), size, extra)
+                rows_stored = (run["counters"].get("table rows stored")
+                               or run["counters"].get("raw baby rows built"))
+                tp_entry = {
+                    "table rows stored": rows_stored,
+                    "unique baby keys": run["counters"].get("unique baby rows built"),
+                    "canonical rows merged": run["counters"].get("canonical rows merged", 0),
+                    "giant steps": run["counters"].get("giant steps"),
+                    "EC scalar multiplications": run["counters"].get("EC scalar multiplications"),
+                    "EC point additions": run["counters"].get("EC point additions"),
+                    "total EC operations": run["counters"].get("total EC operations"),
+                    "build seconds": run["timing"].get("table build seconds"),
+                    "search seconds": run["timing"].get("giant search seconds"),
+                    "giant steps/second": run["timing"].get("giant steps/second"),
+                    "wall seconds": run["wall seconds"],
+                    "peak rss kb": run["peak rss kb"],
+                    "recovered unexpectedly": run["recovered"] is not None,
+                }
+                results["throughput"][name] = tp_entry
+                save_json(out, results)
+                steps_s = tp_entry["giant steps/second"]
+                steps_s_text = f"{steps_s:.0f}" if steps_s is not None else "n/a"
+                print(f"[throughput] {name}: rows={rows_stored}, "
+                      f"steps={tp_entry['giant steps']}, "
+                      f"steps/s={steps_s_text}, "
+                      f"EC-ops={tp_entry['total EC operations']}, "
+                      f"rss={run['peak rss kb']} kB")
+                if run["recovered"] is not None:
+                    results["failures"].append(
+                        f"throughput {name}: unexpected recovery")
+                    save_json(out, results)
 
         # ---------- economy: орбитальные цели ----------
-        # Цели строятся под stride конкретной таблицы:
-        # k = start + i*stride + s*, s* = +/-(lambda^a * j).
-        def partner_targets(stride, giant_count, count):
-            targets = []
-            for _ in range(count):
-                j = rng.randrange(args.heads)
-                a = rng.randrange(3)
-                sign = rng.choice((1, -1))
-                i = rng.randrange(giant_count // 2, giant_count)
-                s = sign * pow(LAMBDA, a, N) * j % N
-                # скаляр цели обязан лежать в [1, n) для derive_private_key;
-                # сравнение восстановленного значения идёт по модулю n
-                scalar = (START + i * stride + s) % N
-                targets.append({
-                    "scalar": scalar, "head": j, "rotation": a, "sign": sign,
-                    "stride index": i, "pubkey": pubkey_hex(scalar),
-                })
-            return targets
-
-        giant_count_c = (size - 1) // stride_c + 1
-        giant_count_e = (size - 1) // stride_e + 1
-        targets_c = partner_targets(stride_c, giant_count_c, args.trials)
-        targets_e = partner_targets(stride_e, giant_count_e, args.trials)
-
         economy_plans = [
             ("canonical six-branch", targets_c, stride_c,
              ["--table-scalars", str(canonical_path), "--glv-orbit",
@@ -294,85 +337,89 @@ def main():
              ["--table-scalars", str(expanded_path), "--glv-orbit",
               "--phase-signature", "--partner-table", "--canonical-k3"]),
         ]
-        economy = {}
-        for name, targets, stride, base_extra in economy_plans:
-            runs = []
-            for t in targets:
-                run = run_engine(args.binary, t["pubkey"], size, base_extra)
-                ok = run["recovered"] == t["scalar"]
-                hit = run["recovered"] is not None
-                entry = {
-                    "correct": ok,
-                    "head": t["head"], "rotation": t["rotation"],
-                    "sign": t["sign"], "stride index": t["stride index"],
+        if run_ec:
+            for name, targets, stride, base_extra in economy_plans:
+                prior = results["economy"].get(name)
+                if prior and prior.get("all correct") \
+                        and len(prior.get("runs", [])) == args.trials:
+                    print(f"[economy] {name}: уже выполнен, пропуск")
+                    continue
+                runs = []
+                for t in targets:
+                    run = run_engine(args.binary, t["pubkey"], size, base_extra)
+                    ok = run["recovered"] == t["scalar"]
+                    entry = {
+                        "correct": ok,
+                        "head": t["head"], "rotation": t["rotation"],
+                        "sign": t["sign"], "stride index": t["stride index"],
+                        "stride": stride,
+                        **{k: v for k, v in run["counters"].items()
+                           if k in ("exact candidate checks",
+                                    "orbit factors scheduled",
+                                    "EC scalar multiplications",
+                                    "EC point additions",
+                                    "total EC operations",
+                                    "signature routes",
+                                    "signature pair collapses",
+                                    "signature pair mismatches",
+                                    "signature anomalies (6-branch fallback)",
+                                    "partner recoveries",
+                                    "table rows stored",
+                                    "canonical rows merged")},
+                        "search seconds": run["timing"].get("giant search seconds"),
+                    }
+                    runs.append(entry)
+                    status = "PASS" if ok else "FAIL"
+                    print(f"[economy] {name}: head={t['head']} r={t['rotation']} "
+                          f"sign={t['sign']:+d} -> {status}, "
+                          f"exact={entry.get('exact candidate checks')}, "
+                          f"EC-ops={entry.get('total EC operations')}, "
+                          f"routes={entry.get('signature routes')}")
+                    if not ok:
+                        results["failures"].append(
+                            f"{name}: head={t['head']} r={t['rotation']} "
+                            f"sign={t['sign']} stride={stride}")
+                exact = [r["exact candidate checks"] for r in runs
+                         if r.get("exact candidate checks") is not None]
+                ec_ops = [r["total EC operations"] for r in runs
+                          if r.get("total EC operations") is not None]
+                results["economy"][name] = {
                     "stride": stride,
-                    **{k: v for k, v in run["counters"].items()
-                       if k in ("exact candidate checks",
-                                "orbit factors scheduled",
-                                "EC scalar multiplications",
-                                "EC point additions",
-                                "total EC operations",
-                                "signature routes",
-                                "signature pair collapses",
-                                "signature pair mismatches",
-                                "signature anomalies (6-branch fallback)",
-                                "partner recoveries",
-                                "table rows stored",
-                                "canonical rows merged")},
-                    "search seconds": run["timing"].get("giant search seconds"),
+                    "table rows stored": runs[0].get("table rows stored"),
+                    "all correct": all(r["correct"] for r in runs),
+                    "avg exact checks per hit": round(sum(exact) / len(exact), 3)
+                    if exact else None,
+                    "avg total EC ops per run": round(sum(ec_ops) / len(ec_ops), 1)
+                    if ec_ops else None,
+                    "partner recoveries": sum(r.get("partner recoveries", 0)
+                                              for r in runs),
+                    "signature pair collapses": sum(
+                        r.get("signature pair collapses", 0) for r in runs),
+                    "signature pair mismatches": sum(
+                        r.get("signature pair mismatches", 0) for r in runs),
+                    "signature anomalies": sum(
+                        r.get("signature anomalies (6-branch fallback)", 0)
+                        for r in runs),
+                    "runs": runs,
                 }
-                runs.append(entry)
-                status = "PASS" if ok else "FAIL"
-                print(f"[economy] {name}: head={t['head']} r={t['rotation']} "
-                      f"sign={t['sign']:+d} -> {status}, "
-                      f"exact={entry.get('exact candidate checks')}, "
-                      f"EC-ops={entry.get('total EC operations')}, "
-                      f"routes={entry.get('signature routes')}")
-                if not ok:
-                    failures.append(
-                        f"{name}: head={t['head']} r={t['rotation']} "
-                        f"sign={t['sign']} stride={stride}")
-            exact = [r["exact candidate checks"] for r in runs
-                     if r.get("exact candidate checks") is not None]
-            ec_ops = [r["total EC operations"] for r in runs
-                      if r.get("total EC operations") is not None]
-            economy[name] = {
-                "stride": stride,
-                "table rows stored": runs[0].get("table rows stored"),
-                "all correct": all(r["correct"] for r in runs),
-                "avg exact checks per hit": round(sum(exact) / len(exact), 3)
-                if exact else None,
-                "avg total EC ops per run": round(sum(ec_ops) / len(ec_ops), 1)
-                if ec_ops else None,
-                "partner recoveries": sum(r.get("partner recoveries", 0)
-                                          for r in runs),
-                "signature pair collapses": sum(
-                    r.get("signature pair collapses", 0) for r in runs),
-                "signature pair mismatches": sum(
-                    r.get("signature pair mismatches", 0) for r in runs),
-                "signature anomalies": sum(
-                    r.get("signature anomalies (6-branch fallback)", 0)
-                    for r in runs),
-                "runs": runs,
-            }
-            print(f"[economy] {name}: all_correct="
-                  f"{economy[name]['all correct']}, "
-                  f"avg exact/hit={economy[name]['avg exact checks per hit']}")
-        results["economy"] = economy
+                save_json(out, results)
+                print(f"[economy] {name}: all_correct="
+                      f"{results['economy'][name]['all correct']}, "
+                      f"avg exact/hit="
+                      f"{results['economy'][name]['avg exact checks per hit']}")
 
-    results["failures"] = failures
-    out = Path(args.output)
-    out.write_text(json.dumps(results, indent=2) + "\n")
+    failures = results["failures"]
+    save_json(out, results)
 
     print("\n=== summary ===")
-    for name, tp in throughput.items():
+    for name, tp in results["throughput"].items():
         steps_s = tp["giant steps/second"]
         steps_s_text = f"{steps_s:.0f}" if steps_s is not None else "n/a"
         print(f"throughput {name}: rows={tp['table rows stored']}, "
               f"steps/s={steps_s_text}, "
               f"EC-ops={tp['total EC operations']}, "
               f"rss={tp['peak rss kb']} kB")
-    for name, ec_data in economy.items():
+    for name, ec_data in results["economy"].items():
         print(f"economy {name}: all_correct={ec_data['all correct']}, "
               f"avg exact/hit={ec_data['avg exact checks per hit']}")
     if failures:

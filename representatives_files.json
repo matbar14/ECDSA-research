@@ -1,0 +1,69 @@
+{
+  "curve": "secp256k1",
+  "files": [
+    {
+      "heads": 50000,
+      "rows": 50000,
+      "distinct representatives": 50000,
+      "representatives equal heads": 50000,
+      "file": "representatives_canonical_H50000.txt",
+      "file bytes": 346518,
+      "sha256": "945079c01e6ac4838fa93ffb12273e53608b52b78db7dee3097d4ed7c993e725",
+      "generation seconds": 0.085,
+      "min bit length": 1,
+      "max bit length": 16,
+      "mean bit length": 14.69,
+      "median bit length": 15.0,
+      "below 2^254 share": 1.0,
+      "largest representative share of n/2": 0.0
+    },
+    {
+      "heads": 100000,
+      "rows": 100000,
+      "distinct representatives": 100000,
+      "representatives equal heads": 100000,
+      "file": "representatives_canonical_H100000.txt",
+      "file bytes": 730988,
+      "sha256": "713925e358fb47b5e1b7f520a3e61d6ba394d324f72c2f66b7032a1d131332e0",
+      "generation seconds": 0.16,
+      "min bit length": 1,
+      "max bit length": 17,
+      "mean bit length": 15.69,
+      "median bit length": 16.0,
+      "below 2^254 share": 1.0,
+      "largest representative share of n/2": 0.0
+    },
+    {
+      "heads": 200000,
+      "rows": 200000,
+      "distinct representatives": 200000,
+      "representatives equal heads": 200000,
+      "file": "representatives_canonical_H200000.txt",
+      "file bytes": 1530988,
+      "sha256": "274ba7a52687a76ea8a01a890b2aea70a312ad45dac7c3c75a230aacfdcbfdb1",
+      "generation seconds": 0.322,
+      "min bit length": 1,
+      "max bit length": 18,
+      "mean bit length": 16.69,
+      "median bit length": 17.0,
+      "below 2^254 share": 1.0,
+      "largest representative share of n/2": 0.0
+    },
+    {
+      "heads": 400000,
+      "rows": 400000,
+      "distinct representatives": 400000,
+      "representatives equal heads": 400000,
+      "file": "representatives_canonical_H400000.txt",
+      "file bytes": 3130988,
+      "sha256": "57a39b7a69b601ba1a279b3a4fc65147a6129014d0a40558fdaf484e4846857b",
+      "generation seconds": 0.636,
+      "min bit length": 1,
+      "max bit length": 19,
+      "mean bit length": 17.69,
+      "median bit length": 18.0,
+      "below 2^254 share": 1.0,
+      "largest representative share of n/2": 0.0
+    }
+  ]
+}
