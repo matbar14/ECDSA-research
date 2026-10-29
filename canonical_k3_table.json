@@ -1,0 +1,38 @@
+{
+ "parameters": {
+  "orbits": 400,
+  "background": 400,
+  "trials": 1000,
+  "seed": 20261030,
+  "json": "canonical_k3_table.json"
+ },
+ "stats": {
+  "orbits": 400,
+  "background": 400,
+  "raw_rows": 1600,
+  "canonical_rows": 800,
+  "storage_compression_overall": 2.0,
+  "full_buckets": 400,
+  "full_bucket_compression": 3.0,
+  "build_seconds": 1.076,
+  "trials": 1000,
+  "pair_contains_target": 1000,
+  "anomalies": 0,
+  "routes": {
+   "0": 369,
+   "1": 297,
+   "2": 334
+  },
+  "checks_baseline6": 3450,
+  "checks_naive3": 1495,
+  "checks_canonical": 1495,
+  "max_checks_naive3": 2,
+  "max_checks_canonical": 2,
+  "canonical_from_min_row": 1000,
+  "mean_checks_baseline6": 3.45,
+  "mean_checks_naive3": 1.495,
+  "mean_checks_canonical": 1.495,
+  "checks_saved_vs_naive": 1.0,
+  "pair_contains_pct": 100.0
+ }
+}

@@ -54,6 +54,7 @@ std::atomic<uint64_t> exact_candidate_checks{0};
 std::atomic<uint64_t> orbit_factor_checks{0};
 std::atomic<uint64_t> signature_routes{0};
 std::atomic<uint64_t> signature_anomalies{0};
+std::atomic<uint64_t> orbit_duplicate_rows{0};
 std::atomic<uint64_t> lambda_calculations{0};
 std::atomic<uint64_t> priority_slices{0};
 std::atomic<uint64_t> fallback_slices{0};
@@ -489,10 +490,23 @@ void search_slice(uint64_t local_start, uint64_t local_size,
             [](const BabyRow &row, const std::array<unsigned char, 33> &needle) {
               return row.key < needle;
             });
+        bool bucket_checked = false;
         while (it != shared_table.end() && it->key == query_key &&
                !found.load(std::memory_order_relaxed)) {
           if (glv_orbit_mode) {
             invariant_hits.fetch_add(1, std::memory_order_relaxed);
+            if (bucket_checked) {
+              // Every row of a K3=x^3 bucket lies in one C6 orbit (the roots
+              // of X^3-c over F_p are exactly x, beta*x, beta^2*x), so the
+              // routed pair -- or the six GLV branches -- is the same scalar
+              // set for every row of the bucket. The first row's check
+              // already covered them; re-checking duplicates would repeat
+              // identical candidates. In non-GLV mode rows give distinct
+              // candidates (base + j), so no dedup is applied there.
+              orbit_duplicate_rows.fetch_add(1, std::memory_order_relaxed);
+              ++it;
+              continue;
+            }
           }
           uint64_t j = it->j;
           Int candidate;
@@ -544,6 +558,9 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               found.store(true);
             }
             break;
+          }
+          if (glv_orbit_mode) {
+            bucket_checked = true;
           }
           ++it;
         }
@@ -893,6 +910,10 @@ int main(int argc, char **argv) {
     std::cout << "  signature routes: " << signature_routes.load() << "\n"
               << "  signature anomalies (6-branch fallback): "
               << signature_anomalies.load() << "\n";
+  }
+  if (glv_orbit_mode) {
+    std::cout << "  orbit duplicate rows skipped: "
+              << orbit_duplicate_rows.load() << "\n";
   }
   std::cout << "  giant steps planned: " << giant_steps_planned.load() << "\n"
             << "  table build seconds: " << table_seconds << "\n"
