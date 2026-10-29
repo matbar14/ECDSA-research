@@ -1,0 +1,384 @@
+{
+  "heads": 400000,
+  "seed": 20261105,
+  "design": "paired",
+  "order": [
+    "canonical",
+    "merge",
+    "merge",
+    "canonical",
+    "canonical",
+    "merge",
+    "merge",
+    "canonical",
+    "canonical",
+    "merge",
+    "merge",
+    "canonical"
+  ],
+  "window divisor": 8,
+  "window size": 180000000000,
+  "start": "0x4000000000000000000000000000000000",
+  "threads": 2,
+  "note": "\u0441\u0442\u0440\u043e\u0433\u043e \u0447\u0435\u0440\u0435\u0434\u0443\u044e\u0449\u0438\u0435\u0441\u044f \u043f\u0430\u0440\u044b, \u043e\u0440\u0438\u0435\u043d\u0442\u0430\u0446\u0438\u044f C,M / M,C \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0435\u0442\u0441\u044f \u043f\u043e \u0447\u0451\u0442\u043d\u043e\u0441\u0442\u0438 i; \u043f\u0430\u0440\u043d\u0430\u044f \u0440\u0430\u0437\u043d\u043e\u0441\u0442\u044c build(canonical) - build(merge) \u0433\u0430\u0441\u0438\u0442 \u0434\u0440\u0435\u0439\u0444 \u0441\u0440\u0435\u0434\u044b",
+  "runs": [
+    {
+      "run index": 0,
+      "mode": "canonical",
+      "table build seconds": 2.78392,
+      "giant search seconds": 0.883101,
+      "giant steps/second": 509568.0,
+      "total seconds": 3.66702,
+      "giant steps": 450000,
+      "table rows stored": null,
+      "canonical rows merged": null,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 3.7914,
+      "peak rss kb": 136192,
+      "probe overhead seconds": 0.001
+    },
+    {
+      "run index": 1,
+      "mode": "merge",
+      "table build seconds": 2.82388,
+      "giant search seconds": 0.85828,
+      "giant steps/second": 524305.0,
+      "total seconds": 3.68217,
+      "giant steps": 450000,
+      "table rows stored": 400000,
+      "canonical rows merged": 800000,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 5.8901,
+      "peak rss kb": 167400,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 2,
+      "mode": "merge",
+      "table build seconds": 2.79768,
+      "giant search seconds": 0.879079,
+      "giant steps/second": 511899.0,
+      "total seconds": 3.67676,
+      "giant steps": 450000,
+      "table rows stored": 400000,
+      "canonical rows merged": 800000,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 5.8003,
+      "peak rss kb": 167428,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 3,
+      "mode": "canonical",
+      "table build seconds": 2.77455,
+      "giant search seconds": 0.87555,
+      "giant steps/second": 513962.0,
+      "total seconds": 3.6501,
+      "giant steps": 450000,
+      "table rows stored": null,
+      "canonical rows merged": null,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 3.7736,
+      "peak rss kb": 136196,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 4,
+      "mode": "canonical",
+      "table build seconds": 2.782,
+      "giant search seconds": 0.863511,
+      "giant steps/second": 521128.0,
+      "total seconds": 3.64552,
+      "giant steps": 450000,
+      "table rows stored": null,
+      "canonical rows merged": null,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 3.7723,
+      "peak rss kb": 136180,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 5,
+      "mode": "merge",
+      "table build seconds": 2.81272,
+      "giant search seconds": 0.870407,
+      "giant steps/second": 516999.0,
+      "total seconds": 3.68313,
+      "giant steps": 450000,
+      "table rows stored": 400000,
+      "canonical rows merged": 800000,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 5.8607,
+      "peak rss kb": 167436,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 6,
+      "mode": "merge",
+      "table build seconds": 2.83326,
+      "giant search seconds": 0.872341,
+      "giant steps/second": 515853.0,
+      "total seconds": 3.70561,
+      "giant steps": 450000,
+      "table rows stored": 400000,
+      "canonical rows merged": 800000,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 5.8523,
+      "peak rss kb": 167420,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 7,
+      "mode": "canonical",
+      "table build seconds": 2.78532,
+      "giant search seconds": 0.874404,
+      "giant steps/second": 514636.0,
+      "total seconds": 3.65972,
+      "giant steps": 450000,
+      "table rows stored": null,
+      "canonical rows merged": null,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 3.8006,
+      "peak rss kb": 136180,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 8,
+      "mode": "canonical",
+      "table build seconds": 2.79452,
+      "giant search seconds": 0.876639,
+      "giant steps/second": 513324.0,
+      "total seconds": 3.67116,
+      "giant steps": 450000,
+      "table rows stored": null,
+      "canonical rows merged": null,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 3.8093,
+      "peak rss kb": 136188,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 9,
+      "mode": "merge",
+      "table build seconds": 2.8468,
+      "giant search seconds": 0.875748,
+      "giant steps/second": 513847.0,
+      "total seconds": 3.72256,
+      "giant steps": 450000,
+      "table rows stored": 400000,
+      "canonical rows merged": 800000,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 5.8721,
+      "peak rss kb": 167404,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 10,
+      "mode": "merge",
+      "table build seconds": 2.82973,
+      "giant search seconds": 0.850113,
+      "giant steps/second": 529341.0,
+      "total seconds": 3.67984,
+      "giant steps": 450000,
+      "table rows stored": 400000,
+      "canonical rows merged": 800000,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 5.8598,
+      "peak rss kb": 167396,
+      "probe overhead seconds": 0.0
+    },
+    {
+      "run index": 11,
+      "mode": "canonical",
+      "table build seconds": 2.82238,
+      "giant search seconds": 0.867371,
+      "giant steps/second": 518809.0,
+      "total seconds": 3.68975,
+      "giant steps": 450000,
+      "table rows stored": null,
+      "canonical rows merged": null,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "total EC operations": 850005,
+      "wall seconds": 3.8215,
+      "peak rss kb": 136164,
+      "probe overhead seconds": 0.0
+    }
+  ],
+  "verdict": {
+    "completed": [
+      {
+        "mode": "canonical",
+        "n": 6,
+        "mean build s": 2.79,
+        "min build s": 2.775,
+        "max build s": 2.822,
+        "median build s": 2.785,
+        "runs": [
+          2.784,
+          2.775,
+          2.782,
+          2.785,
+          2.795,
+          2.822
+        ]
+      },
+      {
+        "mode": "merge",
+        "n": 6,
+        "mean build s": 2.824,
+        "min build s": 2.798,
+        "max build s": 2.847,
+        "median build s": 2.83,
+        "runs": [
+          2.824,
+          2.798,
+          2.813,
+          2.833,
+          2.847,
+          2.83
+        ]
+      }
+    ],
+    "order": [
+      "canonical",
+      "merge",
+      "merge",
+      "canonical",
+      "canonical",
+      "merge",
+      "merge",
+      "canonical",
+      "canonical",
+      "merge",
+      "merge",
+      "canonical"
+    ],
+    "per-run": [
+      {
+        "mode": "canonical",
+        "build": 2.78392,
+        "steps/s": 509568.0
+      },
+      {
+        "mode": "merge",
+        "build": 2.82388,
+        "steps/s": 524305.0
+      },
+      {
+        "mode": "merge",
+        "build": 2.79768,
+        "steps/s": 511899.0
+      },
+      {
+        "mode": "canonical",
+        "build": 2.77455,
+        "steps/s": 513962.0
+      },
+      {
+        "mode": "canonical",
+        "build": 2.782,
+        "steps/s": 521128.0
+      },
+      {
+        "mode": "merge",
+        "build": 2.81272,
+        "steps/s": 516999.0
+      },
+      {
+        "mode": "merge",
+        "build": 2.83326,
+        "steps/s": 515853.0
+      },
+      {
+        "mode": "canonical",
+        "build": 2.78532,
+        "steps/s": 514636.0
+      },
+      {
+        "mode": "canonical",
+        "build": 2.79452,
+        "steps/s": 513324.0
+      },
+      {
+        "mode": "merge",
+        "build": 2.8468,
+        "steps/s": 513847.0
+      },
+      {
+        "mode": "merge",
+        "build": 2.82973,
+        "steps/s": 529341.0
+      },
+      {
+        "mode": "canonical",
+        "build": 2.82238,
+        "steps/s": 518809.0
+      }
+    ],
+    "pairs": [
+      {
+        "pair": 0,
+        "canonical build": 2.78392,
+        "merge build": 2.82388,
+        "diff canonical-merge": -0.04
+      },
+      {
+        "pair": 1,
+        "canonical build": 2.77455,
+        "merge build": 2.79768,
+        "diff canonical-merge": -0.023
+      },
+      {
+        "pair": 2,
+        "canonical build": 2.782,
+        "merge build": 2.81272,
+        "diff canonical-merge": -0.031
+      },
+      {
+        "pair": 3,
+        "canonical build": 2.78532,
+        "merge build": 2.83326,
+        "diff canonical-merge": -0.048
+      },
+      {
+        "pair": 4,
+        "canonical build": 2.79452,
+        "merge build": 2.8468,
+        "diff canonical-merge": -0.052
+      },
+      {
+        "pair": 5,
+        "canonical build": 2.82238,
+        "merge build": 2.82973,
+        "diff canonical-merge": -0.007
+      }
+    ],
+    "median diff s": -0.031,
+    "median diff / median merge": -0.011,
+    "state": "\u0440\u0430\u0432\u043d\u043e \u0432 \u043f\u0440\u0435\u0434\u0435\u043b\u0430\u0445 \u0448\u0443\u043c\u0430 (<=10%): \u0430\u043d\u043e\u043c\u0430\u043b\u0438\u044f 5.36/4.41 \u043d\u0435 \u044f\u0432\u043b\u044f\u0435\u0442\u0441\u044f \u0441\u0432\u043e\u0439\u0441\u0442\u0432\u043e\u043c \u0440\u0435\u0436\u0438\u043c\u0430 - \u043a\u044d\u0448/\u043f\u043e\u0440\u044f\u0434\u043e\u043a \u043f\u043b\u0430\u043d\u043e\u0432; canonical \u043e\u0441\u0442\u0430\u0451\u0442\u0441\u044f \u043e\u043f\u0442\u0438\u043c\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u044b\u043c \u0440\u0435\u0436\u0438\u043c\u043e\u043c"
+  },
+  "outside target": "02570d177e0afdbe2fe0a331a684dfc505453f9b3428a6253c58625bb2d34efee1"
+}

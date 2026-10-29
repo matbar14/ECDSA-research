@@ -56,7 +56,7 @@ def run(binary, target, extra):
 
 def main():
     rng = random.Random(20261030)
-    with tempfile.TemporaryDirectory(dir="/home/z/my-project") as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         rows = [J3, LAMBDA * J3 % N, LAMBDA2 * J3 % N]
         rows += [rng.randrange(1, 1 << 100) for _ in range(6)]
         rows_path = Path(tmpdir) / "rows.txt"

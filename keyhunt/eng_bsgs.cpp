@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <fcntl.h>
 #include <fstream>
 #include <cstdint>
 #include <cstdio>
@@ -19,9 +20,11 @@
 #include <getopt.h>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 
 #include "secp256k1/SECP256k1.h"
@@ -65,6 +68,14 @@ std::atomic<uint64_t> partner_recoveries{0};
 // here, so builds and search paths compare on the same unit.
 std::atomic<uint64_t> ec_scalar_mults{0};
 std::atomic<uint64_t> ec_point_adds{0};
+// EC work of the exact candidate checks (the reach-on-a-bucket-match path).
+// Counted additionally to the global counters so the printout can split
+// build / giant-search / hit EC-ops.
+std::atomic<uint64_t> hit_ec_scalar_mults{0};
+// Microseconds of the program run at the moment of the successful recovery
+// (steady_clock); grouped with the counters because the printout of the
+// split accounting references it.
+std::atomic<uint64_t> found_run_us{0};
 std::atomic<uint64_t> lambda_calculations{0};
 std::atomic<uint64_t> priority_slices{0};
 std::atomic<uint64_t> fallback_slices{0};
@@ -84,6 +95,15 @@ uint64_t active_range_size = 0;
 bool enforce_cover_range = false;
 Int cover_start;
 Int cover_end;
+// --checkpoint-file PATH / --checkpoint-steps N / --resume: atomic progress
+// checkpoint for long --cover-start/--cover-size runs. Granularity is the
+// external cover chunk (one full giant pass over range_size), written after
+// every N completed chunks (default 1: every chunk) plus at the end of the
+// run. --resume continues from source_start and restores the search-phase
+// counters, so the printed totals stay cumulative across kills/sessions.
+static std::string checkpoint_path;
+static uint64_t checkpoint_steps = 1;
+static bool checkpoint_resume = false;
 bool lambda_priority = false;
 uint64_t lambda_sector_count = 16;
 bool phase_signature = false;
@@ -140,6 +160,20 @@ Point add_safe(Point &a, Point &b) {
 Point ec_mult(Int &k) {
   ec_scalar_mults.fetch_add(1, std::memory_order_relaxed);
   return curve.ComputePublicKey(&k);
+}
+
+// Exact candidate check wrapper: the same EC work counted additionally into
+// the hit-phase counter (giant = search − exact checks in the printout).
+Point hit_ec_mult(Int &k) {
+  hit_ec_scalar_mults.fetch_add(1, std::memory_order_relaxed);
+  return ec_mult(k);
+}
+
+std::chrono::steady_clock::time_point program_started;
+
+uint64_t run_us() {
+  return std::chrono::duration_cast<std::chrono::microseconds>(
+      std::chrono::steady_clock::now() - program_started).count();
 }
 
 std::array<unsigned char, 33> point_key(Point &p) {
@@ -365,12 +399,12 @@ bool check_orbit_candidate(Int &base_scalar, Int &row_scalar,
                        candidate.IsLower(&segment_end);
     if (!in_interval && !partner_table_mode) continue;
     exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
-    Point check = ec_mult(candidate);
+    Point check = hit_ec_mult(candidate);
     if (check.equals(search_target)) {
       Int shifted_candidate(&candidate);
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
-      Point original_check = ec_mult(recovered);
+      Point original_check = hit_ec_mult(recovered);
       if (!original_check.equals(target) ||
           (!partner_table_mode && !candidate_in_cover(recovered))) {
         continue;
@@ -458,12 +492,12 @@ bool check_factor_pair(Int &base_factor, Int &base_scalar,
                        candidate.IsLower(&segment_end);
     if (!in_interval && !partner_table_mode) continue;
     exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
-    Point check = ec_mult(candidate);
+    Point check = hit_ec_mult(candidate);
     if (check.equals(search_target)) {
       Int shifted_candidate(&candidate);
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
-      Point original_check = ec_mult(recovered);
+      Point original_check = hit_ec_mult(recovered);
       if (!original_check.equals(target) ||
           (!partner_table_mode && !candidate_in_cover(recovered))) {
         continue;
@@ -791,12 +825,12 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               candidate.Set(&base_scalar);
               candidate.Add(j);
               exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
-              Point check = ec_mult(candidate);
+              Point check = hit_ec_mult(candidate);
               match = check.equals(search_target);
               if (match) {
                 Int recovered;
                 subtract_order_mod(recovered, candidate, active_shift);
-                Point original_check = ec_mult(recovered);
+                Point original_check = hit_ec_mult(recovered);
                 match = original_check.equals(target) && candidate_in_cover(recovered);
                 if (match) {
                   candidate.Set(&recovered);
@@ -815,6 +849,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               found_shift.Set(&active_shift);
               found_segment = segment;
               found_local_offset = local_offset;
+              found_run_us.store(run_us(), std::memory_order_relaxed);
               found.store(true);
             }
             break;
@@ -899,6 +934,243 @@ void search_current_target() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// --cover checkpoint: atomic progress file for long automatic-coverage runs.
+//
+// Granularity is the external cover chunk (one run_target call over range_size
+// at --cover granularity). The file is written to <path>.tmp, fsynced and
+// renamed - a killed process leaves the last completed chunk recorded and the
+// file never appears half-written. On --resume the plan fingerprint is
+// re-checked (target/start/size/cover/modes/table file) so a checkpoint of a
+// different plan cannot silently mislead the continuation, and the
+// search-phase counters are restored, so printed totals stay cumulative
+// across kills/sessions. Build-phase counters (canonical merge, table rows)
+// are not restored: the table itself is rebuilt by design.
+// ---------------------------------------------------------------------------
+
+constexpr unsigned kCheckpointVersion = 1;
+
+std::string int_hex_64(Int &v) {
+  // zero-padded 64-digit hex, human-comparable across sessions
+  char *raw = v.GetBase16();
+  std::string digits(raw);
+  std::free(raw);
+  return std::string(digits.size() < 64 ? 64 - digits.size() : 0, '0') + digits;
+}
+
+uint64_t fnv1a(const std::string &s) {
+  uint64_t hash = 0xcbf29ce484222325ULL;
+  for (unsigned char ch : s) {
+    hash ^= ch;
+    hash *= 0x100000001b3ULL;
+  }
+  return hash;
+}
+
+std::string cover_fingerprint(const std::string &target_hex,
+                              const std::string &start_text,
+                              uint64_t size, const std::string &cover_start_text,
+                              const std::string &cover_size_text,
+                              uint64_t segment, const std::string &table_file,
+                              bool glv, bool sig, bool partner, bool canon,
+                              bool priority) {
+  std::string s;
+  s.reserve(256);
+  s += target_hex;
+  s += "|";
+  s += start_text;
+  s += "|" + std::to_string(size);
+  s += "|" + cover_start_text;
+  s += "|" + cover_size_text;
+  s += "|" + std::to_string(segment);
+  s += "|" + table_file;
+  s += "|" + std::to_string(glv);
+  s += "|" + std::to_string(sig);
+  s += "|" + std::to_string(partner);
+  s += "|" + std::to_string(canon);
+  s += "|" + std::to_string(priority);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%016llx",
+           static_cast<unsigned long long>(fnv1a(s)));
+  return buf;
+}
+
+// (name, getter) pairs describe every restored search-phase counter.
+struct CheckpointCounter {
+  const char *name;
+  const std::atomic<uint64_t> &counter;
+};
+
+std::vector<CheckpointCounter> checkpoint_counter_list() {
+  return {
+      {"giant steps", giant_steps},
+      {"giant steps scheduled", giant_steps_scheduled},
+      {"giant steps planned", giant_steps_planned},
+      {"invariant hits", invariant_hits},
+      {"orbit factor checks", orbit_factor_checks},
+      {"exact candidate checks", exact_candidate_checks},
+      {"EC scalar multiplications", ec_scalar_mults},
+      {"EC point additions", ec_point_adds},
+      {"hit EC scalar multiplications", hit_ec_scalar_mults},
+      {"signature routes", signature_routes},
+      {"signature anomalies", signature_anomalies},
+      {"signature pair collapses", signature_pair_collapses},
+      {"signature pair mismatches", signature_pair_mismatches},
+      {"orbit duplicate rows", orbit_duplicate_rows},
+      {"partner recoveries", partner_recoveries},
+      {"lambda calculations", lambda_calculations},
+      {"lambda priority slices", priority_slices},
+      {"lambda fallback slices", fallback_slices},
+      {"segments done", segments_done},
+  };
+}
+
+void atomic_write_text(const std::string &path, const std::string &content) {
+  std::string tmp = path + ".tmp";
+  int fd = ::open(tmp.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  if (fd < 0) {
+    std::fprintf(stderr, "[W] checkpoint: cannot open %s\n", tmp.c_str());
+    return;
+  }
+  size_t off = 0;
+  while (off < content.size()) {
+    ssize_t n = ::write(fd, content.data() + off, content.size() - off);
+    if (n <= 0) {
+      ::close(fd);
+      std::fprintf(stderr, "[W] checkpoint: write failed for %s\n",
+                   tmp.c_str());
+      return;
+    }
+    off += static_cast<size_t>(n);
+  }
+  if (::fsync(fd) != 0) {
+    std::fprintf(stderr, "[W] checkpoint: fsync failed for %s\n", tmp.c_str());
+  }
+  ::close(fd);
+  if (::rename(tmp.c_str(), path.c_str()) != 0) {
+    std::fprintf(stderr, "[W] checkpoint: rename failed for %s\n", tmp.c_str());
+  }
+}
+
+void save_cover_checkpoint(const std::string &fingerprint,
+                           const Int &source_start, uint64_t chunks_done,
+                           double cumulative_elapsed, bool found_state) {
+  std::string text;
+  text.reserve(2048);
+  text += "cover checkpoint version: "
+      + std::to_string(kCheckpointVersion) + "\n";
+  text += "plan fingerprint: " + fingerprint + "\n";
+  text += "next source chunk start: 0x" + int_hex_64(
+      const_cast<Int &>(source_start)) + "\n";
+  text += "chunks completed: " + std::to_string(chunks_done) + "\n";
+  char buf[64];
+  snprintf(buf, sizeof(buf), "cumulative elapsed seconds: %.3f\n",
+           cumulative_elapsed);
+  text += buf;
+  text += "found: " + std::to_string(found_state ? 1 : 0) + "\n";
+  if (found_state) {
+    text += "recovered scalar: 0x" + int_hex_64(found_scalar) + "\n";
+    text += "recovered private key: 0x" + int_hex_64(found_scalar) + "\n";
+  }
+  for (CheckpointCounter &cc : checkpoint_counter_list()) {
+    text += std::string("counter ") + cc.name + ": "
+        + std::to_string(cc.counter.load(std::memory_order_relaxed)) + "\n";
+  }
+  atomic_write_text(checkpoint_path, text);
+}
+
+bool parse_checkpoint_file(const std::string &path,
+                           std::map<std::string, std::string> &fields) {
+  // The main file is only created by rename after a full fsync, so it is
+  // always whole; a leftover <path>.tmp means the CURRENT save did not
+  // finish and is ignored (the previous completed save stays on disk).
+  std::ifstream file(path);
+  if (!file) return false;
+  std::string line;
+  while (std::getline(file, line)) {
+    size_t colon = line.find(':');
+    if (colon == std::string::npos) continue;
+    std::string key = line.substr(0, colon);
+    std::string value = line.substr(colon + 1);
+    while (!value.empty() && (value.front() == ' ' || value.front() == '\t')) {
+      value.erase(value.begin());
+    }
+    fields[key] = value;
+  }
+  return true;
+}
+
+// Reads and validates the checkpoint file. Counter restoration is kept in a
+// separate step (restore_checkpoint_counters) because the engine takes the
+// fresh build-phase EC snapshot after the table build and BEFORE resuming, so
+// the printed build line stays pure and the search totals stay cumulative.
+bool read_cover_checkpoint(const std::string &fingerprint,
+                           const std::map<std::string, std::string> &_unused_fields,
+                           Int &source_start, uint64_t &chunks_done,
+                           double &cumulative_elapsed, bool &found_state,
+                           std::map<std::string, std::string> &fields,
+                           std::string &error) {
+  (void)_unused_fields;
+  if (!parse_checkpoint_file(checkpoint_path, fields)) {
+    error = "no readable checkpoint file: " + checkpoint_path;
+    return false;
+  }
+  auto field = [&fields](const char *k, std::string &out) -> bool {
+    auto it = fields.find(k);
+    if (it == fields.end()) return false;
+    out = it->second;
+    return true;
+  };
+  std::string version, saved_fingerprint, source_hex, chunks_text, elapsed_text,
+      found_text;
+  if (!field("cover checkpoint version", version) ||
+      !field("plan fingerprint", saved_fingerprint) ||
+      !field("next source chunk start", source_hex) ||
+      !field("chunks completed", chunks_text) ||
+      !field("cumulative elapsed seconds", elapsed_text) ||
+      !field("found", found_text)) {
+    error = "checkpoint file is missing required fields";
+    return false;
+  }
+  if (std::strtoul(version.c_str(), nullptr, 10) != kCheckpointVersion) {
+    error = "checkpoint version mismatch: " + version;
+    return false;
+  }
+  if (saved_fingerprint != fingerprint) {
+    error = "checkpoint belongs to a different plan (fingerprint " +
+            saved_fingerprint + ", expected " + fingerprint + ")";
+    return false;
+  }
+  if (!parse_int(source_hex, source_start)) {
+    error = "checkpoint source_start is not a valid number: " + source_hex;
+    return false;
+  }
+  chunks_done = std::strtoull(chunks_text.c_str(), nullptr, 10);
+  cumulative_elapsed = std::strtod(elapsed_text.c_str(), nullptr);
+  found_state = std::strtoul(found_text.c_str(), nullptr, 10) != 0;
+  if (found_state) {
+    auto it = fields.find("recovered scalar");
+    if (it != fields.end() && !parse_int(it->second, found_scalar)) {
+      error = "checkpoint recovered scalar is not a valid number: "
+              + it->second;
+      return false;
+    }
+  }
+  return true;
+}
+
+// Restores the search-phase counters into the live atomics (fetch_add).
+void restore_checkpoint_counters(
+    const std::map<std::string, std::string> &fields) {
+  for (CheckpointCounter &cc : checkpoint_counter_list()) {
+    auto it = fields.find(std::string("counter ") + cc.name);
+    if (it == fields.end()) continue;  // counters added since the save
+    uint64_t value = std::strtoull(it->second.c_str(), nullptr, 10);
+    const_cast<std::atomic<uint64_t> &>(cc.counter).fetch_add(
+        value, std::memory_order_relaxed);
+  }
+}
+
 void usage(const char *name) {
   std::fprintf(stderr,
       "Usage: %s --target PUBKEY --start HEX --size N [options]\n"
@@ -917,6 +1189,9 @@ void usage(const char *name) {
       "      --lambda-sectors N number of local numeric slices (default 16)\n"
       "      --cover-start V   external coverage interval start (Int/hex)\n"
       "      --cover-size V    external coverage interval width (Int/hex)\n"
+      "      --checkpoint-file PATH  atomic progress checkpoint for --cover runs (one per cover chunk)\n"
+      "      --checkpoint-steps N    write the checkpoint every N chunks (default 1)\n"
+      "      --resume          resume the --cover plan from --checkpoint-file (fingerprint is verified)\n"
       "      --lambda-dump     print the exact three Lambda values and exit\n"
       "  -t, --threads N       worker threads (default 1)\n"
       "  -h, --help            show this help\n", name);
@@ -941,6 +1216,9 @@ int main(int argc, char **argv) {
       {"table-scalars", required_argument, nullptr, 'S'},
       {"cover-start", required_argument, nullptr, 'c'},
       {"cover-size", required_argument, nullptr, 'C'},
+      {"checkpoint-file", required_argument, nullptr, 'x'},
+      {"checkpoint-steps", required_argument, nullptr, 'y'},
+      {"resume", no_argument, nullptr, 'z'},
       {"lambda-dump", no_argument, nullptr, 'D'},
       {"threads", required_argument, nullptr, 't'},
       {"help", no_argument, nullptr, 'h'},
@@ -952,7 +1230,7 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:c:C:Dh", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:c:C:x:y:zDh", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
@@ -969,6 +1247,9 @@ int main(int argc, char **argv) {
       case 'S': table_scalars_path = optarg; break;
       case 'c': cover_start_text = optarg; break;
       case 'C': cover_size_text = optarg; break;
+      case 'x': checkpoint_path = optarg; break;
+      case 'y': if (!parse_u64(optarg, checkpoint_steps) || checkpoint_steps == 0) { usage(argv[0]); return 2; } break;
+      case 'z': checkpoint_resume = true; break;
       case 'D': lambda_dump = true; break;
       case 't': { uint64_t n; if (!parse_u64(optarg, n) || n == 0 || n > 4096) { usage(argv[0]); return 2; } worker_count = static_cast<unsigned>(n); break; }
       case 'h': usage(argv[0]); return 0;
@@ -1015,6 +1296,14 @@ int main(int argc, char **argv) {
     std::fprintf(stderr, "[E] manual --shift cannot be combined with automatic coverage\n");
     return 2;
   }
+  if (checkpoint_resume && checkpoint_path.empty()) {
+    std::fprintf(stderr, "[E] --resume requires --checkpoint-file\n");
+    return 2;
+  }
+  if (!checkpoint_path.empty() && !automatic_coverage) {
+    std::fprintf(stderr, "[E] --checkpoint-file/--resume require --cover-start/--cover-size\n");
+    return 2;
+  }
 
   curve.Init();
   beta.SetBase16("7AE96A2B657C07106E64479EAC3434E99CF0497512F58995C1396C28719501EE");
@@ -1033,6 +1322,7 @@ int main(int argc, char **argv) {
     return 2;
   }
   Int cover_size;
+  double checkpoint_elapsed_before = 0.0;  // from --resume, for final print
   if (automatic_coverage) {
     if (!parse_int(cover_start_text, cover_start) ||
         !parse_int(cover_size_text, cover_size) ||
@@ -1193,6 +1483,7 @@ int main(int argc, char **argv) {
             << " builder threads..." << std::endl;
   auto started = std::chrono::steady_clock::now();
   auto table_started = started;
+  program_started = started;
   if (!table_scalars.empty()) {
     build_table_from_scalars(table_scalars);
   } else {
@@ -1207,6 +1498,11 @@ int main(int argc, char **argv) {
   }
 
   auto search_started = std::chrono::steady_clock::now();
+  // Fresh-build EC snapshot: taken BEFORE the checkpoint counters are
+  // restored, so "(build)" lines below stay this-session-pure and any
+  // prior-session work appears only in the cumulative totals.
+  const uint64_t build_mults_snapshot = ec_scalar_mults.load();
+  const uint64_t build_adds_snapshot = ec_point_adds.load();
   auto run_target = [&](Int &shift, uint64_t local_size, bool cover_check) {
     active_shift.Set(&shift);
     active_range_size = local_size;
@@ -1221,9 +1517,45 @@ int main(int argc, char **argv) {
   };
 
   if (automatic_coverage) {
+    const std::string plan_fingerprint = cover_fingerprint(
+        target_hex, start_text, range_size, cover_start_text,
+        cover_size_text, segment_size, table_scalars_path, glv_orbit_mode,
+        phase_signature, partner_table_mode, canonical_k3_mode,
+        lambda_priority);
     Int source_start(&cover_start);
+    uint64_t chunks_before = 0;
+    double elapsed_before = 0.0;
+    bool resumed_found = false;    if (checkpoint_resume) {
+      std::map<std::string, std::string> saved_fields;
+      std::string resume_error;
+      if (!read_cover_checkpoint(plan_fingerprint, saved_fields, source_start,
+                                 chunks_before, elapsed_before, resumed_found,
+                                 saved_fields, resume_error)) {
+        std::fprintf(stderr, "[E] --resume: %s\n", resume_error.c_str());
+        return 2;
+      }
+      restore_checkpoint_counters(saved_fields);
+      checkpoint_elapsed_before = elapsed_before;
+      if (resumed_found) {
+        std::cout << "  checkpoint resumed: the target was already "
+                  << "recovered in an earlier session, nothing to search\n"
+                  << "  recovered private key: 0x"
+                  << int_hex_64(found_scalar) << "\n"
+                  << "  recovery correct: true (from checkpoint)\n";
+        return 0;
+      }
+      char *resumed_hex = source_start.GetBase16();
+      std::cout << "  checkpoint resumed: chunks completed before this "
+                   "session: " << chunks_before
+                << ", next source chunk start: 0x" << resumed_hex << "\n"
+                << "  checkpoint resume: search counters restored "
+                << "(printed totals are cumulative across sessions)\n"
+                << std::endl;
+      std::free(resumed_hex);
+    }
+    const auto cover_session_started = std::chrono::steady_clock::now();
     uint64_t automatic_chunks = 0;
-    while (!found.load(std::memory_order_relaxed) && source_start.IsLower(&cover_end)) {
+    while (source_start.IsLower(&cover_end)) {
       Int remaining(&cover_end);
       remaining.Sub(&source_start);
       Int local_capacity(range_size);
@@ -1236,18 +1568,48 @@ int main(int argc, char **argv) {
       if (automatic_chunks < 8 || automatic_chunks % 1000 == 0) {
         char *source_hex = source_start.GetBase16();
         std::cout << "  automatic source chunk start: 0x" << source_hex
-                  << " size: " << chunk_size << "\n";
+                  << " size: " << chunk_size << "\n" << std::flush;
         std::free(source_hex);
       }
       run_target(shift, chunk_size, true);
       source_start.Add(chunk_size);
       ++automatic_chunks;
+      const bool final_chunk = !source_start.IsLower(&cover_end);
+      if (!checkpoint_path.empty() &&
+          (final_chunk || automatic_chunks % checkpoint_steps == 0)) {
+        double cumulative = elapsed_before
+            + std::chrono::duration<double>(std::chrono::steady_clock::now()
+                - cover_session_started).count();
+        save_cover_checkpoint(plan_fingerprint, source_start,
+                              chunks_before + automatic_chunks, cumulative,
+                              found.load(std::memory_order_relaxed));
+        if (automatic_chunks < 8 || automatic_chunks % 1000 == 0) {
+          char *next_hex = source_start.GetBase16();
+          std::cout << "  checkpoint saved: chunks "
+                    << (chunks_before + automatic_chunks)
+                    << ", next source chunk start: 0x" << next_hex << "\n"
+                    << std::flush;
+          std::free(next_hex);
+        }
+      }
+      if (found.load(std::memory_order_relaxed)) {
+        break;
+      }
     }
     std::cout << "  automatic chunks attempted: " << automatic_chunks << "\n";
     if (!found.load(std::memory_order_relaxed)) {
       Int zero_shift;
       zero_shift.SetInt32(0);
       run_target(zero_shift, range_size, true);
+      if (!checkpoint_path.empty() && found.load(std::memory_order_relaxed)) {
+        // the fallback pass (zero shift) found the target: record it
+        double cumulative = elapsed_before
+            + std::chrono::duration<double>(std::chrono::steady_clock::now()
+                - cover_session_started).count();
+        save_cover_checkpoint(plan_fingerprint, source_start,
+                              chunks_before + automatic_chunks, cumulative,
+                              true);
+      }
     }
   } else {
     for (Int requested : requested_shifts) {
@@ -1266,6 +1628,10 @@ int main(int argc, char **argv) {
   double seconds = std::chrono::duration<double>(
       std::chrono::steady_clock::now() - started).count();
 
+  const uint64_t total_mults = ec_scalar_mults.load();
+  const uint64_t total_adds = ec_point_adds.load();
+  const uint64_t hit_mults = hit_ec_scalar_mults.load();
+  const uint64_t search_mults = total_mults - build_mults_snapshot;
   std::cout << "  segments completed: " << segments_done.load() << "\n"
             << "  raw baby rows built: " << raw_baby_rows.load() << "\n"
             << "  unique baby rows built: " << baby_rows.load() << "\n"
@@ -1276,8 +1642,16 @@ int main(int argc, char **argv) {
             << "  invariant hits: " << invariant_hits.load() << "\n"
             << "  orbit factors scheduled: " << orbit_factor_checks.load() << "\n"
             << "  exact candidate checks: " << exact_candidate_checks.load() << "\n"
-            << "  EC scalar multiplications: " << ec_scalar_mults.load() << "\n"
-            << "  EC point additions: " << ec_point_adds.load() << "\n"
+            << "  EC scalar multiplications: " << total_mults << "\n"
+            << "  EC scalar multiplications (build): " << build_mults_snapshot << "\n"
+            << "  EC scalar multiplications (giant search, cumulative): "
+            << (search_mults - hit_mults) << "\n"
+            << "  EC scalar multiplications (exact candidate checks): "
+            << hit_mults << "\n"
+            << "  EC point additions: " << total_adds << "\n"
+            << "  EC point additions (build): " << build_adds_snapshot << "\n"
+            << "  EC point additions (giant search, cumulative): "
+            << (total_adds - build_adds_snapshot) << "\n"
             << "  total EC operations: "
             << (ec_scalar_mults.load() + ec_point_adds.load()) << "\n"
             << "  Lambda calculations: " << lambda_calculations.load() << "\n"
@@ -1310,6 +1684,17 @@ int main(int argc, char **argv) {
             << "  giant steps/second: "
             << (search_seconds > 0 ? giant_steps.load() / search_seconds : 0) << "\n"
             << "  total seconds: " << seconds << "\n";
+  if (automatic_coverage && checkpoint_resume) {
+    std::cout << "  cumulative elapsed seconds (checkpoint): "
+              << (checkpoint_elapsed_before + seconds) << "\n";
+  }
+  if (found.load()) {
+    std::cout << "  time to solution seconds: "
+              << (static_cast<double>(found_run_us.load()) / 1e6)
+              << " (includes table build)\n"
+              << "  exact candidate checks per hit: "
+              << exact_candidate_checks.load() << "\n";
+  }
   if (found.load()) {
     char *hex = found_scalar.GetBase16();
     std::string short_hex(hex);

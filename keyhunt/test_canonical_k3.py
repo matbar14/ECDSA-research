@@ -77,8 +77,7 @@ def main():
     args = parser.parse_args()
 
     failures = []
-    with tempfile.TemporaryDirectory(
-            dir="/home/z/my-project") as tmpdir:
+    with tempfile.TemporaryDirectory() as tmpdir:
         rows_path, raw_rows = write_rows_file(tmpdir)
         merged_rows = raw_rows - 2  # 3 representatives of one orbit -> 1 row
 

@@ -196,6 +196,26 @@ The giant stride equals the file's row count. The H-curve measurements
 covered by `test_representatives_file.py` and PROGRESS_MEMO.md; file
 checksums are pinned in `../representatives_files.json`.
 
+Format roles of the representatives artifacts. Today the engine reads the
+`.txt` file directly through its own parser (`--table-scalars`: one hex
+scalar per line, `#` comments, `0x`/hex or decimal accepted, zero
+rejected). There is no separate binary engine format yet, so a single
+`.txt` artifact currently plays two roles:
+
+1. diagnostic export — human-readable, diffable, checksummed in
+   `representatives_files.json`;
+2. engine input — parsed per line at startup.
+
+For H <= 400k this is fine (400k rows ≈ 3.1 MB of text, parsing is a
+sub-second fraction of the build). For H = 4M the `std::vector<Int>`
+input list alone costs about 160 MB plus parse time, and merge-mode
+expansion (`--canonical-k3` on an expanded list) triples that, so the
+agreed upgrade path for H=4M is a dedicated binary engine format
+(`canonical_version` header, sorted fixed-width rows, checksum,
+mmap-friendly read) with the `.txt` kept as the diagnostic export. Until
+that format exists, H = 4M runs must not rely on the raw `.txt` input
+path.
+
 ### Automatic external coverage
 
 `--cover-start` and `--cover-size` describe an external scalar interval using
@@ -233,6 +253,77 @@ python3 test_lambda_cover.py
 Этот тест генерирует случайный scalar в 135-битном диапазоне, помещает его в
 последний неполный чанк внешнего интервала и передаёт программе только
 публичный ключ. Включены одновременно Lambda-приоритет и `--glv-orbit`.
+
+### Checkpoint/resume для длинных --cover прогонов
+
+Длинные прогоны проектируются под убивающую среду с первого дня. За
+`--cover-start/--cover-size` закреплены три опции:
+
+```bash
+./eng_bsgs --target PUBKEY --start 0x4000000000000000000000000000000000 \
+  --size 1000000000000 --baby-rows 1000000 \
+  --cover-start 0x4000000000000000000000000000000000 \
+  --cover-size 3000000000000 \
+  --glv-orbit --phase-signature --partner-table \
+  --table-scalars ../representatives_canonical_H400000.txt \
+  --checkpoint-file /scratch/cover.cp --checkpoint-steps 1 \
+  --threads 16
+```
+
+- `--checkpoint-file PATH` — атомарный checkpoint прогресса: каждые
+  `--checkpoint-steps N` завершённых внешних chunk (N>=1, по умолчанию 1 —
+  после каждого chunk, т.е. хотя бы раз за ~12 с при H=400k) запись в
+  `PATH.tmp` → `fsync` → `rename`. Гранулярность — внешний chunk: это один
+  гигант-проход шириной `--size`; прерванный chunk перепрокрывается
+  целиком, поэтому двойных дыр и двойного счёта нет.
+- В файле хранятся: plan fingerprint (FNV-1a от target/start/size/cover/
+  режимов/файла таблицы), позиция следующего chunk, число завершённых
+  chunk, накопительные EC/шаговые счётчики, флаг `found` и (при успехе)
+  восстановленный ключ.
+- `--resume` продолжает план с позиции checkpoint. Несовпадение
+  fingerprint (другой target/размер/cover/режимов) отклоняется с кодом 2.
+  Поисковые счётчики восстанавливаются, поэтому финальный вывод
+  кумулятивен между сессиями (build-строка — только текущая сессия: таблица
+  строится заново в каждой).
+- Если checkpoint сообщает `found: 1`, `--resume` печатает найденный ключ
+  из checkpoint и не ищет заново; правило «прогон не считается успешным
+  без ≥1 найденной цели» контролирует обходной harness (контрольные цели
+  засеиваются в покрытый диапазон, см. `test_cover_checkpoint.py`).
+- Fallback-проход (zero shift) после исчерпания cover тоже попадает в
+  checkpoint.
+
+Верификация: `test_cover_checkpoint.py` (black-box) — SIGKILL после
+checkpoint chunk 0 → `--resume` находит контрольную цель без переделки
+chunk 0 (`automatic chunks attempted: 1`) → повторный `--resume` печатает
+результат без поиска → `--resume` чужого плана отклоняется по
+fingerprint. ALL PASS.
+
+### Split EC-accounting и TTS в выводе
+
+В выводе счётчики EC разделены по фазам:
+
+```text
+EC scalar multiplications: <total, кумулятивен при --resume>
+EC scalar multiplications (build): <fresh build этой сессии>
+EC scalar multiplications (giant search, cumulative): <total - build - hit>
+EC scalar multiplications (exact candidate checks): <hit-путь: ec_mult>
+EC point additions / (build) / (giant search, cumulative)
+total EC operations: <total>
+```
+
+При успехе дополнительно печатаются:
+
+```text
+time to solution seconds: <с момента старта, включает build>
+exact candidate checks per hit: <точных проверок на найденный target>
+```
+
+Каждая точная проверка кандидата (`ec_mult(candidate)`, `ec_mult(recovered)`
+в шести-ветвевом, маршрутизованном, partner и plain путях) учитывается в
+hit-счётчике; гигант-строка = search − hit. `cache-misses` в движке не
+собирается: perf в среде недоступен (см. PROGRESS_MEMO.md «perf: не
+измерено»); если perf станет доступен, счётчик снимается обходным
+процессом на throughput-фазе.
 
 Чтобы явно разделить «размер таблицы» и «покрываемый диапазон», можно задать
 число baby-строк `B`. Тогда один сегмент имеет ширину примерно `B²`:
