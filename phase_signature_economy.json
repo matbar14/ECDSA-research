@@ -1,0 +1,68 @@
+{
+ "parameters": {
+  "rows": 2000,
+  "orbits": 400,
+  "background": 400,
+  "trials": 1000,
+  "seed": 20261030,
+  "json": "phase_signature_economy.json"
+ },
+ "single_mode": {
+  "mode": "single",
+  "trials": 1000,
+  "recoveries": 1000,
+  "anomalies": 0,
+  "routes": {
+   "0": 346,
+   "1": 315,
+   "2": 339
+  },
+  "checks_baseline": 3613,
+  "checks_signature": 1540,
+  "max_checks_baseline": 6,
+  "max_checks_signature": 2,
+  "sig_seconds": 0.05673768999349704,
+  "mean_checks_baseline": 3.613,
+  "mean_checks_signature": 1.54,
+  "checks_saved_ratio": 2.346,
+  "mean_sig_ms": 0.0567,
+  "rows": 2000
+ },
+ "bucket_mode": {
+  "mode": "bucket",
+  "trials": 1000,
+  "consistent": 1000,
+  "anomalies": 0,
+  "routes": {
+   "0": 340,
+   "1": 312,
+   "2": 348
+  },
+  "single_pair_buckets": 1000,
+  "checks_baseline": 3484,
+  "checks_signature": 1492,
+  "max_checks_baseline": 6,
+  "max_checks_signature": 2,
+  "pair_contains_target": 1000,
+  "sig_seconds": 0.061487000004490255,
+  "build_sig_seconds": 0.09887577700555994,
+  "table_rows": 1600,
+  "mean_checks_baseline": 3.484,
+  "mean_checks_signature": 1.492,
+  "checks_saved_ratio": 2.335,
+  "consistent_pct": 100.0,
+  "single_pair_pct": 100.0,
+  "mean_sig_ms": 0.0615,
+  "orbits": 400,
+  "background": 400
+ },
+ "field_cost_model": {
+  "one_exact_check_modmul": 3000,
+  "one_modinv_modmul": 390,
+  "signature_cost_modmul": 1170,
+  "saved_checks_per_hit_single": 2.073,
+  "saved_checks_per_hit_bucket": 1.992,
+  "net_win_modmul_per_hit_single": 5049,
+  "net_win_modmul_per_hit_bucket": 4806
+ }
+}
