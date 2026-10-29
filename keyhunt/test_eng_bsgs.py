@@ -23,6 +23,8 @@ def main():
     parser.add_argument("--glv-orbit", action="store_true")
     parser.add_argument("--phase-signature", action="store_true",
                         help="route GLV branches by the (d01,d12) signature")
+    parser.add_argument("--canonical-k3", action="store_true",
+                        help="store one canonical row per C6 orbit")
     args = parser.parse_args()
 
     start = 1 << 134
@@ -46,6 +48,10 @@ def main():
         if not args.glv_orbit:
             raise SystemExit("--phase-signature requires --glv-orbit")
         command.append("--phase-signature")
+    if args.canonical_k3:
+        if not args.glv_orbit:
+            raise SystemExit("--canonical-k3 requires --glv-orbit")
+        command.append("--canonical-k3")
     result = subprocess.run(command, text=True, capture_output=True)
     print(result.stdout, end="")
     if result.stderr:

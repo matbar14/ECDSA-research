@@ -12,6 +12,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
+#include <fstream>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -55,6 +56,9 @@ std::atomic<uint64_t> orbit_factor_checks{0};
 std::atomic<uint64_t> signature_routes{0};
 std::atomic<uint64_t> signature_anomalies{0};
 std::atomic<uint64_t> orbit_duplicate_rows{0};
+std::atomic<uint64_t> signature_pair_collapses{0};
+std::atomic<uint64_t> signature_pair_mismatches{0};
+std::atomic<uint64_t> canonical_rows_merged{0};
 std::atomic<uint64_t> partner_recoveries{0};
 std::atomic<uint64_t> lambda_calculations{0};
 std::atomic<uint64_t> priority_slices{0};
@@ -83,12 +87,29 @@ bool phase_signature = false;
 // so any branch candidate that passes the EC check IS the target scalar even
 // when it lies outside the searched interval (an orbit partner of a row).
 bool partner_table_mode = false;
+// --canonical-k3: store one canonical row per C6 orbit. The row scalar is the
+// orbit minimum c = min_r min(lambda^r*k mod n, n - lambda^r*k mod n); K3=x^3
+// and the (d01,d12) signature depend on x-coordinates only, so they are
+// unchanged on the canonical representative (up to the phi-rotation the
+// router already absorbs). Rows of one orbit collapse at build time:
+// one row and one signature per orbit, zero runtime dedup logic.
+bool canonical_k3_mode = false;
+// --table-scalars FILE: build the baby table from an explicit scalar list
+// instead of the continuous window [0, m). This is the research mode where
+// K3 buckets genuinely contain orbit partners - the full-range representative
+// table anticipated by the routing-economy measurements.
+std::string table_scalars_path;
 Int beta;
 Int beta_g;
+Int beta2;
 
 // Parallel to shared_table (same order): (d01, d12) of the row point, used
 // by --phase-signature to route a K3 bucket match to one GLV branch pair.
 std::vector<std::array<unsigned char, 64>> shared_signatures;
+// Parallel to shared_table (GLV mode only): the row scalar as a full 32-byte
+// value mod n. Plain mode stores j < m; --canonical-k3 stores the orbit
+// minimum, which can lie anywhere in [0, n/2].
+std::vector<std::array<unsigned char, 32>> shared_scalars;
 
 Point add_safe(Point &a, Point &b) {
   if (a.isZero()) return Point(b);
@@ -119,19 +140,19 @@ std::array<unsigned char, 33> point_key(Point &p) {
   return raw;
 }
 
-std::array<unsigned char, 33> invariant_key(Point &p) {
+std::array<unsigned char, 33> invariant_key_from_x(Int &x) {
   std::array<unsigned char, 33> raw{};
-  if (p.isZero()) return raw;
   Int cube;
-  cube.ModCube(&p.x);
+  cube.ModCube(&x);
   alignas(8) unsigned char cube_bytes[32];
   cube.Get32Bytes(cube_bytes);
   std::memcpy(raw.data() + 1, cube_bytes, 32);
   return raw;
 }
 
-bool row_less(const BabyRow &a, const BabyRow &b) {
-  return a.key < b.key;
+std::array<unsigned char, 33> invariant_key(Point &p) {
+  if (p.isZero()) return std::array<unsigned char, 33>{};
+  return invariant_key_from_x(p.x);
 }
 
 Int lambda_value_for_x(Int x) {
@@ -165,10 +186,7 @@ Int lambda_value_for_x(Int x) {
   return numerator;
 }
 
-std::array<Int, 3> lambda_triangle_values(Point &point) {
-  Int x0;
-  if (!point.isZero()) x0.Set(&point.x);
-  else x0.SetInt32(0);
+std::array<Int, 3> lambda_triangle_values_from_x(Int &x0) {
   Int x1;
   x1.ModMulK1(&beta, &x0);
   Int x2;
@@ -177,14 +195,23 @@ std::array<Int, 3> lambda_triangle_values(Point &point) {
           lambda_value_for_x(x2)};
 }
 
-// Phase signature (d01, d12) of the ordered Lambda triple of p:
+std::array<Int, 3> lambda_triangle_values(Point &point) {
+  if (point.isZero()) {
+    Int zero;
+    zero.SetInt32(0);
+    return lambda_triangle_values_from_x(zero);
+  }
+  return lambda_triangle_values_from_x(point.x);
+}
+
+// Phase signature (d01, d12) of the ordered Lambda triple of the point with
+// x-coordinate x:
 //   d01 = Lambda(phi(p)) - Lambda(p), d12 = Lambda(phi^2(p)) - Lambda(phi(p)).
 // It is invariant under p -> -p and cyclically permuted by phi, so a bucket
 // match on K3=x^3 can be routed to one (+/- lambda^r) branch pair.
-std::array<unsigned char, 64> phase_signature_of(Point &p) {
+std::array<unsigned char, 64> phase_signature_from_x(Int &x0) {
   std::array<unsigned char, 64> raw{};
-  if (p.isZero()) return raw;
-  std::array<Int, 3> values = lambda_triangle_values(p);
+  std::array<Int, 3> values = lambda_triangle_values_from_x(x0);
   Int d01;
   d01.ModSub(&values[1], &values[0]);
   Int d12;
@@ -195,6 +222,44 @@ std::array<unsigned char, 64> phase_signature_of(Point &p) {
   d12.Get32Bytes(tmp);
   std::memcpy(raw.data() + 32, tmp, 32);
   return raw;
+}
+
+std::array<unsigned char, 64> phase_signature_of(Point &p) {
+  if (p.isZero()) return std::array<unsigned char, 64>{};
+  return phase_signature_from_x(p.x);
+}
+
+// Canonical representative of the C6 orbit of the scalar s (mod n):
+//   c = min over r in {0,1,2} of min(lambda^r*s mod n, n - lambda^r*s mod n).
+// Sets r_out to the rotation with c == +/-lambda^{r_out}*s (mod n); the sign
+// itself is irrelevant because K3 = x^3 and the (d01,d12) signature depend on
+// x-coordinates only, and negation does not change x. The map s -> c is
+// constant on orbits and distinct across orbits, so "equal canonical scalar"
+// is exactly "same orbit".
+Int canonical_orbit_scalar(Int &s, int &r_out) {
+  Int reps[3];
+  reps[0].Set(&s);
+  reps[0].Mod(&curve.order);
+  reps[1].Set(&glv_lambda);
+  reps[1].ModMulK1order(&s);
+  reps[2].Set(&glv_lambda2);
+  reps[2].ModMulK1order(&s);
+  Int best;
+  bool have = false;
+  r_out = 0;
+  for (int r = 0; r < 3; ++r) {
+    Int v(reps[r]);
+    Int opposite(&curve.order);
+    opposite.Sub(&v);  // n - v, lies in (0, n] for v in [0, n)
+    bool take_v = v.IsLower(&opposite) || opposite.IsZero();
+    Int &candidate = take_v ? v : opposite;
+    if (!have || candidate.IsLower(&best)) {
+      have = true;
+      best.Set(&candidate);
+      r_out = r;
+    }
+  }
+  return best;
 }
 
 uint64_t ceil_sqrt_u64(uint64_t n) {
@@ -245,10 +310,10 @@ bool parse_signed_int(const std::string &text, Int &out) {
   return true;
 }
 
-void set_scaled_mod(Int &out, Int &factor, uint64_t value) {
+// factor * value (mod group order) for full-size scalars.
+void set_scaled_mod(Int &out, Int &factor, Int &value) {
   out.Set(&factor);
-  out.Mult(value);
-  out.Mod(&curve.order);
+  out.ModMulK1order(&value);
 }
 
 void subtract_order_mod(Int &out, Int &value, Int &shift) {
@@ -264,14 +329,14 @@ bool candidate_in_cover(const Int &candidate) {
   return !value.IsLower(&cover_start) && value.IsLower(&cover_end);
 }
 
-bool check_orbit_candidate(Int &base_scalar, uint64_t j,
+bool check_orbit_candidate(Int &base_scalar, Int &row_scalar,
                            Int &segment_end, Int &candidate_out,
                            uint64_t &offset_out) {
   Int factors[6];
-  factors[0].SetInt64(j);
+  factors[0].Set(&row_scalar);
   factors[0].Mod(&curve.order);
-  set_scaled_mod(factors[1], glv_lambda, j);
-  set_scaled_mod(factors[2], glv_lambda2, j);
+  set_scaled_mod(factors[1], glv_lambda, row_scalar);
+  set_scaled_mod(factors[2], glv_lambda2, row_scalar);
   for (int i = 0; i < 3; ++i) {
     factors[i + 3].Set(&curve.order);
     factors[i + 3].Sub(&factors[i]);
@@ -310,15 +375,13 @@ bool check_orbit_candidate(Int &base_scalar, uint64_t j,
   return false;
 }
 
-// Route a K3 bucket match with the (d01, d12) phase signature: identify the
-// rotation r with giant = phi^r(+-row), then check only the two factors
-// (+-lambda^r * j). Falls back to the full six-branch check when the row
-// signature is degenerate, so coverage never depends on the router.
-bool check_orbit_candidate_signature(Int &base_scalar, uint64_t j,
-                                     size_t row_index,
-                                     std::array<unsigned char, 64> &giant_sig,
-                                     Int &segment_end, Int &candidate_out,
-                                     uint64_t &offset_out) {
+// Route a K3 bucket row by its (d01,d12) signature: identify the rotation r
+// with giant = phi^r(+-row point) and set base_factor = lambda^r * row_scalar.
+// Returns r, or -1 when the row signature is degenerate; the caller falls back
+// to the full six-branch check, so coverage never depends on the router.
+int route_signature_pair(size_t row_index,
+                         std::array<unsigned char, 64> &giant_sig,
+                         Int &base_factor) {
   const std::array<unsigned char, 64> &row_sig =
       shared_signatures[row_index];
   alignas(8) unsigned char r01_bytes[32];
@@ -353,21 +416,23 @@ bool check_orbit_candidate_signature(Int &base_scalar, uint64_t j,
   } else if (g01.IsEqual(&rsum_neg) && g12.IsEqual(&r01)) {
     route = 2;
   }
-  if (route < 0) {
-    signature_anomalies.fetch_add(1, std::memory_order_relaxed);
-    return check_orbit_candidate(base_scalar, j, segment_end, candidate_out,
-                                 offset_out);
-  }
-  signature_routes.fetch_add(1, std::memory_order_relaxed);
+  if (route < 0) return -1;
 
-  Int base_factor;
-  if (route == 0) base_factor.SetInt64(j);
-  else if (route == 1) set_scaled_mod(base_factor, glv_lambda, j);
-  else set_scaled_mod(base_factor, glv_lambda2, j);
+  Int row_scalar;
+  row_scalar.Set32Bytes(shared_scalars[row_index].data());
+  if (route == 0) base_factor.Set(&row_scalar);
+  else if (route == 1) set_scaled_mod(base_factor, glv_lambda, row_scalar);
+  else set_scaled_mod(base_factor, glv_lambda2, row_scalar);
+  return route;
+}
+
+// Exact-check the routed candidate pair {+base_factor, -base_factor}.
+bool check_factor_pair(Int &base_factor, Int &base_scalar,
+                       Int &segment_end, Int &candidate_out,
+                       uint64_t &offset_out) {
   Int neg_factor;
   neg_factor.Set(&curve.order);
   neg_factor.Sub(&base_factor);
-
   Int factors[2] = {base_factor, neg_factor};
   for (Int &factor : factors) {
     orbit_factor_checks.fetch_add(1, std::memory_order_relaxed);
@@ -403,9 +468,97 @@ bool check_orbit_candidate_signature(Int &base_scalar, uint64_t j,
   return false;
 }
 
+// Sort the table together with its parallel arrays by key, apply the
+// canonical one-row-per-orbit merge, and refresh the unique-row counters.
+void finalize_table(size_t raw_count) {
+  const bool sig_mode = glv_orbit_mode && phase_signature;
+  std::vector<size_t> order(raw_count);
+  for (size_t i = 0; i < raw_count; ++i) order[i] = i;
+  std::sort(order.begin(), order.end(), [](size_t a, size_t b) {
+    return shared_table[a].key < shared_table[b].key;
+  });
+  std::vector<BabyRow> sorted_rows(raw_count);
+  std::vector<std::array<unsigned char, 64>> sorted_sigs;
+  std::vector<std::array<unsigned char, 32>> sorted_scalars;
+  if (sig_mode) sorted_sigs.resize(raw_count);
+  if (glv_orbit_mode) sorted_scalars.resize(raw_count);
+  for (size_t w = 0; w < raw_count; ++w) {
+    size_t idx = order[w];
+    sorted_rows[w] = shared_table[idx];
+    if (sig_mode) sorted_sigs[w] = shared_signatures[idx];
+    if (glv_orbit_mode) sorted_scalars[w] = shared_scalars[idx];
+  }
+  shared_table.swap(sorted_rows);
+  if (sig_mode) shared_signatures.swap(sorted_sigs);
+  if (glv_orbit_mode) shared_scalars.swap(sorted_scalars);
+
+  size_t final_count = raw_count;
+  if (glv_orbit_mode && canonical_k3_mode) {
+    // Equal K3 keys are exactly one orbit (roots of X^3-c are
+    // x, beta*x, beta^2*x), and the canonical scalar is constant on the
+    // orbit, so adjacent equal-key rows are duplicates by construction.
+    size_t w = 0;
+    for (size_t i = 0; i < raw_count; ++i) {
+      if (w > 0 && shared_table[i].key == shared_table[w - 1].key) {
+        canonical_rows_merged.fetch_add(1, std::memory_order_relaxed);
+        continue;
+      }
+      shared_table[w] = shared_table[i];
+      if (sig_mode) shared_signatures[w] = shared_signatures[i];
+      shared_scalars[w] = shared_scalars[i];
+      ++w;
+    }
+    final_count = w;
+    shared_table.resize(final_count);
+    if (sig_mode) shared_signatures.resize(final_count);
+    shared_scalars.resize(final_count);
+  }
+
+  uint64_t unique = final_count == 0 ? 0 : 1;
+  for (size_t i = 1; i < final_count; ++i) {
+    if (!(shared_table[i].key == shared_table[i - 1].key)) ++unique;
+  }
+  raw_baby_rows.store(static_cast<uint64_t>(raw_count),
+                      std::memory_order_relaxed);
+  baby_rows.store(unique, std::memory_order_relaxed);
+  shared_baby_rows = final_count;
+}
+
+// Per-row GLV payload: K3 key, 32-byte row scalar and (optionally) the phase
+// signature. In canonical mode the stored scalar is the orbit minimum and the
+// key/signature are taken at the phi-rotated x-coordinate beta^r * x — the
+// x-coordinate of the canonical point (negation does not change x), so no
+// extra scalar multiplication is needed.
+struct GlvRowData {
+  std::array<unsigned char, 33> key;
+  std::array<unsigned char, 32> scalar;
+  std::array<unsigned char, 64> sig;  // meaningful when phase_signature
+};
+
+GlvRowData build_glv_row(Int &row_scalar, Int &row_x, bool want_sig) {
+  GlvRowData out;
+  Int stored(&row_scalar);
+  Int sig_x(&row_x);
+  if (canonical_k3_mode) {
+    int rotation = 0;
+    Int canon = canonical_orbit_scalar(row_scalar, rotation);
+    stored.Set(&canon);
+    for (int i = 0; i < rotation; ++i) {
+      sig_x.ModMulK1(&beta, &sig_x);
+    }
+  }
+  out.key = invariant_key_from_x(sig_x);
+  alignas(8) unsigned char scalar_bytes[32];
+  stored.Get32Bytes(scalar_bytes);
+  std::memcpy(out.scalar.data(), scalar_bytes, 32);
+  if (want_sig) out.sig = phase_signature_from_x(sig_x);
+  return out;
+}
+
 void build_shared_table(uint64_t m) {
   shared_table.resize(static_cast<size_t>(m));
   const bool sig_mode = glv_orbit_mode && phase_signature;
+  if (glv_orbit_mode) shared_scalars.resize(static_cast<size_t>(m));
   if (sig_mode) shared_signatures.resize(static_cast<size_t>(m));
   std::vector<std::thread> builders;
   builders.reserve(worker_count);
@@ -423,43 +576,54 @@ void build_shared_table(uint64_t m) {
         current = curve.ComputePublicKey(&scalar);
       }
       for (uint64_t j = begin; j < end; ++j) {
-        shared_table[static_cast<size_t>(j)] = {
-            glv_orbit_mode ? invariant_key(current) : point_key(current), j};
-        if (sig_mode) {
-          shared_signatures[static_cast<size_t>(j)] = phase_signature_of(current);
+        if (glv_orbit_mode) {
+          Int row_scalar;
+          row_scalar.SetInt64(j);
+          GlvRowData row = build_glv_row(row_scalar, current.x, sig_mode);
+          shared_table[static_cast<size_t>(j)] = {row.key, j};
+          shared_scalars[static_cast<size_t>(j)] = row.scalar;
+          if (sig_mode) {
+            shared_signatures[static_cast<size_t>(j)] = row.sig;
+          }
+        } else {
+          shared_table[static_cast<size_t>(j)] = {point_key(current), j};
         }
         current = add_safe(current, curve.G);
       }
     });
   }
   for (auto &builder : builders) builder.join();
-  if (sig_mode) {
-    // Sort rows and signatures together by key.
-    std::vector<uint64_t> order(static_cast<size_t>(m));
-    for (uint64_t i = 0; i < m; ++i) order[static_cast<size_t>(i)] = i;
-    std::sort(order.begin(), order.end(), [](uint64_t a, uint64_t b) {
-      return shared_table[static_cast<size_t>(a)].key <
-             shared_table[static_cast<size_t>(b)].key;
+  finalize_table(static_cast<size_t>(m));
+}
+
+// --table-scalars: build the table from an explicit scalar list (one row per
+// scalar). The point of each scalar is computed directly; the giant plan then
+// strides by the stored row count, so targets of the form
+// start + i*m + s (s in the orbit set of the table) remain recoverable.
+void build_table_from_scalars(std::vector<Int> &scalars) {
+  size_t m = scalars.size();
+  const bool sig_mode = glv_orbit_mode && phase_signature;
+  shared_table.resize(m);
+  if (glv_orbit_mode) shared_scalars.resize(m);
+  if (sig_mode) shared_signatures.resize(m);
+  std::vector<std::thread> builders;
+  builders.reserve(worker_count);
+  for (unsigned worker = 0; worker < worker_count; ++worker) {
+    size_t begin = m * worker / worker_count;
+    size_t end = m * (worker + 1) / worker_count;
+    if (begin == end) continue;
+    builders.emplace_back([begin, end, sig_mode, &scalars]() {
+      for (size_t i = begin; i < end; ++i) {
+        Point row_point = curve.ComputePublicKey(&scalars[i]);
+        GlvRowData row = build_glv_row(scalars[i], row_point.x, sig_mode);
+        shared_table[i] = {row.key, 0};
+        shared_scalars[i] = row.scalar;
+        if (sig_mode) shared_signatures[i] = row.sig;
+      }
     });
-    std::vector<BabyRow> sorted_rows;
-    std::vector<std::array<unsigned char, 64>> sorted_sigs;
-    sorted_rows.reserve(static_cast<size_t>(m));
-    sorted_sigs.reserve(static_cast<size_t>(m));
-    for (uint64_t idx : order) {
-      sorted_rows.push_back(shared_table[static_cast<size_t>(idx)]);
-      sorted_sigs.push_back(shared_signatures[static_cast<size_t>(idx)]);
-    }
-    shared_table.swap(sorted_rows);
-    shared_signatures.swap(sorted_sigs);
-  } else {
-    std::sort(shared_table.begin(), shared_table.end(), row_less);
   }
-  uint64_t unique = m == 0 ? 0 : 1;
-  for (size_t i = 1; i < shared_table.size(); ++i) {
-    if (!(shared_table[i].key == shared_table[i - 1].key)) ++unique;
-  }
-  raw_baby_rows.store(m, std::memory_order_relaxed);
-  baby_rows.store(unique, std::memory_order_relaxed);
+  for (auto &builder : builders) builder.join();
+  finalize_table(m);
 }
 
 void search_slice(uint64_t local_start, uint64_t local_size,
@@ -515,41 +679,96 @@ void search_slice(uint64_t local_start, uint64_t local_size,
               return row.key < needle;
             });
         bool bucket_checked = false;
+        // Signature-path bucket state: the first routed pair and whether the
+        // full six-branch set has been checked (anomaly fallback).
+        bool six_branch_done = false;
+        bool have_pair = false;
+        Int pair_b;
+        Int pair_neg_b;
         while (it != shared_table.end() && it->key == query_key &&
                !found.load(std::memory_order_relaxed)) {
           if (glv_orbit_mode) {
             invariant_hits.fetch_add(1, std::memory_order_relaxed);
-            if (bucket_checked) {
+            if (!phase_signature && bucket_checked) {
               // Every row of a K3=x^3 bucket lies in one C6 orbit (the roots
               // of X^3-c over F_p are exactly x, beta*x, beta^2*x), so the
-              // routed pair -- or the six GLV branches -- is the same scalar
-              // set for every row of the bucket. The first row's check
-              // already covered them; re-checking duplicates would repeat
-              // identical candidates. In non-GLV mode rows give distinct
-              // candidates (base + j), so no dedup is applied there.
+              // six GLV branches are the same scalar set for every row of
+              // the bucket. The first row's check already covered them.
+              // In non-GLV mode rows give distinct candidates (base + j),
+              // so no dedup is applied there.
               orbit_duplicate_rows.fetch_add(1, std::memory_order_relaxed);
               ++it;
               continue;
             }
           }
-          uint64_t j = it->j;
+          size_t row_index = static_cast<size_t>(it - shared_table.begin());
           Int candidate;
           uint64_t local_offset = 0;
           bool match = false;
           if (glv_orbit_mode) {
+            if (phase_signature && six_branch_done) {
+              // The six-branch set of this orbit was already checked; any
+              // routed pair is a subset of it.
+              orbit_duplicate_rows.fetch_add(1, std::memory_order_relaxed);
+              ++it;
+              continue;
+            }
+            Int row_scalar;
+            row_scalar.Set32Bytes(shared_scalars[row_index].data());
             if (phase_signature) {
               if (!giant_sig_ready) {
                 giant_sig = phase_signature_of(giant);
                 giant_sig_ready = true;
               }
-              match = check_orbit_candidate_signature(
-                  base_scalar, j, static_cast<size_t>(it - shared_table.begin()),
-                  giant_sig, segment_end, candidate, local_offset);
+              Int base_factor;
+              int route = route_signature_pair(row_index, giant_sig,
+                                               base_factor);
+              if (route < 0) {
+                signature_anomalies.fetch_add(1, std::memory_order_relaxed);
+                match = check_orbit_candidate(base_scalar, row_scalar,
+                                              segment_end, candidate,
+                                              local_offset);
+                six_branch_done = true;
+              } else {
+                signature_routes.fetch_add(1, std::memory_order_relaxed);
+                Int neg_factor;
+                neg_factor.Set(&curve.order);
+                neg_factor.Sub(&base_factor);
+                if (have_pair) {
+                  bool same_pair =
+                      (base_factor.IsEqual(&pair_b) &&
+                       neg_factor.IsEqual(&pair_neg_b)) ||
+                      (base_factor.IsEqual(&pair_neg_b) &&
+                       neg_factor.IsEqual(&pair_b));
+                  if (same_pair) {
+                    // All rows of a K3 bucket route to the same candidate
+                    // pair {+o, -o} (validated in
+                    // phase_signature_economy_experiment.py: 100% collapse),
+                    // so the first row's exact check already covered them.
+                    signature_pair_collapses.fetch_add(
+                        1, std::memory_order_relaxed);
+                    ++it;
+                    continue;
+                  }
+                  // Structural-invariant violation: verify defensively.
+                  signature_pair_mismatches.fetch_add(
+                      1, std::memory_order_relaxed);
+                } else {
+                  have_pair = true;
+                  pair_b.Set(&base_factor);
+                  pair_neg_b.Set(&neg_factor);
+                }
+                match = check_factor_pair(base_factor, base_scalar,
+                                          segment_end, candidate,
+                                          local_offset);
+              }
             } else {
-              match = check_orbit_candidate(base_scalar, j, segment_end,
-                                            candidate, local_offset);
+              match = check_orbit_candidate(base_scalar, row_scalar,
+                                            segment_end, candidate,
+                                            local_offset);
             }
           } else {
+            uint64_t j = it->j;
             local_offset = local_start + i * m + j;
             if (local_offset < local_start + local_size) {
               candidate.Set(&base_scalar);
@@ -674,6 +893,8 @@ void usage(const char *name) {
       "      --shift T         search Q+T*G before the original target (repeatable)\n"
       "      --glv-orbit       use K3=x^3 quotient plus exact GLV branches\n"
       "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
+      "      --canonical-k3   store one canonical row per C6 orbit: scalar min(k, n-k) over lambda^r*k (requires --glv-orbit)\n"
+      "      --table-scalars FILE  build baby rows from explicit hex scalars, one per line (requires --glv-orbit)\n"
       "      --partner-table  exact-verify out-of-interval orbit branches (requires --glv-orbit)\n"
       "      --lambda-priority order local slices by the Lambda triangle, then fallback\n"
       "      --lambda-sectors N number of local numeric slices (default 16)\n"
@@ -699,6 +920,8 @@ int main(int argc, char **argv) {
       {"lambda-sectors", required_argument, nullptr, 'L'},
       {"phase-signature", no_argument, nullptr, 'P'},
       {"partner-table", no_argument, nullptr, 'p'},
+      {"canonical-k3", no_argument, nullptr, 'k'},
+      {"table-scalars", required_argument, nullptr, 'S'},
       {"cover-start", required_argument, nullptr, 'c'},
       {"cover-size", required_argument, nullptr, 'C'},
       {"lambda-dump", no_argument, nullptr, 'D'},
@@ -712,7 +935,7 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:Ppc:C:Dh", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:c:C:Dh", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
@@ -725,6 +948,8 @@ int main(int argc, char **argv) {
       case 'L': if (!parse_u64(optarg, lambda_sector_count) || lambda_sector_count == 0) { usage(argv[0]); return 2; } break;
       case 'P': phase_signature = true; break;
       case 'p': partner_table_mode = true; break;
+      case 'k': canonical_k3_mode = true; break;
+      case 'S': table_scalars_path = optarg; break;
       case 'c': cover_start_text = optarg; break;
       case 'C': cover_size_text = optarg; break;
       case 'D': lambda_dump = true; break;
@@ -742,6 +967,18 @@ int main(int argc, char **argv) {
   }
   if (partner_table_mode && !glv_orbit_mode) {
     std::fprintf(stderr, "[E] --partner-table requires --glv-orbit\n");
+    return 2;
+  }
+  if (canonical_k3_mode && !glv_orbit_mode) {
+    std::fprintf(stderr, "[E] --canonical-k3 requires --glv-orbit\n");
+    return 2;
+  }
+  if (!table_scalars_path.empty() && !glv_orbit_mode) {
+    std::fprintf(stderr, "[E] --table-scalars requires --glv-orbit\n");
+    return 2;
+  }
+  if (!table_scalars_path.empty() && requested_baby_rows != 0) {
+    std::fprintf(stderr, "[E] --baby-rows cannot be combined with --table-scalars\n");
     return 2;
   }
   if (requested_baby_rows != 0) {
@@ -765,6 +1002,7 @@ int main(int argc, char **argv) {
   curve.Init();
   beta.SetBase16("7AE96A2B657C07106E64479EAC3434E99CF0497512F58995C1396C28719501EE");
   beta_g.ModMulK1(&beta, &curve.G.x);
+  beta2.ModMulK1(&beta, &beta);
   glv_lambda.SetBase16("5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72");
   glv_lambda2.SetBase16("AC9C52B33FA3CF1F5AD9E3FD77ED9BA4A880B9FC8EC739C2E0CFC810B51283CE");
   if (!parse_int(start_text, range_start)) {
@@ -820,8 +1058,51 @@ int main(int argc, char **argv) {
     requested_shifts.push_back(shift);
   }
 
+  std::vector<Int> table_scalars;
+  if (!table_scalars_path.empty()) {
+    std::ifstream in(table_scalars_path);
+    if (!in) {
+      std::fprintf(stderr, "[E] cannot open table scalars file: %s\n",
+                   table_scalars_path.c_str());
+      return 2;
+    }
+    std::string line;
+    uint64_t line_number = 0;
+    while (std::getline(in, line)) {
+      ++line_number;
+      size_t comment = line.find('#');
+      if (comment != std::string::npos) line.erase(comment);
+      size_t first = line.find_first_not_of(" \t\r\n");
+      if (first == std::string::npos) continue;
+      size_t last = line.find_last_not_of(" \t\r\n");
+      line = line.substr(first, last - first + 1);
+      Int value;
+      if (!parse_int(line, value)) {
+        std::fprintf(stderr, "[E] invalid scalar on line %llu of %s\n",
+                     static_cast<unsigned long long>(line_number),
+                     table_scalars_path.c_str());
+        return 2;
+      }
+      value.Mod(&curve.order);
+      if (value.IsZero()) {
+        std::fprintf(stderr, "[E] zero scalar on line %llu of %s\n",
+                     static_cast<unsigned long long>(line_number),
+                     table_scalars_path.c_str());
+        return 2;
+      }
+      table_scalars.push_back(value);
+    }
+    if (table_scalars.empty()) {
+      std::fprintf(stderr, "[E] table scalars file is empty: %s\n",
+                   table_scalars_path.c_str());
+      return 2;
+    }
+  }
+
   uint64_t segment_count = range_size / segment_size + (range_size % segment_size != 0);
-  uint64_t m = ceil_sqrt_u64(std::min(segment_size, range_size));
+  uint64_t m = table_scalars.empty()
+      ? ceil_sqrt_u64(std::min(segment_size, range_size))
+      : static_cast<uint64_t>(table_scalars.size());
   shared_baby_rows = m;
   std::cout << "Experimental bounded segmented BSGS\n"
             << "  interval width: " << range_size << "\n"
@@ -830,11 +1111,16 @@ int main(int argc, char **argv) {
             << "  workers: " << worker_count << "\n"
             << "  GLV orbit quotient: " << (glv_orbit_mode ? "true" : "false") << "\n"
             << "  phase signature routing: " << (phase_signature ? "true" : "false") << "\n"
+            << "  canonical K3 storage: " << (canonical_k3_mode ? "true" : "false") << "\n"
             << "  partner table: " << (partner_table_mode ? "true" : "false") << "\n"
             << "  shifted targets: " << requested_shifts.size()
             << " (original target is always the fallback)\n"
-            << "  baby rows (shared): " << m << "\n"
-            << "  estimated shared table bytes: " << (m * sizeof(BabyRow)) << "\n"
+            << "  baby rows (shared): " << m << "\n";
+  if (!table_scalars.empty()) {
+    std::cout << "  table scalars file: " << table_scalars_path << " ("
+              << table_scalars.size() << " rows)\n";
+  }
+  std::cout << "  estimated shared table bytes: " << (m * sizeof(BabyRow)) << "\n"
             << "  table copies: 1 (read-only, shared by workers)\n";
   if (lambda_priority) {
     std::cout << "  Lambda priority: true\n"
@@ -861,9 +1147,18 @@ int main(int argc, char **argv) {
             << " builder threads..." << std::endl;
   auto started = std::chrono::steady_clock::now();
   auto table_started = started;
-  build_shared_table(m);
+  if (!table_scalars.empty()) {
+    build_table_from_scalars(table_scalars);
+  } else {
+    build_shared_table(m);
+  }
   double table_seconds = std::chrono::duration<double>(
       std::chrono::steady_clock::now() - table_started).count();
+  if (canonical_k3_mode) {
+    std::cout << "  table rows stored: " << shared_baby_rows
+              << " (canonical merge removed "
+              << canonical_rows_merged.load() << ")\n";
+  }
 
   auto search_started = std::chrono::steady_clock::now();
   auto run_target = [&](Int &shift, uint64_t local_size, bool cover_check) {
@@ -941,11 +1236,19 @@ int main(int argc, char **argv) {
   if (phase_signature) {
     std::cout << "  signature routes: " << signature_routes.load() << "\n"
               << "  signature anomalies (6-branch fallback): "
-              << signature_anomalies.load() << "\n";
+              << signature_anomalies.load() << "\n"
+              << "  signature pair collapses: "
+              << signature_pair_collapses.load() << "\n"
+              << "  signature pair mismatches: "
+              << signature_pair_mismatches.load() << "\n";
   }
   if (glv_orbit_mode) {
     std::cout << "  orbit duplicate rows skipped: "
               << orbit_duplicate_rows.load() << "\n";
+    if (canonical_k3_mode) {
+      std::cout << "  canonical rows merged: "
+                << canonical_rows_merged.load() << "\n";
+    }
     if (partner_table_mode) {
       std::cout << "  partner recoveries: "
                 << partner_recoveries.load() << "\n";

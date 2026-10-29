@@ -14,7 +14,7 @@
   "storage_compression_overall": 2.0,
   "full_buckets": 400,
   "full_bucket_compression": 3.0,
-  "build_seconds": 1.076,
+  "build_seconds": 1.062,
   "trials": 1000,
   "pair_contains_target": 1000,
   "anomalies": 0,

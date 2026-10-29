@@ -116,6 +116,55 @@ six-branch recovery, signature-routed recovery, in-window regression).
   --partner-table --threads 4
 ```
 
+### Canonical K3 storage and candidate-pair collapse
+
+`--glv-orbit --canonical-k3` stores one canonical row per C6 orbit instead of
+one row per table scalar. The stored scalar is the orbit minimum
+
+```text
+c = min over r in {0,1,2} of min(lambda^r * k mod n, n - lambda^r * k mod n),
+```
+
+which is constant on the orbit and distinct across orbits. `K3 = x^3` and the
+`(d01, d12)` signature depend on x-coordinates only, so the canonical
+representative keeps the same bucket key, and its signature is read off the
+phi-rotated x-coordinate `beta^r * x` of the row point (negation does not
+change x), so canonicalization costs no extra scalar multiplication. At build
+time rows with equal keys are merged after sorting: `canonical rows merged`
+counts the removed duplicates and `table rows stored` shows the final size.
+On the continuous window table `[0, m)` the merge is a no-op (partners
+`lambda*j ~ 2^128` never co-occur there); it becomes active with
+`--table-scalars`.
+
+The phase-signature path now performs candidate-pair level dedup inside a
+bucket: every row routes to its pair `{+o, -o}`, identical pairs are skipped
+(`signature pair collapses`), and differing pairs are still verified
+defensively (`signature pair mismatches`, expected zero — all rows of a K3
+bucket lie in one C6 orbit and route to the same pair).
+
+`--table-scalars FILE` builds the baby table from an explicit list of hex
+scalars (one per line, `#` comments allowed, zero rejected) instead of the
+continuous window `[0, m)`. The giant plan strides by the stored row count,
+so targets `start + i*m + s` with `s` in the orbit set of the table remain
+recoverable. This is the research mode in which K3 buckets genuinely contain
+orbit partners — the full-range representative table anticipated by the
+routing-economy measurements — and it instantiates the storage/recovery
+composition: canonical storage gives one row per orbit, partner-expansion
+(`--partner-table`) restores the target from the routed pair.
+
+```bash
+# table with a real 3-row bucket (j3, lambda*j3, lambda^2*j3 plus background)
+./eng_bsgs --target PUBKEY --start 0x4000000000000000000000000000000000 \
+  --size 1048576 --segment 1048576 --glv-orbit --phase-signature \
+  --canonical-k3 --partner-table --table-scalars rows.txt --threads 4
+```
+
+Verified by `test_canonical_k3.py` (negative-control collapse counting,
+partner recovery, canonical merge 3 rows -> 1, in-window and continuous-window
+regressions) and `economy_engine_sweep.py` (24 targets: baseline six-branch
+3.04 exact EC checks per hit vs 1.33 routed, ~2.28x; canonical storage halves
+the table with the same pair economy).
+
 ### Automatic external coverage
 
 `--cover-start` and `--cover-size` describe an external scalar interval using
