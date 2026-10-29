@@ -585,9 +585,10 @@ void finalize_table(size_t raw_count) {
   baby_rows.store(unique, std::memory_order_relaxed);
   // Build-phase hits: rows collapsed into an existing key at build time -
   // the unified cross-mode name for canonical-merge collapses and
-  // duplicate baby keys alike.
-  build_hits.store(raw_count > unique ? raw_count - unique : 0,
-                   std::memory_order_relaxed);
+  // duplicate baby keys alike. Accumulative: the --canonical-k3
+  // pre-pass adds its drops before the table build.
+  build_hits.fetch_add(raw_count > unique ? raw_count - unique : 0,
+                       std::memory_order_relaxed);
   shared_baby_rows = final_count;
 }
 
@@ -1517,6 +1518,9 @@ int main(int argc, char **argv) {
         canon.end());
     canonical_rows_merged.fetch_add(raw_input - canon.size(),
                                     std::memory_order_relaxed);
+    // pre-pass drops are build-phase key collisions too (unified name)
+    build_hits.fetch_add(raw_input - canon.size(),
+                         std::memory_order_relaxed);
     table_scalars.swap(canon);
   }
 

@@ -24,6 +24,7 @@
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -42,6 +43,8 @@ TARGET_CHUNK = 85
 TARGET_GIANT_INDEX = 625_000
 TARGET_RESIDUAL = 12_345         # c: канонический представитель головы 12345
 CANON_FILE = Path("../representatives_canonical_H400000.txt")
+EXPANDED_FILE = Path("../representatives_expanded_H400000.txt")
+EXPANDED_SHA256 = "a73f6dc70caedf72fb2a1c85479521cf4fdd2de31dbec5fad2a12925a227683e"
 SEED = 20261104
 
 COUNTER_KEYS = (
@@ -158,7 +161,15 @@ def verdict(results, expect_scalar):
     strides = {s["stride line"] for s in sessions if s["stride line"]}
     if strides != {STRIDE}:
         bad.append(f"giant stride lines {strides} != {{{STRIDE}}}")
-    if last["counters"].get("build hits", 0) != 0:
+    mode = results.get("design", {}).get("mode", "canonical")
+    if mode == "merge":
+        # build hits == canonical rows merged (pre-pass drop of 1.2M -> 400k)
+        merged = last["counters"].get("canonical rows merged", 0)
+        bhits = last["counters"].get("build hits", 0)
+        if bhits != merged or merged != 2 * STRIDE:
+            bad.append(f"merge accounting: build hits {bhits} != merged "
+                       f"{merged} (expected {2 * STRIDE})")
+    elif last["counters"].get("build hits", 0) != 0:
         bad.append("build hits != 0 on a canonical file")
     if last["counters"].get("search hits", 0) < 1:
         bad.append("search hits < 1 at TTS")
@@ -196,19 +207,43 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", default="./eng_bsgs")
     parser.add_argument("--threads", type=int, default=2)
-    parser.add_argument("--out", default="../long_run_canonical.json")
+    parser.add_argument("--mode", choices=("canonical", "merge"),
+                        default="canonical",
+                        help="canonical: H-строк файл; merge: expanded 3H "
+                             "файл + --canonical-k3 (стрид по post-merge)")
+    parser.add_argument("--out", default=None)
     parser.add_argument("--session-cap", type=float, default=120.0,
                         help="SIGKILL after this many seconds per session")
     parser.add_argument("--max-sessions", type=int, default=8)
     parser.add_argument("--budget", type=float, default=480.0,
                         help="wall budget for this invocation, seconds")
     args = parser.parse_args()
+    if args.out is None:
+        args.out = ("../long_run_canonical.json" if args.mode == "canonical"
+                    else "../long_run_merge.json")
 
     out = Path(args.out).resolve()
     workdir = Path(__file__).resolve().parent
     binary = (workdir / args.binary).resolve()
-    if not (workdir / CANON_FILE).resolve().exists():
+    if (workdir / CANON_FILE).resolve().exists() is False:
         raise SystemExit(f"missing {CANON_FILE}")
+    if args.mode == "merge":
+        table_file = (workdir / EXPANDED_FILE).resolve()
+        if not table_file.exists():
+            raise SystemExit(f"missing {EXPANDED_FILE} (generate via "
+                             "long_cover_validation.py)")
+        h = hashlib.sha256()
+        with open(table_file, "rb") as f:
+            for block in iter(lambda: f.read(1 << 20), b""):
+                h.update(block)
+        if h.hexdigest() != EXPANDED_SHA256:
+            raise SystemExit("expanded file sha256 mismatch - regenerate")
+        mode_flags = ["--canonical-k3"]
+        cp_name = "cp_long_run_merge.txt"
+    else:
+        table_file = (workdir / CANON_FILE).resolve()
+        mode_flags = []
+        cp_name = "cp_long_run.txt"
 
     expect_scalar = expected_scalar()
     target_pub = pubkey_hex(expect_scalar)
@@ -217,10 +252,11 @@ def main():
     base_cmd = ["--target", target_pub, "--start", hex(START),
                 "--size", str(CHUNK), "--segment", str(CHUNK),
                 "--threads", str(args.threads),
-                "--table-scalars", str((workdir / CANON_FILE).resolve()),
+                "--table-scalars", str(table_file),
                 "--glv-orbit", "--phase-signature", "--partner-table",
+                ] + mode_flags + [
                 "--cover-start", hex(START), "--cover-size", hex(cover_size),
-                "--checkpoint-file", str(workdir / "cp_long_run.txt"),
+                "--checkpoint-file", str(workdir / cp_name),
                 "--checkpoint-steps", "1",
                 "--progress-interval", "60"]
 
@@ -237,6 +273,7 @@ def main():
         results = {
             "design": {
                 "seed": SEED,
+                "mode": args.mode,
                 "question": "canonical 400k long cover: steps/s stability, "
                             "hit economy, checkpoint cost pct",
                 "start": hex(START),
