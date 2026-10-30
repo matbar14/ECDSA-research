@@ -197,7 +197,7 @@ partner-восстановление, канонический merge 3 стро�
 ```bash
 ./eng_bsgs --target PUB --start ... --size CHUNK --segment CHUNK \
   --glv-orbit --phase-signature --partner-table \
-  --table-scalars ../representatives_canonical_H400000.txt
+  --table-scalars ../tables/representatives_canonical_H400000.txt
 ```
 
 Два эксплуатационных факта, подтверждённых длинным cover-прогоном
@@ -224,7 +224,7 @@ partner-восстановление, канонический merge 3 стро�
 27 циклов SIGKILL/resume, учёт chunk без дыр и двойного счёта) и
 black-box round-trip-проверка покрываются `test_representatives_file.py`,
 `long_cover_validation.py` и PROGRESS_MEMO.md; контрольные суммы файлов
-зафиксированы в `../representatives_files.json`.
+зафиксированы в `../tables/representatives_files.json`.
 
 Роли формата артефактов представителей. Сегодня движок читает `.txt`-файл
 напрямую собственным парсером (`--table-scalars`: один hex-скаляр на строку,
@@ -297,7 +297,7 @@ python3 test_lambda_cover.py
   --cover-start 0x4000000000000000000000000000000000 \
   --cover-size 3000000000000 \
   --glv-orbit --phase-signature --partner-table \
-  --table-scalars ../representatives_canonical_H400000.txt \
+  --table-scalars ../tables/representatives_canonical_H400000.txt \
   --checkpoint-file /scratch/cover.cp --checkpoint-steps 1 \
   --threads 16
 ```
