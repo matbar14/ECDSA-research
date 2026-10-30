@@ -117,6 +117,12 @@ This version also could have some bugs. please report it.
 
 ## Experimental engineering BSGS
 
+> Note: this section, `eng_bsgs.cpp`, `ENG_BSGS.md` and the helper scripts
+> around them are local additions of this research fork. Upstream `keyhunt`
+> by albertobsd does not contain them. The rest of this README is the
+> upstream documentation. See the root `README.md` for the full provenance
+> map.
+
 For bounded-range memory/time experiments, this tree also provides a separate
 `eng_bsgs` benchmark built on the existing secp256k1 implementation. It does
 not change the production `keyhunt` modes or their Bloom/table files.

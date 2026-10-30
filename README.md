@@ -39,8 +39,11 @@ ECDSA-research/
 ├── results/                      артефакты прогонов (JSON, CSV, BIN)
 ├── figures/                      графики (PNG, SVG)
 ├── tables/                       файлы представителей орбит и CBT1-таблицы
-└── keyhunt/                      движок BSGS (eng_bsgs) и python-конвейер
+└── keyhunt/                      форк keyhunt (upstream) + мой движок eng_bsgs
 ```
+
+Происхождение файлов (что здесь моё, а что из чужого форка) разобрано
+в разделе [«Происхождение кода»](#происхождение-кода-моё-и-из-форка-keyhunt) ниже.
 
 Команды запуска ниже исполняются из корня репозитория. Хронология
 экспериментов и текущее состояние BSGS-конвейера (канонические таблицы
@@ -48,6 +51,46 @@ ECDSA-research/
 валидации, kill/resume через чекпоинты) ведутся в
 [PROGRESS_MEMO.md](PROGRESS_MEMO.md); описание движка и его счётчиков -
 в [keyhunt/ENG_BSGS.md](keyhunt/ENG_BSGS.md).
+
+## Происхождение кода: моё и из форка keyhunt
+
+Всё вне каталога `keyhunt/` - авторский код и данные этого исследования:
+скрипты экспериментов в [experiments/](experiments/), артефакты прогонов в
+[results/](results/), графики в [figures/](figures/), таблицы представителей
+в [tables/](tables/), руководства в [docs/](docs/), а также `README.md`,
+`PROGRESS_MEMO.md` и `.gitignore`. Чужого кода вне `keyhunt/` нет.
+
+Каталог `keyhunt/` - форк проекта
+[keyhunt](https://github.com/albertobsd/keyhunt) (автор Luis Alberto,
+лицензия MIT - [keyhunt/LICENSE](keyhunt/LICENSE)). Апстрим зафиксирован на
+коммите `2134a20` от 2023-12-17 (версия 0.2.230519 "Satoshi Quest");
+сверка показала, что все нетронутые файлы побайтово совпадают с апстримом.
+К апстриму относятся: `keyhunt.cpp`, `keyhunt_legacy.cpp`, `bsgsd.cpp`,
+каталоги `base58/`, `bloom/`, `oldbloom/`, `gmp256k1/`, `hash/`, `rmd160/`,
+`secp256k1/`, `sha3/`, `tests/`, файлы `util.c/.h`, `hashing.c/.h`,
+`BSGSD.md`, `CHANGELOG.md`, `TODO.md`. Апстрим-движок `keyhunt` не
+модифицировался и в экспериментах не запускался - все прогоны идут через
+`eng_bsgs` и скрипты из `experiments/`.
+
+Мои добавления поверх апстрима (24 файла, все в `keyhunt/`):
+
+- движок и его документация: [eng_bsgs.cpp](keyhunt/eng_bsgs.cpp),
+  [ENG_BSGS.md](keyhunt/ENG_BSGS.md);
+- конвейер таблиц представителей и CBT1: `make_representatives_file.py`,
+  `make_expanded_file.py`, `run_cbt1_4m_build.py`, `cbt1_4m_benchmark.py`,
+  `cbt1_cache_timing.py`, `validate_cbt1_4m.py`, `long_cover_cbt1_4m.py`,
+  `long_cover_validation.py`, `long_run_compare.py`, `equivalence_cover.py`,
+  `economy_engine_sweep.py`, `table_representative_sweep.py`,
+  `fnv1a64_tool.c`;
+- тесты и бенчмарки движка: `test_eng_bsgs.py`, `test_lambda_cover.py`,
+  `test_lambda_priority.py`, `test_binary_table.py`, `test_canonical_k3.py`,
+  `test_cbt1_cache.py`, `test_cover_checkpoint.py`, `test_partner_table.py`,
+  `test_representatives_file.py`.
+
+Из апстрим-файлов изменены ровно три: [Makefile](keyhunt/Makefile) -
+добавлена цель `make eng_bsgs`; [README.md](keyhunt/README.md) - добавлен
+раздел "Experimental engineering BSGS"; [.gitignore](keyhunt/.gitignore) -
+добавлена строка `eng_bsgs`.
 
 ## Параметры
 
