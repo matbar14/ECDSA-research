@@ -221,7 +221,7 @@ def solve_quadratic_mod_p(A, B, C):
     if p % 4 == 3:
         sqrt_D = pow(D, (p + 1) // 4, p)
     else:
-        # Алгоритм Тонелли-Шенкса (упрощенная версия)
+        # Общий случай: перебор в tonelli_shanks(), для secp256k1 не используется
         sqrt_D = tonelli_shanks(D, p)
     
     # Проверяем корень
@@ -244,7 +244,11 @@ def solve_quadratic_mod_p(A, B, C):
 
 def tonelli_shanks(n, p):
     """
-    Алгоритм Тонелли-Шенкса для вычисления квадратного корня по модулю p
+    Квадратный корень по модулю p.
+
+    Для p ≡ 3 (mod 4) — прямая формула n^((p+1)/4), именно этот случай
+    имеет место для secp256k1. Общий случай ниже решается перебором,
+    а не полным алгоритмом Тонелли-Шенкса.
     """
     # Упрощенная версия для p ≡ 3 (mod 4)
     if p % 4 == 3:
@@ -311,10 +315,10 @@ def verify_lambda_values(points, target_lambda):
         print(f"            Λ = 0x{lambda_val:016x}...")
         
         if lambda_val == target_lambda:
-            print(f"            ✅ СОВПАДЕНИЕ с целевым Λ!")
+            print(f"            СОВПАДЕНИЕ с целевым Λ!")
             correct_points.append((x, y))
         else:
-            print(f"            ❌ Не совпадает с целевым Λ")
+            print(f"            Не совпадает с целевым Λ")
     
     print(f"\n   Найдено корректных точек: {len(correct_points)}")
     return correct_points
@@ -417,21 +421,21 @@ def test_ecdlp_reduction():
     x_solutions = solve_quadratic_mod_p(A, B, C)
     
     if not x_solutions:
-        print("❌ Не найдено решений квадратного уравнения")
+        print("Не найдено решений квадратного уравнения")
         return False
     
     # Шаг 3: Находим точки на кривой
     candidate_points = find_points_on_curve(x_solutions)
     
     if not candidate_points:
-        print("❌ Не найдено точек на кривой")
+        print("Не найдено точек на кривой")
         return False
     
     # Шаг 4: Верифицируем значения Λ
     correct_points = verify_lambda_values(candidate_points, target_lambda)
     
     if not correct_points:
-        print("❌ Ни одна точка не дает правильное значение Λ")
+        print("Ни одна точка не дает правильное значение Λ")
         return False
     
     # Шаг 5: Проверяем, есть ли среди них исходная точка
@@ -440,13 +444,13 @@ def test_ecdlp_reduction():
     found_original = False
     for x, y in correct_points:
         if x == P_test.x and y == P_test.y:
-            print(f"   ✅ НАЙДЕНА ИСХОДНАЯ ТОЧКА!")
+            print(f"   НАЙДЕНА ИСХОДНАЯ ТОЧКА!")
             print(f"   P = (0x{x:016x}..., 0x{y:016x}...)")
             found_original = True
             break
     
     if not found_original:
-        print(f"   ❌ Исходная точка не найдена среди кандидатов")
+        print(f"   Исходная точка не найдена среди кандидатов")
         print(f"   Исходная: (0x{P_test.x:016x}..., 0x{P_test.y:016x}...)")
         print(f"   Найденные:")
         for x, y in correct_points:
@@ -491,15 +495,15 @@ def mass_testing():
                 found = any(x == P.x and y == P.y for x, y in correct_points)
                 
                 if found:
-                    print(f"   ✅ УСПЕХ для d = {d}")
+                    print(f"   УСПЕХ для d = {d}")
                     success_count += 1
                 else:
-                    print(f"   ❌ НЕУДАЧА для d = {d}")
+                    print(f"   НЕУДАЧА для d = {d}")
             else:
-                print(f"   ❌ Нет решений для d = {d}")
+                print(f"   Нет решений для d = {d}")
                 
         except Exception as e:
-            print(f"   ❌ ОШИБКА для d = {d}: {e}")
+            print(f"   ОШИБКА для d = {d}: {e}")
     
     accuracy = success_count / total_count * 100
     print(f"\n" + "="*80)
@@ -525,15 +529,15 @@ if __name__ == "__main__":
     print("="*80)
     
     if single_success:
-        print("✅ Одиночный тест прошел успешно")
+        print("Одиночный тест прошел успешно")
     else:
-        print("❌ Одиночный тест провалился")
+        print("Одиночный тест провалился")
     
-    print(f"📊 Точность на массовых тестах: {mass_accuracy:.1f}%")
+    print(f"Точность на массовых тестах: {mass_accuracy:.1f}%")
     
     if mass_accuracy >= 90:
-        print("🎉 АЛГОРИТМ РАБОТАЕТ! ECDLP успешно сведена к полиномиальному уравнению!")
+        print("АЛГОРИТМ РАБОТАЕТ! ECDLP успешно сведена к полиномиальному уравнению!")
     elif mass_accuracy >= 50:
-        print("⚠️  Алгоритм работает частично - требуется доработка")
+        print("Алгоритм работает частично - требуется доработка")
     else:
-        print("❌ Алгоритм не работает - нужен пересмотр подхода")
+        print("Алгоритм не работает - нужен пересмотр подхода")
