@@ -1,22 +1,22 @@
-# Experimental engineering BSGS
+# Экспериментальный инженерный BSGS
 
-`eng_bsgs` is a separate benchmark built on the existing `keyhunt/secp256k1`
-implementation. It deliberately does not modify the production `keyhunt`
-search modes or their on-disk Bloom/table format.
+`eng_bsgs` — отдельный бенчмарк, построенный на существующей реализации
+`keyhunt/secp256k1`. Он намеренно не меняет production-режимы поиска `keyhunt`
+и их файловые форматы Bloom/таблиц.
 
-The program covers a finite interval completely. It partitions the interval
-into segments, builds a local baby table for one segment, searches the segment
-with giant steps, and then reuses the table for the next segment. This exposes
-the memory/time trade-off measured in the Python experiments.
+Программа полностью покрывает конечный интервал. Она делит интервал на
+сегменты, строит локальную baby-таблицу для одного сегмента, ищет сегмент
+гигант-шагами, а затем переиспользует таблицу для следующего сегмента. Так
+проявляется измеренный в Python-экспериментах компромисс память/время.
 
-Build it with:
+Сборка:
 
 ```bash
 cd keyhunt
 make eng_bsgs
 ```
 
-Run a bounded test with a known compressed public key:
+Ограниченный тест с известным compressed public key:
 
 ```bash
 ./eng_bsgs \
@@ -27,88 +27,92 @@ Run a bounded test with a known compressed public key:
   --threads 4
 ```
 
-The target format is SEC1 hex: compressed keys begin with `02` or `03`, and
-uncompressed keys begin with `04`. `--start` accepts decimal or `0x...`
-hexadecimal text. `--size` is the exact finite interval width; the searched
-interval is `[start, start + size)`.
+Формат цели — SEC1 hex: compressed-ключи начинаются с `02` или `03`,
+uncompressed — с `04`. `--start` принимает десятичную запись или
+шестнадцатеричную `0x...`. `--size` — точная ширина конечного интервала;
+искомый интервал — `[start, start + size)`.
 
-Output includes:
+В выводе:
 
-- number of segments and the shared read-only baby table;
-- one-time baby-table construction size;
-- giant-step count and giant-steps/second;
-- recovered scalar, segment and local offset when a match is found.
+- число сегментов и общая read-only baby-таблица;
+- размер однократной постройки baby-таблицы;
+- число гигант-шагов и скорость гигант-шагов/с;
+- восстановленный скаляр, сегмент и локальное смещение при совпадении.
 
-The `recovered private key` line prints the same scalar zero-padded to 64 hex
-characters, so it can be copied directly as a 32-byte secp256k1 private key.
+Строка `recovered private key` печатает тот же скаляр с нулевым дополнением
+до 64 hex-символов, поэтому её можно скопировать напрямую как 32-байтный
+приватный ключ secp256k1.
 
-The benchmark stops early on the first exact point match. A false result means
-that the supplied public key was not found in the specified finite interval.
-It does not claim anything about the rest of the secp256k1 key space.
+Бенчмарк останавливается на первом точном совпадении точки. Отрицательный
+результат означает, что переданный public key не найден в указанном конечном
+интервале, и не утверждает ничего об остальной части пространства ключей
+secp256k1.
 
-### Lambda-sector priority
+### Lambda-приоритет секторов
 
-The experimental Lambda router can order the numeric slices of each local
-window using the three exact `w1.py` Lambda values:
+Экспериментальный Lambda-роутер может упорядочивать числовые срезы каждого
+локального окна по трём точным Lambda-значениям из `w1.py`:
 
 ```bash
 ./eng_bsgs --target PUBKEY --start 1 --size 1000000 --segment 10000 \
   --lambda-priority --lambda-sectors 16
 ```
 
-The three sectors are searched first. Every other sector is then searched as a
-full fallback, so this option changes only traversal order and cannot remove a
-candidate. The output reports Lambda calculations and the number of priority
-and fallback slices separately; those counters are experimental statistics,
-not a mathematical speed guarantee. `--glv-orbit` can be used together with
-this mode.
+Три сектора ищутся первыми. Затем каждый оставшийся сектор ищется полным
+fallback-проходом, поэтому опция меняет только порядок обхода и не может
+удалить кандидата. Вывод отдельно сообщает Lambda-вычисления и число
+приоритетных и fallback-срезов; эти счётчики — экспериментальная статистика,
+а не математическая гарантия ускорения. `--glv-orbit` можно использовать
+вместе с этим режимом.
 
-### Phase-signature GLV branch routing
+### Маршрутизация GLV-ветвей по фазовой сигнатуре
 
-`--glv-orbit --phase-signature` refines the K3=x^3 quotient with the ordered
-Lambda signature `(d01, d12)`, where `d01 = Lambda(phi(P)) - Lambda(P)` and
-`d12 = Lambda(phi^2(P)) - Lambda(phi(P))`. The signature is invariant under
-`P -> -P` and cyclically permuted by `phi`, so a K3 bucket match can be routed
-to the single branch pair `{+lambda^r * j, -lambda^r * j}` instead of all six
-exact branches. Degenerate rows fall back to the full six-branch check, so
-coverage never depends on the router.
+`--glv-orbit --phase-signature` уточняет частное K3=x^3 упорядоченной
+Lambda-сигнатурой `(d01, d12)`, где `d01 = Lambda(phi(P)) - Lambda(P)` и
+`d12 = Lambda(phi^2(P)) - Lambda(phi(P))`. Сигнатура инвариантна относительно
+`P -> -P` и циклически переставляется `phi`, поэтому совпадение K3-бакета
+можно маршрутизировать в единственную пару ветвей
+`{+lambda^r * j, -lambda^r * j}` вместо всех шести точных ветвей. Вырожденные
+строки уходят в полный шестиветвевой fallback, поэтому покрытие никогда не
+зависит от роутера.
 
 ```bash
 ./eng_bsgs --target PUBKEY --start 0x4000000000000000000000000000000000 \
   --size 100000 --segment 100000 --glv-orbit --phase-signature --threads 4
 ```
 
-The output adds `signature routes` and `signature anomalies (6-branch
-fallback)` counters, plus the real `unique baby rows built` /
-`duplicate baby keys` table statistics. Measured on a bounded 135-bit window,
-routed recovery is correct and route anomalies are zero; the measured exact
-check count does not improve there because the `r=0` branch is tried first in
-both modes. The 6-to-2 candidate reduction is verified structurally by
-`phase_signature_135bit_experiment.py` (orbit mode: 1500/1500 correct routes,
-1500/1500 candidate pairs contain the target offset). The table build costs
-about three Lambda computations per row in this mode.
+В вывод добавляются счётчики `signature routes` и `signature anomalies
+(6-branch fallback)`, а также настоящая табличная статистика `unique baby
+rows built` / `duplicate baby keys`. На измеренном ограниченном 135-битном
+окне маршрутизованное восстановление корректно, аномалий маршрута ноль;
+число точных проверок там не улучшается, потому что ветвь `r=0` проверяется
+первой в обоих режимах. Сведение кандидатов 6 к 2 структурно верифицировано
+`phase_signature_135bit_experiment.py` (orbit-режим: 1500/1500 корректных
+маршрутов, 1500/1500 пар кандидатов содержат целевое смещение). Сборка
+таблицы в этом режиме стоит около трёх Lambda-вычислений на строку.
 
-### Partner-table recovery of out-of-window orbit branches
+### Partner-таблица: восстановление внеоконных ветвей орбиты
 
-`--glv-orbit --partner-table` widens the recovery contract: orbit-branch
-candidates that fall outside the searched interval are no longer skipped by
-the interval pre-filter but are exact-verified against the target with a
-full EC check. This is safe because a K3 hit never fires spuriously — the
-roots of `X^3 - c` over F_p are exactly `x, beta*x, beta^2*x`, so a bucket
-match means the giant point IS `±lambda^a * jG` for a table row `j`, and a
-candidate `i*m ± lambda^a * j` that passes `ComputePublicKey` equals the
-target scalar. The mode recovers scalars of the form
+`--glv-orbit --partner-table` расширяет контракт восстановления: кандидаты
+орбитальных ветвей, попавшие вне искомого интервала, больше не отбрасываются
+интервальным пре-фильтром, а проходят точную EC-проверку против цели. Это
+безопасно, потому что K3-совпадение никогда не срабатывает ложно — корни
+`X^3 - c` над F_p это ровно `x, beta*x, beta^2*x`, поэтому совпадение бакета
+означает, что гигант-точка ЕСТЬ `±lambda^a * jG` для строки таблицы `j`, и
+кандидат `i*m ± lambda^a * j`, прошедший `ComputePublicKey`, равен целевому
+скаляру. Режим восстанавливает скаляры вида
 
 ```text
 k = range_start + i*m ± lambda^r * j (mod n),  j < baby rows,
 ```
 
-i.e. orbit partners of window scalars, which the default mode silently
-drops. The cover-range check is bypassed in this mode (the EC verification
-against the original target is the ultimate guard); partner-type recoveries
-are counted in the new `partner recoveries` output line. Verified by
-`test_partner_table.py` (black-box: negative control without the flag,
-six-branch recovery, signature-routed recovery, in-window regression).
+т.е. орбитальные партнёры скаляров окна, которые режим по умолчанию молча
+теряет. Проверка cover-диапазона в этом режиме обходится (EC-верификация
+против исходной цели — финальный предохранитель); partner-восстановления
+считаются в новой строке вывода `partner recoveries`. Верифицировано
+`test_partner_table.py` (black-box: negative-контроль без флага,
+шестиветвевое восстановление, восстановление с маршрутизацией по сигнатуре,
+регрессия внутри окна).
 
 ```bash
 ./eng_bsgs --target PUBKEY --start 0x4000000000000000000000000000000000 \
@@ -116,74 +120,79 @@ six-branch recovery, signature-routed recovery, in-window regression).
   --partner-table --threads 4
 ```
 
-### Canonical K3 storage and candidate-pair collapse
+### Каноническое хранение K3 и схлопывание пар кандидатов
 
-`--glv-orbit --canonical-k3` stores one canonical row per C6 orbit instead of
-one row per table scalar. The stored scalar is the orbit minimum
+`--glv-orbit --canonical-k3` хранит одну каноническую строку на C6-орбиту
+вместо строки на каждый табличный скаляр. Сохраняемый скаляр — минимум
+орбиты
 
 ```text
 c = min over r in {0,1,2} of min(lambda^r * k mod n, n - lambda^r * k mod n),
 ```
 
-which is constant on the orbit and distinct across orbits. `K3 = x^3` and the
-`(d01, d12)` signature depend on x-coordinates only, so the canonical
-representative keeps the same bucket key, and its signature is read off the
-phi-rotated x-coordinate `beta^r * x` of the row point (negation does not
-change x), so canonicalization costs no extra scalar multiplication.
-With `--table-scalars` the build is a direct canonical pass: the input list
-is canonicalized and deduped BEFORE any point is computed (two order
-multiplications per scalar, no EC work), so exactly one point per orbit is
-multiplied and the build cost and peak memory follow the stored table, not
-the raw input list. `merged rows` counts input rows dropped
-before the first scalar multiplication and `table rows stored` shows the
-final size. On the continuous window table `[0, m)` the merge is a no-op
-(partners `lambda*j ~ 2^128` never co-occur there); it becomes active with
-`--table-scalars`.
+постоянный внутри орбиты и различный между орбитами. `K3 = x^3` и сигнатура
+`(d01, d12)` зависят только от x-координат, поэтому канонический
+представитель сохраняет тот же ключ бакета, а его сигнатура считывается с
+повёрнутой phi x-координаты `beta^r * x` точки строки (отрицание не меняет
+x), так что канонизация не стоит лишних скалярных умножений. С
+`--table-scalars` сборка — прямой канонический проход: входной список
+канонизируется и дедуплицируется ДО вычисления какой-либо точки (два
+умножения порядка на скаляр, без EC-работы), поэтому умножается ровно одна
+точка на орбиту, а стоимость сборки и пиковая память следуют за сохранённой
+таблицей, а не за сырым входным списком. `merged rows` считает входные
+строки, отброшенные до первого скалярного умножения, а `table rows stored`
+показывает итоговый размер. На таблице непрерывного окна `[0, m)` merge не
+делает ничего (партнёры `lambda*j ~ 2^128` там не встречаются вместе); он
+становится активным с `--table-scalars`.
 
-Every `ComputePublicKey` (build rows, anchor/step/shift points, exact
-candidate checks) and every real point addition is counted; the output
-reports `EC scalar multiplications`, `EC point additions` and
-`total EC operations`, so builds and search modes compare on the same unit.
+Каждый `ComputePublicKey` (строки сборки, anchor/step/shift-точки, точные
+проверки кандидатов) и каждое настоящее сложение точек учитываются; вывод
+сообщает `EC scalar multiplications`, `EC point additions` и
+`total EC operations`, поэтому сборки и режимы поиска сравнимы в одних
+единицах.
 
-The phase-signature path now performs candidate-pair level dedup inside a
-bucket: every row routes to its pair `{+o, -o}`, identical pairs are skipped
-(`signature pair collapses`), and differing pairs are still verified
-defensively (`signature pair mismatches`, expected zero — all rows of a K3
-bucket lie in one C6 orbit and route to the same pair).
+Путь phase-signature теперь выполняет дедупликацию на уровне пар кандидатов
+внутри бакета: каждая строка маршрутизируется в свою пару `{+o, -o}`,
+одинаковые пары пропускаются (`signature pair collapses`), а различающиеся
+пары по-прежнему проверяются защитно (`signature pair mismatches`, ожидается
+ноль — все строки K3-бакета лежат в одной C6-орбите и маршрутизируются в
+одну пару).
 
-`--table-scalars FILE` builds the baby table from an explicit list of hex
-scalars (one per line, `#` comments allowed, zero rejected) instead of the
-continuous window `[0, m)`. The giant plan strides by the stored row count,
-so targets `start + i*m + s` with `s` in the orbit set of the table remain
-recoverable. This is the research mode in which K3 buckets genuinely contain
-orbit partners — the full-range representative table anticipated by the
-routing-economy measurements — and it instantiates the storage/recovery
-composition: canonical storage gives one row per orbit, partner-expansion
-(`--partner-table`) restores the target from the routed pair.
+`--table-scalars FILE` строит baby-таблицу из явного списка hex-скаляров
+(по одному на строку, комментарии `#` разрешены, ноль отвергается) вместо
+непрерывного окна `[0, m)`. Гигант-план стридится по числу сохранённых
+строк, поэтому цели `start + i*m + s` с `s` из орбитального набора таблицы
+остаются восстановимыми. Это исследовательский режим, в котором K3-бакеты
+действительно содержат орбитальных партнёров — полнодиапазонную таблицу
+представителей, предвосхищённую замерами routing-economy, — и он воплощает
+композицию хранение/восстановление: каноническое хранение даёт строку на
+орбиту, partner-расширение (`--partner-table`) восстанавливает цель из
+маршрутизованной пары.
 
 ```bash
-# table with a real 3-row bucket (j3, lambda*j3, lambda^2*j3 plus background)
+# таблица с настоящим 3-строчным бакетом (j3, lambda*j3, lambda^2*j3 плюс фон)
 ./eng_bsgs --target PUBKEY --start 0x4000000000000000000000000000000000 \
   --size 1048576 --segment 1048576 --glv-orbit --phase-signature \
   --canonical-k3 --partner-table --table-scalars rows.txt --threads 4
 ```
 
-Verified by `test_canonical_k3.py` (negative-control collapse counting,
-partner recovery, canonical merge 3 rows -> 1, in-window and continuous-window
-regressions) and `economy_engine_sweep.py` (24 targets: baseline six-branch
-3.04 exact EC checks per hit vs 1.33 routed, ~2.28x; canonical storage halves
-the table with the same pair economy).
+Верифицировано `test_canonical_k3.py` (подсчёт схлопываний negative-контроля,
+partner-восстановление, канонический merge 3 строк -> 1, регрессии внутри
+окна и на непрерывном окне) и `economy_engine_sweep.py` (24 цели: базовые
+шестиветвевые 3.04 точных EC-проверок на попадание против 1.33
+маршрутизованных, ~2.28x; каноническое хранение уполовинивает таблицу при
+той же экономии пар).
 
-### Representatives file for long runs
+### Файл представителей для длинных прогонов
 
-`make_representatives_file.py` generates persistent canonical
-representative files (`representatives_canonical_H*.txt`) for
-`--table-scalars`: one canonical orbit representative per row, heads
-`j = 1..H`, deterministic and prefix-nested across H. For heads `j <= H`
-the canonical representative equals `j` itself (the lambda-rotated
-partners are of order `n`), so the file's core is the contiguous tiling
-`i*stride + [1, H]`; the full range comes from orbit partners
-`+-lambda^a * j` at every giant position via `--partner-table`:
+`make_representatives_file.py` генерирует постоянные файлы канонических
+представителей (`representatives_canonical_H*.txt`) для `--table-scalars`:
+один канонический представитель орбиты на строку, головы `j = 1..H`,
+детерминированно и с вложенностью по префиксу между H. Для голов `j <= H`
+канонический представитель равен самому `j` (повёрнутые lambda партнёры
+имеют порядок `n`), поэтому ядро файла — непрерывная укладка
+`i*stride + [1, H]`; полный диапазон получается из орбитальных партнёров
+`+-lambda^a * j` на каждой гигант-позиции через `--partner-table`:
 
 ```bash
 ./eng_bsgs --target PUB --start ... --size CHUNK --segment CHUNK \
@@ -191,57 +200,57 @@ partners are of order `n`), so the file's core is the contiguous tiling
   --table-scalars ../representatives_canonical_H400000.txt
 ```
 
-Two operational facts validated by the long cover run
+Два эксплуатационных факта, подтверждённых длинным cover-прогоном
 (`long_cover_validation.py`, PROGRESS_MEMO.md):
 
-- **Set `--segment` explicitly.** Without `--baby-rows` the default
-  `segment_size` is 100000; a `--size 5e11` range is then split into
-  5M segments, each paying its own anchor/step scalar multiplications
-  (the giant walk itself does none) - measured 17.8k giant steps/second
-  instead of ~330k, an ~18x slowdown. With `--segment CHUNK` (one
-  segment per cover chunk) the full ~330k steps/second is restored.
-- **Stride under `--canonical-k3`.** The canonicalization pre-pass runs
-  before `m = table_scalars.size()`, so the stride is the POST-merge row
-  count (1.2M input rows merge to 400k, `merged rows: 800000`),
-  not the file's line count. The merged mode therefore has the same
-  stride, giant-step count and full coverage as the canonical file;
-  the plain 3H-row file without `--canonical-k3` strides by 3H and
-  covers only `[1, H]` after each giant position (holes in `(H, 3H)`),
-  which the negative controls of the long cover run demonstrate.
+- **Задавай `--segment` явно.** Без `--baby-rows` по умолчанию
+  `segment_size` равен 100000; диапазон `--size 5e11` тогда делится на
+  5M сегментов, и каждый платит собственные скалярные умножения
+  anchor/step (сам гигант-проход их не делает) — измерено 17.8k
+  гигант-шагов/с вместо ~330k, замедление ~18x. С `--segment CHUNK`
+  (один сегмент на cover chunk) восстанавливаются полные ~330k шагов/с.
+- **Стрид при `--canonical-k3`.** Канонизирующий пре-проход выполняется
+  до `m = table_scalars.size()`, поэтому стрид равен числу строк ПОСЛЕ
+  merge (1.2M входных строк схлопываются в 400k,
+  `merged rows: 800000`), а не числу строк файла. У merge-режима
+  поэтому тот же стрид, то же число гигант-шагов и то же полное
+  покрытие, что у canonical-файла; plain-файл из 3H строк без
+  `--canonical-k3` стридится по 3H и покрывает после каждой
+  гигант-позиции только `[1, H]` (дыры в `(H, 3H)`), что показывают
+  negative-контролы длинного cover-прогона.
 
-The giant stride equals the stored row count. The H-curve measurements
-(50k/100k/200k/400k), the long cover validation (13/13 scenarios, 27
-SIGKILL/resume cycles, hole-free and double-count-free chunk accounting)
-and the black-box round-trip verification are covered by
-`test_representatives_file.py`, `long_cover_validation.py` and
-PROGRESS_MEMO.md; file checksums are pinned in
-`../representatives_files.json`.
+Гигант-стрид равен числу сохранённых строк. Замеры H-кривой
+(50k/100k/200k/400k), валидация длинного cover-прогона (13/13 сценариев,
+27 циклов SIGKILL/resume, учёт chunk без дыр и двойного счёта) и
+black-box round-trip-проверка покрываются `test_representatives_file.py`,
+`long_cover_validation.py` и PROGRESS_MEMO.md; контрольные суммы файлов
+зафиксированы в `../representatives_files.json`.
 
-Format roles of the representatives artifacts. Today the engine reads the
-`.txt` file directly through its own parser (`--table-scalars`: one hex
-scalar per line, `#` comments, `0x`/hex or decimal accepted, zero
-rejected). There is no separate binary engine format yet, so a single
-`.txt` artifact currently plays two roles:
+Роли формата артефактов представителей. Сегодня движок читает `.txt`-файл
+напрямую собственным парсером (`--table-scalars`: один hex-скаляр на строку,
+комментарии `#`, принимается `0x`/hex или десятичная запись, ноль
+отвергается). Отдельного бинарного формата движка ещё нет, поэтому один
+`.txt`-артефакт сейчас играет две роли:
 
-1. diagnostic export — human-readable, diffable, checksummed in
-   `representatives_files.json`;
-2. engine input — parsed per line at startup.
+1. диагностический экспорт — человекочитаемый, сравнимый diff-ом,
+   с контрольными суммами в `representatives_files.json`;
+2. вход движка — разбирается построчно при старте.
 
-For H <= 400k this is fine (400k rows ≈ 3.1 MB of text, parsing is a
-sub-second fraction of the build). For H = 4M the `std::vector<Int>`
-input list alone costs about 160 MB plus parse time, and merge-mode
-expansion (`--canonical-k3` on an expanded list) triples that, so the
-agreed upgrade path for H=4M is a dedicated binary engine format
-(`canonical_version` header, sorted fixed-width rows, checksum,
-mmap-friendly read) with the `.txt` kept as the diagnostic export. Until
-that format exists, H = 4M runs must not rely on the raw `.txt` input
-path.
+Для H <= 400k это нормально (400k строк ≈ 3.1 МБ текста, разбор —
+досекундная доля сборки). Для H = 4M один входной список
+`std::vector<Int>` стоит около 160 МБ плюс время разбора, а расширение в
+merge-режиме (`--canonical-k3` на expanded-списке) утраивает это, поэтому
+согласованный путь обновления для H=4M — выделенный бинарный формат движка
+(заголовок `canonical_version`, отсортированные строки фиксированной ширины,
+контрольная сумма, чтение через mmap) с сохранением `.txt` как
+диагностического экспорта. Пока этого формата нет, прогонам H = 4M нельзя
+опираться на сырой `.txt`-вход.
 
-### Automatic external coverage
+### Автоматическое внешнее покрытие
 
-`--cover-start` and `--cover-size` describe an external scalar interval using
-the full `Int` representation (so values such as `2^134` are accepted). The
-local BSGS window is translated over that interval one chunk at a time:
+`--cover-start` и `--cover-size` описывают внешний интервал скаляров в
+полном представлении `Int` (поэтому принимаются значения вроде `2^134`).
+Локальное BSGS-окно переносится на этот интервал по одному chunk за раз:
 
 ```bash
 ./eng_bsgs --target PUBKEY --start 1 --size 100000 \
@@ -250,15 +259,17 @@ local BSGS window is translated over that interval one chunk at a time:
   --lambda-priority --lambda-sectors 16
 ```
 
-For a source chunk beginning at `s`, the program uses
-`t = start - s (mod n)` and searches `Q+tG`. A match is checked against both
-the shifted target and the original target, then returned as `k = k_t - t
-(mod n)`. The final short chunk uses its actual width. The original target is
-always searched last as a fallback. Manual `--shift` arguments and automatic
-coverage are rejected together to keep the search schedule unambiguous.
+Для исходного chunk, начинающегося в `s`, программа использует
+`t = start - s (mod n)` и ищет `Q+tG`. Совпадение проверяется против
+сдвинутой и исходной цели, затем возвращается как `k = k_t - t (mod n)`.
+Последний короткий chunk использует свою фактическую ширину. Исходная цель
+всегда ищется последней как fallback. Ручные аргументы `--shift` и
+автоматическое покрытие отвергаются вместе, чтобы план поиска оставался
+однозначным.
 
-The focused regression harness checks the exact Lambda values, priority-only
-search, the last short automatic chunk, GLV combination, and argument validation:
+Сфокусированный регрессионный harness проверяет точные Lambda-значения,
+поиск только по приоритету, последний короткий автоматический chunk,
+комбинацию с GLV и валидацию аргументов:
 
 ```bash
 python3 test_lambda_priority.py
@@ -271,7 +282,7 @@ python3 test_lambda_priority.py
 python3 test_lambda_cover.py
 ```
 
-Этот тест генерирует случайный scalar в 135-битном диапазоне, помещает его в
+Этот тест генерирует случайный скаляр в 135-битном диапазоне, помещает его в
 последний неполный чанк внешнего интервала и передаёт программе только
 публичный ключ. Включены одновременно Lambda-приоритет и `--glv-orbit`.
 
@@ -438,8 +449,8 @@ hit-счётчике; гигант-строка = search − hit. `cache-misses`
 Для проверки именно нашей GLV-гипотезы добавлен флаг `--glv-orbit`. Он заменяет
 точный ключ таблицы на `K3=x^3`, а после совпадения проверяет шесть точных
 скалярных ветвей `±j`, `±lambda*j`, `±lambda²*j`. Это не «магическое» удаление
-кандидатов: таблица хранит только orbit quotient, а точность подтверждается
-вычислением public point для каждого кандидата.
+кандидатов: таблица хранит только орбитальное частное, а точность
+подтверждается вычислением публичной точки для каждого кандидата.
 
 Black-box запуск с GLV:
 
@@ -465,31 +476,32 @@ giant-point используется инвариант `K3=x^3`, общий д�
 отрицательным из-за стоимости exact-проверок.
 
 Важная деталь реализации: одинаковый `K3` не удаляется из baby-таблицы.
-Все строки одного bucket проверяются точно; это исключает ложное ускорение за
+Все строки одного бакета проверяются точно; это исключает ложное ускорение за
 счёт пропуска кандидатов.
 
-Чтобы исключить подгонку public key под заранее известный scalar, используйте
-black-box harness. Он генерирует новый случайный scalar внутри окна, передаёт
+Чтобы исключить подгонку public key под заранее известный скаляр, используйте
+black-box harness. Он генерирует новый случайный скаляр внутри окна, передаёт
 в `eng_bsgs` только public key/start/size, а затем сравнивает напечатанный
-64-значный результат с контрольным scalar внутри самого тестового процесса:
+64-значный результат с контрольным скаляром внутри самого тестового процесса:
 
 ```bash
 python3 test_eng_bsgs.py --seed 20260925
 ```
 
-Сам `eng_bsgs` не получает private key и не добавляет target в baby-table:
+Сам `eng_bsgs` не получает приватный ключ и не добавляет цель в baby-таблицу:
 таблица строится только из `j*G`, а совпадение проверяется отдельным
 вычислением `candidate*G == target`.
 
-The baby table is built once and shared read-only by all worker threads. Earlier
-versions built an identical private copy inside every worker; that multiplied
-RAM usage by `--threads` without increasing coverage. Sharing the table changes
-memory use, not the BSGS work or the mathematical coverage.
+Baby-таблица строится один раз и разделяется read-only всеми рабочими
+потоками. Ранние версии строили идентичную приватную копию внутри каждого
+воркера; это умножало расход RAM на `--threads` без увеличения покрытия.
+Разделение таблицы меняет потребление памяти, а не BSGS-работу и не
+математическое покрытие.
 
-This is an engineering benchmark, not a new sub-root discrete-log algorithm.
-Reducing the resident table only moves work into rebuilding/searching more
-segments. The original `keyhunt` binary and its normal `bsgs` mode remain
-unchanged.
+Это инженерный бенчмарк, а не новый субкорневой алгоритм дискретного
+логарифмирования. Уменьшение resident-таблицы лишь переносит работу в
+пересборку/поиск дополнительных сегментов. Исходный бинарник `keyhunt` и его
+обычный режим `bsgs` остаются неизменными.
 
 ## Команда настоящего keyhunt для полного 135-битного окна
 
