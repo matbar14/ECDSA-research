@@ -218,7 +218,7 @@ def main():
     parser.add_argument("--m", type=int, default=0,
                         help="число baby-строк (по умолчанию ceil(sqrt(window)))")
     parser.add_argument("--seed", type=int, default=20261029)
-    parser.add_argument("--json", type=Path, default=Path("phase_signature_135bit.json"))
+    parser.add_argument("--json", type=Path, default=Path("results/phase_signature_135bit.json"))
     args = parser.parse_args()
 
     rng = random.Random(args.seed)

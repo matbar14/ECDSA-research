@@ -201,7 +201,7 @@ def main():
                         default=min(8, os.cpu_count() or 1))
     parser.add_argument("--phases", default="tp,ec",
                         help="запускаемые фазы: tp (throughput), ec (economy)")
-    parser.add_argument("--output", default="../table_representative_sweep.json")
+    parser.add_argument("--output", default="../results/table_representative_sweep.json")
     global args
     args = parser.parse_args()
     run_tp = "tp" in args.phases.split(",")

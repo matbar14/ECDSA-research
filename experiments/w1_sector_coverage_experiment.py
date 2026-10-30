@@ -157,7 +157,7 @@ def main():
     parser.add_argument("--seed", type=int, default=20260926)
     parser.add_argument("--interval-fraction", type=float, default=0.8)
     parser.add_argument("--pairs", action="store_true", help="also test three pairs of sector coordinates")
-    parser.add_argument("--json", type=Path, default=Path("w1_sector_coverage.json"))
+    parser.add_argument("--json", type=Path, default=Path("results/w1_sector_coverage.json"))
     args = parser.parse_args()
     report = run(args.start, args.count, args.width, args.sectors, args.bands,
                  args.mode, args.seed, args.interval_fraction, args.pairs)

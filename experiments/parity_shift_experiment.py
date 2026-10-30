@@ -120,7 +120,7 @@ def main():
     parser.add_argument("--width", type=int, default=10000)
     parser.add_argument("--sectors", type=int, default=32)
     parser.add_argument("--shift-radius", type=int, default=100)
-    parser.add_argument("--json", type=Path, default=Path("parity_shift_experiment.json"))
+    parser.add_argument("--json", type=Path, default=Path("results/parity_shift_experiment.json"))
     args = parser.parse_args()
     report = run(args.start, args.width, args.sectors, args.shift_radius)
     args.json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

@@ -30,7 +30,7 @@ from w1 import DomeInvariantAnalyzer, EllipticCurvePoint
 BAND_COUNT = 8
 SAMPLES_PER_BAND = 2000
 SEED = 20260927
-SVG_OUTPUT = "area_shift_by_scalar_band.svg"
+SVG_OUTPUT = "figures/area_shift_by_scalar_band.svg"
 
 
 def point_from_scalar(scalar):

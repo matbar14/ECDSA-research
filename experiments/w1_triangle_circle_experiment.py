@@ -136,8 +136,8 @@ def main():
     parser.add_argument("--count", type=int, default=10000)
     parser.add_argument("--sectors", type=int, default=32)
     parser.add_argument("--bands", type=int, default=8)
-    parser.add_argument("--figure", type=Path, default=Path("w1_triangle_circle.png"))
-    parser.add_argument("--json", type=Path, default=Path("w1_triangle_circle.json"))
+    parser.add_argument("--figure", type=Path, default=Path("figures/w1_triangle_circle.png"))
+    parser.add_argument("--json", type=Path, default=Path("results/w1_triangle_circle.json"))
     args = parser.parse_args()
     report = run(args.start, args.count, args.sectors, args.bands,
                  args.figure, args.json)

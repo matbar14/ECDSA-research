@@ -22,9 +22,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = ROOT / "keyhunt" / "eng_bsgs"
-TABLE = ROOT / "table_cbt1_H4000000.cbt1"
-CANON = ROOT / "representatives_canonical_H4000000.txt"
-ARTIFACT = ROOT / "cbt1_4m_filemode.json"
+TABLE = ROOT / "tables" / "table_cbt1_H4000000.cbt1"
+CANON = ROOT / "tables" / "representatives_canonical_H4000000.txt"
+ARTIFACT = ROOT / "results" / "cbt1_4m_filemode.json"
 
 START = 0x4000000000000000000000000000000000
 STRIDE = 4_000_000

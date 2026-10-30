@@ -190,7 +190,7 @@ def main():
     parser.add_argument("--mode", choices=("random", "consecutive"), default="random")
     parser.add_argument("--seed", type=int, default=20261003)
     parser.add_argument("--interval-fraction", type=float, default=0.8)
-    parser.add_argument("--json", type=Path, default=Path("triangle_range_correlation.json"))
+    parser.add_argument("--json", type=Path, default=Path("results/triangle_range_correlation.json"))
     args = parser.parse_args()
     report = run(args.start, args.width, args.samples, args.bands, args.sectors,
                  args.mode, args.seed, args.interval_fraction)

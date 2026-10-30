@@ -275,7 +275,7 @@ def main():
     parser.add_argument("--trials", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20261030)
     parser.add_argument("--json", type=Path,
-                        default=Path("phase_signature_economy.json"))
+                        default=Path("results/phase_signature_economy.json"))
     args = parser.parse_args()
 
     rng = random.Random(args.seed)

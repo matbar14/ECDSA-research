@@ -105,7 +105,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--heads", type=int, default=4_000_000,
                         help="число голов орбит H (3H строк в файле)")
-    parser.add_argument("--output-dir", default="..",
+    parser.add_argument("--output-dir", default="../tables",
                         help="каталог для representatives_expanded_H*.txt")
     args = parser.parse_args()
 

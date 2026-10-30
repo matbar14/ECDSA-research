@@ -80,8 +80,8 @@ START = 1 << 134
 H = 400_000
 CHUNK = 500_000_000_000
 COVER_CHUNKS = 16
-CANON_FILE = Path("../representatives_canonical_H400000.txt")
-EXPANDED_FILE = Path("../representatives_expanded_H400000.txt")
+CANON_FILE = Path("../tables/representatives_canonical_H400000.txt")
+EXPANDED_FILE = Path("../tables/representatives_expanded_H400000.txt")
 
 COUNT_KEYS = (
     "giant steps", "invariant hits", "exact candidate checks",
@@ -377,7 +377,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", default="./eng_bsgs")
     parser.add_argument("--threads", type=int, default=2)
-    parser.add_argument("--out", default="../long_cover_validation.json")
+    parser.add_argument("--out", default="../results/long_cover_validation.json")
     parser.add_argument("--scenarios", default="",
                         help="comma list; default = all incomplete")
     parser.add_argument("--session-cap", type=int, default=None,

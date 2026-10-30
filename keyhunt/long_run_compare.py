@@ -42,8 +42,8 @@ STRIDE = 400_000                 # строки в canonical-файле H400000
 TARGET_CHUNK = 85
 TARGET_GIANT_INDEX = 625_000
 TARGET_RESIDUAL = 12_345         # c: канонический представитель головы 12345
-CANON_FILE = Path("../representatives_canonical_H400000.txt")
-EXPANDED_FILE = Path("../representatives_expanded_H400000.txt")
+CANON_FILE = Path("../tables/representatives_canonical_H400000.txt")
+EXPANDED_FILE = Path("../tables/representatives_expanded_H400000.txt")
 EXPANDED_SHA256 = "a73f6dc70caedf72fb2a1c85479521cf4fdd2de31dbec5fad2a12925a227683e"
 SEED = 20261104
 
@@ -224,8 +224,8 @@ def main():
                         help="wall budget for this invocation, seconds")
     args = parser.parse_args()
     if args.out is None:
-        args.out = ("../long_run_canonical.json" if args.mode == "canonical"
-                    else "../long_run_merge.json")
+        args.out = ("../results/long_run_canonical.json" if args.mode == "canonical"
+                    else "../results/long_run_merge.json")
 
     out = Path(args.out).resolve()
     workdir = Path(__file__).resolve().parent

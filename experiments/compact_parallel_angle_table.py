@@ -99,7 +99,7 @@ def main():
     parser.add_argument("--workers", type=int, default=32)
     parser.add_argument("--chunk-size", type=int, default=1000)
     parser.add_argument("--queries", type=int, default=100)
-    parser.add_argument("--output", default="compact_angle_table.bin")
+    parser.add_argument("--output", default="results/compact_angle_table.bin")
     args = parser.parse_args()
     range_start = 1 << (args.bit_length - 1)
     if range_start + args.range_size > GROUP_ORDER:

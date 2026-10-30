@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 ENGINE = Path("./eng_bsgs").resolve()
-TABLE = Path("../table_cbt1_H4000000.cbt1")
+TABLE = Path("../tables/table_cbt1_H4000000.cbt1")
 CACHE = Path(str(TABLE) + ".cache")
 SCALAR = 0x4000000000000000000000000000000000 + 7 * 4_000_000 + 4242
 

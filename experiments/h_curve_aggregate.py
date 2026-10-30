@@ -16,8 +16,8 @@ plt.rcParams['axes.unicode_minus'] = False
 
 ROOT = Path(__file__).resolve().parent
 HEADS = [50_000, 100_000, 200_000, 400_000]
-SOURCE = {50_000: "h_curve_50k.json", 100_000: "h_curve_100k.json",
-          200_000: "h_curve_200k.json", 400_000: "h_curve_400k.json"}
+SOURCE = {50_000: "results/h_curve_50k.json", 100_000: "results/h_curve_100k.json",
+          200_000: "results/h_curve_200k.json", 400_000: "results/h_curve_400k.json"}
 VARIANTS = [
     ("continuous 3H rows", "continuous (3H строк)", "#8a8a8a", "o"),
     ("expanded 3H rows", "expanded (3H строк)", "#4C72B0", "s"),
@@ -87,7 +87,7 @@ summary["notes"] = {
         max(p["throughput"][k]["giant steps/second"]
             for p in summary["points"] for k, *_ in VARIANTS)],
 }
-(ROOT / "h_curve_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+(ROOT / "results/h_curve_summary.json").write_text(json.dumps(summary, indent=2) + "\n")
 print(json.dumps(summary["notes"], indent=2, ensure_ascii=False))
 
 # ---------------- график 2x2 ----------------
@@ -138,5 +138,5 @@ for ax in (axes[0][0], axes[0][1], axes[1][0], axes[1][1]):
 fig.suptitle("H-кривая таблицы представителей полного диапазона "
              "(окно S = (3H)$^2$, start = 2$^{134}$, 2 потока)",
              fontsize=13)
-fig.savefig(ROOT / "h_curve.png", dpi=150)
+fig.savefig(ROOT / "figures/h_curve.png", dpi=150)
 print("saved h_curve.png")

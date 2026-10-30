@@ -42,7 +42,7 @@ from w1 import (
 SAMPLE_COUNT = 100000
 SEED = 20260917
 PROGRESS_INTERVAL = 10000
-SVG_OUTPUT = "lambda_phase_torus.svg"
+SVG_OUTPUT = "figures/lambda_phase_torus.svg"
 AREA_DECIMAL_PLACES = 12
 
 # A conventional torus embedding used only for the report figure.

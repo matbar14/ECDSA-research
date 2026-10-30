@@ -126,7 +126,7 @@ def main():
     parser.add_argument("--heads", type=int, nargs="+",
                         default=[50_000, 100_000, 200_000, 400_000],
                         help="число голов орбит H для каждого файла")
-    parser.add_argument("--output-dir", default="..",
+    parser.add_argument("--output-dir", default="../tables",
                         help="каталог для representatives_*.txt и summary JSON")
     args = parser.parse_args()
 

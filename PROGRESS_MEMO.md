@@ -2224,3 +2224,35 @@ resume-цепочки -> fingerprint-изоляция -> детерминизм 
    запуском (сейчас три скрипта) - по мере надобности.
 3. Если понадобится масштаб: тот же скрипт параметризуется H/G/чанками
    без изменений движка.
+
+
+## 30.10 (день): реорганизация репо - файлы разложены по папкам
+
+Корень был замусорен (~170 tracked файлов + большие таблицы). Новый
+layout (исторические упоминания артефактов в memo ниже по тексту
+остались как есть - это журнал; актуальные пути описаны здесь):
+
+```text
+ECDSA-research/
+├── README.md, PROGRESS_MEMO.md, .gitignore
+├── docs/          PUBLIC_KEY_RECOVERY_GUIDE, QA_2026-10-29, W1_SECTOR_COVERAGE_RESULTS
+├── experiments/   корневые *.py (углы/W1/сдвиги/торус - замороженные фазы)
+├── results/       *.json, *.csv, *.bin - артефакты всех прогонов
+├── figures/       *.png, *.svg
+├── tables/        representatives_canonical_H*.txt (в git),
+│                  representatives_expanded_H*.txt (regenerable, в gitignore),
+│                  representatives_files.json (манифест),
+│                  table_cbt1_H4000000.cbt1(+.cache), table_cbt1_H100000.cbt1
+└── keyhunt/       движок + python-конвейер (не перестраивался)
+```
+
+Обновлены ссылки в 36 скриптах: живой конвейер keyhunt/ (ROOT/"tables"/...,
+ROOT/"results"/...; --output-dir генераторов теперь "../tables"; out-пути
+длинных прогонов "../results/...") и 24 замороженных эксперимента
+(results/..., figures/... - запуск из корня репо). .gitignore: cp_eq_*/
+cp_lc_* разанкорены (чекпоинты пишутся рядом с таблицами).
+
+Верификация после переезда: py_compile 80/80; test_cbt1_cache ALL PASS
+(5 тестов кеша/fingerprint e2e); long_cover_cbt1_4m --scenarios A_early
+разрешил таблицу из tables/ и артефакт из results/ (6/6 PASS по state).
+git mv сохраняет историю; коммит переименований без изменений контента.

@@ -31,9 +31,9 @@ LAMBDA = 0x5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72
 FNV_OFFSET = 0xCBF29CE484222325
 FNV_PRIME = 0x100000001B3
 ROOT = Path(__file__).resolve().parent.parent
-TABLE = ROOT / "table_cbt1_H4000000.cbt1"
+TABLE = ROOT / "tables" / "table_cbt1_H4000000.cbt1"
 TOOL = ROOT / "keyhunt" / "fnv1a64_tool"
-ARTIFACT = ROOT / "cbt1_4m_validation.json"
+ARTIFACT = ROOT / "results" / "cbt1_4m_validation.json"
 SAMPLE = 512
 
 failures = []
@@ -157,7 +157,7 @@ def main():
     artifact = {
         "file": TABLE.name,
         "bytes": size,
-        "sha256": json.loads((ROOT / "cbt1_4m_build.json").read_text())
+        "sha256": json.loads((ROOT / "results" / "cbt1_4m_build.json").read_text())
         ["dump file"]["sha256"],
         "row_count": row_count,
         "checks": {k: v if isinstance(v, bool) else "see stdout"

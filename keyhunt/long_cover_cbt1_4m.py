@@ -71,9 +71,9 @@ CHUNK = G * STRIDE
 COVER_CHUNKS = 12
 COVER_SIZE = COVER_CHUNKS * CHUNK
 
-TABLE = Path("../table_cbt1_H4000000.cbt1")
-CANON_100K = Path("../representatives_canonical_H100000.txt")
-WRONG_TABLE = Path("table_cbt1_H100000.cbt1")
+TABLE = Path("../tables/table_cbt1_H4000000.cbt1")
+CANON_100K = Path("../tables/representatives_canonical_H100000.txt")
+WRONG_TABLE = Path("../tables/table_cbt1_H100000.cbt1")
 HARD_SESSION_TIMEOUT = 300
 
 COUNT_KEYS = (
@@ -458,7 +458,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", default="./eng_bsgs")
     parser.add_argument("--threads", type=int, default=2)
-    parser.add_argument("--out", default="../long_cover_cbt1_4m.json")
+    parser.add_argument("--out", default="../results/long_cover_cbt1_4m.json")
     parser.add_argument("--scenarios", default="",
                         help="comma list; default = all incomplete")
     parser.add_argument("--session-cap", type=int, default=None,

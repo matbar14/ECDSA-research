@@ -176,7 +176,7 @@ def main():
     parser.add_argument("--trials", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20261030)
     parser.add_argument("--json", type=Path,
-                        default=Path("canonical_k3_table.json"))
+                        default=Path("results/canonical_k3_table.json"))
     args = parser.parse_args()
 
     rng = random.Random(args.seed)

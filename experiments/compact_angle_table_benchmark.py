@@ -45,7 +45,7 @@ def main():
     parser.add_argument("--range-size", type=int, default=100000)
     parser.add_argument("--angle-bits", type=int, default=12)
     parser.add_argument("--records", type=int, default=None)
-    parser.add_argument("--output", default="compact_angle_table.bin")
+    parser.add_argument("--output", default="results/compact_angle_table.bin")
     args = parser.parse_args()
     if args.range_size <= 0 or not 1 <= args.angle_bits <= 32:
         parser.error("invalid range-size or angle-bits")

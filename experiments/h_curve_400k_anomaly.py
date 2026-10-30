@@ -47,7 +47,7 @@ from table_representative_sweep import (  # noqa: E402
     START, canonical_representative, orbit_expansion, pubkey_hex,
 )
 
-OUT_DEFAULT = Path(__file__).resolve().parent / "h_curve_400k_anomaly.json"
+OUT_DEFAULT = Path(__file__).resolve().parent / "results/h_curve_400k_anomaly.json"
 SEED = 20261105
 
 
@@ -172,8 +172,8 @@ def main():
 
     with __import__("tempfile").TemporaryDirectory() as tmp:
         tmp = Path(tmp)
-        expanded_path = tmp / "expanded_scale.txt"
-        canonical_path = tmp / "canonical_scale.txt"
+        expanded_path = tmp / "results/expanded_scale.txt"
+        canonical_path = tmp / "results/canonical_scale.txt"
         expanded, canonical = [], []
         for j in heads:
             expanded.extend(orbit_expansion(j))

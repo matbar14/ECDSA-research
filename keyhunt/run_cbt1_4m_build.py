@@ -20,9 +20,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent      # ECDSA-research/
 ENGINE = ROOT / "keyhunt" / "eng_bsgs"
-EXPANDED = ROOT / "representatives_expanded_H4000000.txt"
-DUMP = ROOT / "table_cbt1_H4000000.cbt1"
-ARTIFACT = ROOT / "cbt1_4m_build.json"
+EXPANDED = ROOT / "tables" / "representatives_expanded_H4000000.txt"
+DUMP = ROOT / "tables" / "table_cbt1_H4000000.cbt1"
+ARTIFACT = ROOT / "results" / "cbt1_4m_build.json"
 
 START = 0x4000000000000000000000000000000000        # 2^134, как в h_curve
 STRIDE = 4_000_000
@@ -131,7 +131,7 @@ def main():
             "file": EXPANDED.name,
             "bytes": EXPANDED.stat().st_size,
             "rows": 12_000_000,
-            "sha256": json.loads((ROOT / "representatives_files.json")
+            "sha256": json.loads((ROOT / "tables" / "representatives_files.json")
                                  .read_text())["expanded_files"][-1]["sha256"],
         },
         "cmd": CMD,

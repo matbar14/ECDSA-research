@@ -130,7 +130,7 @@ def main():
     parser.add_argument("--bits", type=int, default=12)
     parser.add_argument("--mode", choices=("consecutive", "random"), default="consecutive")
     parser.add_argument("--seed", type=int, default=20260925)
-    parser.add_argument("--output", default="torus_trajectory.svg")
+    parser.add_argument("--output", default="figures/torus_trajectory.svg")
     args = parser.parse_args()
     report = run(args.range_start, args.range_size, args.bits, args.output, args.mode, args.seed)
     print("Lambda phase-torus trajectory")

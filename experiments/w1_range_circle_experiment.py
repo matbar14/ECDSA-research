@@ -116,8 +116,8 @@ def main():
     parser.add_argument("--bands", type=int, default=8)
     parser.add_argument("--mode", choices=("consecutive", "random"), default="random")
     parser.add_argument("--seed", type=int, default=20261002)
-    parser.add_argument("--figure", type=Path, default=Path("w1_range_circle.png"))
-    parser.add_argument("--json", type=Path, default=Path("w1_range_circle.json"))
+    parser.add_argument("--figure", type=Path, default=Path("figures/w1_range_circle.png"))
+    parser.add_argument("--json", type=Path, default=Path("results/w1_range_circle.json"))
     args = parser.parse_args()
     report = run(args.start, args.width, args.samples, args.sectors, args.bands,
                  args.mode, args.seed, args.figure, args.json)

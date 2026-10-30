@@ -105,8 +105,8 @@ def main():
     parser.add_argument("--start", type=lambda value: int(value, 0), default=1 << 134)
     parser.add_argument("--width", type=int, default=10000)
     parser.add_argument("--sectors", type=int, default=32)
-    parser.add_argument("--csv", type=Path, default=Path("w1_range_circle_trajectory.csv"))
-    parser.add_argument("--json", type=Path, default=Path("w1_range_circle_trajectory.json"))
+    parser.add_argument("--csv", type=Path, default=Path("results/w1_range_circle_trajectory.csv"))
+    parser.add_argument("--json", type=Path, default=Path("results/w1_range_circle_trajectory.json"))
     args = parser.parse_args()
     report = run(args.start, args.width, args.sectors, args.csv, args.json)
     direction = report["direction"]

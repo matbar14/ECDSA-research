@@ -9,7 +9,7 @@
  "threads": 2,
  "mode": "file (CBT1 mmap)",
  "table": {
-  "path": "../table_cbt1_H4000000.cbt1",
+  "path": "../tables/table_cbt1_H4000000.cbt1",
   "bytes": 260000256,
   "sha256": "62ac5f29640b4887c4b0c3e645b1edb7f5dd0526614f67c7038feaa0b2805266"
  },
@@ -1125,7 +1125,7 @@
   }
  },
  "wrong table": {
-  "path": "table_cbt1_H100000.cbt1",
+  "path": "../tables/table_cbt1_H100000.cbt1",
   "bytes": 6500256,
   "sha256": "eeef68c12557d898ef12095fa73574494d252a74ae7de65cdc69563ca1a44fce"
  },

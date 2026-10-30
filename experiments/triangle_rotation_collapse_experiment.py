@@ -151,7 +151,7 @@ def main():
     parser.add_argument("--bands", type=int, default=16)
     parser.add_argument("--sectors", type=int, default=32)
     parser.add_argument("--seed", type=int, default=20261005)
-    parser.add_argument("--json", type=Path, default=Path("triangle_rotation_collapse.json"))
+    parser.add_argument("--json", type=Path, default=Path("results/triangle_rotation_collapse.json"))
     args = parser.parse_args()
     report = run(args.start, args.width, args.samples, args.mode,
                  args.bands, args.sectors, args.seed)

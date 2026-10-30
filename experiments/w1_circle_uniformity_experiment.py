@@ -136,8 +136,8 @@ def main():
     parser.add_argument("--sectors", type=int, default=32)
     parser.add_argument("--mode", choices=("consecutive", "random"), default="consecutive")
     parser.add_argument("--seed", type=int, default=20260926)
-    parser.add_argument("--figure", type=Path, default=Path("w1_circle_uniformity.png"))
-    parser.add_argument("--json", type=Path, default=Path("w1_circle_uniformity.json"))
+    parser.add_argument("--figure", type=Path, default=Path("figures/w1_circle_uniformity.png"))
+    parser.add_argument("--json", type=Path, default=Path("results/w1_circle_uniformity.json"))
     args = parser.parse_args()
     report = run(args.start, args.count, args.width, args.sectors,
                  args.mode, args.seed, args.figure, args.json)

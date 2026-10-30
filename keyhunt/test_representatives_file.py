@@ -84,7 +84,7 @@ def load_rows(path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--binary", default="./eng_bsgs")
-    parser.add_argument("--file", default="../representatives_canonical_H50000.txt")
+    parser.add_argument("--file", default="../tables/representatives_canonical_H50000.txt")
     parser.add_argument("--partner-trials", type=int, default=4)
     parser.add_argument("--core-trials", type=int, default=2)
     parser.add_argument("--seed", type=int, default=20261030)

@@ -110,7 +110,7 @@ def main():
     parser.add_argument("--shifts", type=int, nargs="*", default=None)
     parser.add_argument("--checks", type=int, default=32)
     parser.add_argument("--seed", type=int, default=20260926)
-    parser.add_argument("--json", type=Path, default=Path("shift_lambda_sector.json"))
+    parser.add_argument("--json", type=Path, default=Path("results/shift_lambda_sector.json"))
     args = parser.parse_args()
     shifts = args.shifts
     if shifts is None:
