@@ -29,6 +29,26 @@ Lambda(P) + Lambda(phi(P)) + Lambda(phi^2(P)) = 0 (mod p),
 
 во всех точках, где определены три значения инварианта.
 
+## Структура репозитория
+
+```text
+ECDSA-research/
+├── README.md, PROGRESS_MEMO.md   основной документ и рабочий журнал
+├── docs/                         вспомогательные руководства и отчёты
+├── experiments/                  скрипты этого документа и фаз исследований
+├── results/                      артефакты прогонов (JSON, CSV, BIN)
+├── figures/                      графики (PNG, SVG)
+├── tables/                       файлы представителей орбит и CBT1-таблицы
+└── keyhunt/                      движок BSGS (eng_bsgs) и python-конвейер
+```
+
+Команды запуска ниже исполняются из корня репозитория. Хронология
+экспериментов и текущее состояние BSGS-конвейера (канонические таблицы
+представителей, бинарный формат CBT1, file-mode с mmap-сканом, кеш
+валидации, kill/resume через чекпоинты) ведутся в
+[PROGRESS_MEMO.md](PROGRESS_MEMO.md); описание движка и его счётчиков -
+в [keyhunt/ENG_BSGS.md](keyhunt/ENG_BSGS.md).
+
 ## Параметры
 
 Расчёт использует стандартные простое поле и порядок группы secp256k1:
@@ -79,13 +99,13 @@ a(k) = Lambda(P),  0 <= a(k) < p.
 theta(k) = 2*pi*a(k)/p.
 ```
 
-Скрипт [private_angle_experiment.py](private_angle_experiment.py) проверяет
+Скрипт [private_angle_experiment.py](experiments/private_angle_experiment.py) проверяет
 это прямое отображение на различных 256-битных приватных скалярах. Повторы
 проверяются по точному остатку `a(k)`, а не по числу с плавающей точкой для
 угла; остатки также группируются по 256 равным дугам окружности.
 
 ```bash
-python3 private_angle_experiment.py
+python3 experiments/private_angle_experiment.py
 ```
 
 На 100 000 различных 256-битных скаляров в четырёх пакетах по 25 000 (зерна
@@ -115,12 +135,12 @@ q_b(k) = floor(2^b * Lambda(kG) / p),  0 <= q_b < 2^b.
 `q_b -> k` или `q_b -> список k` сокращает исходный диапазон до содержимого
 соответствующей ячейки.
 
-Скрипт [angle_quantization_experiment.py](angle_quantization_experiment.py)
+Скрипт [angle_quantization_experiment.py](experiments/angle_quantization_experiment.py)
 строит такую таблицу для непрерывного диапазона 256-битных скаляров и
 измеряет ожидаемое число кандидатов после поиска по квантованному углу.
 
 ```bash
-python3 angle_quantization_experiment.py
+python3 experiments/angle_quantization_experiment.py
 ```
 
 На диапазоне из 100 000 последовательных скаляров, начиная с `2^255`,
@@ -151,14 +171,14 @@ k = anchor + offset.
 блока. Такая схема экономит место только тогда, когда совпадения одной
 угловой ячейки действительно локальны по числовой оси скаляров.
 
-Скрипт [angle_anchor_experiment.py](angle_anchor_experiment.py) измеряет это
+Скрипт [angle_anchor_experiment.py](experiments/angle_anchor_experiment.py) измеряет это
 условие на последовательном диапазоне. Он сравнивает одну квантованную
 координату и пару
 `(Lambda(P), Lambda(phi(P)))`, затем сообщает охват ячеек и долю одиночных
 смещений:
 
 ```bash
-python3 angle_anchor_experiment.py \
+python3 experiments/angle_anchor_experiment.py \
   --range-size 2000 \
   --block-size 100 \
   --bits 8 12 16
@@ -185,7 +205,7 @@ python3 angle_anchor_experiment.py \
 ### Проверка глобальной локальности на окне `2^135`
 
 Чтобы не делать вывод только по последовательным локальным скалярам, скрипт
-[angle_global_locality_experiment.py](angle_global_locality_experiment.py)
+[angle_global_locality_experiment.py](experiments/angle_global_locality_experiment.py)
 выбирает `k` равномерно по широкому окну и измеряет размах повторяющихся
 ячеек. Для каждой ячейки вычисляются:
 
@@ -197,7 +217,7 @@ offset_bits = ceil(log2(span)).
 Пример запуска:
 
 ```bash
-python3 angle_global_locality_experiment.py \
+python3 experiments/angle_global_locality_experiment.py \
   --samples 20000 \
   --width-bits 135 \
   --bits 8 12
@@ -230,12 +250,12 @@ python3 angle_global_locality_experiment.py \
 
 ### Проба случайного 135-битного ключа
 
-Скрипт [random_135bit_recovery_experiment.py](random_135bit_recovery_experiment.py)
+Скрипт [random_135bit_recovery_experiment.py](experiments/random_135bit_recovery_experiment.py)
 генерирует случайный `k` в окне `[2^134,2^135)`, строит публичную точку и
 проверяет, попадает ли её квантованная угловая ячейка в разреженную таблицу:
 
 ```bash
-python3 random_135bit_recovery_experiment.py \
+python3 experiments/random_135bit_recovery_experiment.py \
   --samples 5000 --bits 8 12 16 20 --key pair \
   --seed 20260925 --exclude-target
 ```
@@ -256,7 +276,7 @@ P = 03df86b7c1cee6ba3dd6127bc82225033a21cd01ae8fff503f13b74bfc72c0d76e
 ### Полный тест на конечном диапазоне с параллельной сборкой
 
 Чтобы проверить именно восстановление из таблицы, добавлен
-[parallel_angle_table_recovery.py](parallel_angle_table_recovery.py). Он
+[parallel_angle_table_recovery.py](experiments/parallel_angle_table_recovery.py). Он
 покрывает каждое `k` в заданном тестовом диапазоне, строит компактный
 двухугловой fingerprint в нескольких процессах, сохраняет таблицу на диск,
 а затем выбирает случайную публичную точку и выполняет отложенную точную
@@ -265,7 +285,7 @@ P = 03df86b7c1cee6ba3dd6127bc82225033a21cd01ae8fff503f13b74bfc72c0d76e
 Пример для 32 процессов:
 
 ```bash
-python3 parallel_angle_table_recovery.py \\
+python3 experiments/parallel_angle_table_recovery.py \\
   --bit-length 135 \\
   --range-size 100000 \\
   --bits 16 \\
@@ -285,7 +305,7 @@ python3 parallel_angle_table_recovery.py \\
 key без повторной сборки:
 
 ```bash
-python3 parallel_angle_table_recovery.py \
+python3 experiments/parallel_angle_table_recovery.py \
   --load-table angle_table_100k_12.bin \
   --target-public-key 02... \
   --queries 1 --workers 1 --chunk-size 1 --range-size 1 --bits 12
@@ -330,7 +350,7 @@ W_j = max{k : q_b(k) = j} - min{k : q_b(k) = j} + 1.
 
 ### Цифры и биты нормированной фазы
 
-Скрипт [phase_digit_bit_experiment.py](phase_digit_bit_experiment.py)
+Скрипт [phase_digit_bit_experiment.py](experiments/phase_digit_bit_experiment.py)
 исследует не вещественное приближение угла, а точное рациональное число
 
 ```text
@@ -345,7 +365,7 @@ bit_2(i)    = floor(2^i  * Lambda(kG) / p) mod 2.
 ```
 
 ```bash
-python3 phase_digit_bit_experiment.py
+python3 experiments/phase_digit_bit_experiment.py
 ```
 
 Опциональные параметры `--samples`, `--decimal-positions`,
@@ -361,7 +381,7 @@ python3 phase_digit_bit_experiment.py
 
 ## Восстановление из диапазонной угловой таблицы
 
-Скрипт [angle_table_recovery_experiment.py](angle_table_recovery_experiment.py)
+Скрипт [angle_table_recovery_experiment.py](experiments/angle_table_recovery_experiment.py)
 реализует полный поиск по заранее вычисленной таблице известного диапазона.
 Для каждой записи таблица хранит
 
@@ -374,7 +394,7 @@ q_20 = floor(2^20*Lambda(kG)/p)
 сопоставляет точный индекс угла.
 
 ```bash
-python3 angle_table_recovery_experiment.py
+python3 experiments/angle_table_recovery_experiment.py
 ```
 
 Проверка на непрерывном диапазоне из 25 000 256-битных скаляров, начиная с
@@ -489,12 +509,12 @@ W6(n) = ceil(2*sqrt((n - 1)/6)),
 ### Проверка именно этих инвариантов
 
 Для воспроизводимой проверки добавлен скрипт
-[c7_invariant_experiment.py](c7_invariant_experiment.py). Он для случайных
+[c7_invariant_experiment.py](experiments/c7_invariant_experiment.py). Он для случайных
 `P = kG` проверяет соответствие `phi(P) = [lambda]P`, строит все шесть точек
 GLV-орбиты и считает число различных значений каждого ключа внутри орбиты:
 
 ```bash
-python3 c7_invariant_experiment.py --samples 1000 --seed 20260925
+python3 experiments/c7_invariant_experiment.py --samples 1000 --seed 20260925
 ```
 
 Ожидается один класс для `K3 = x^3` и для пары
@@ -504,10 +524,10 @@ python3 c7_invariant_experiment.py --samples 1000 --seed 20260925
 не являются тем же самым ключом, что `K3`.
 
 Если цель — именно таблица углов, используйте
-[c7_angle_table_recovery.py](c7_angle_table_recovery.py):
+[c7_angle_table_recovery.py](experiments/c7_angle_table_recovery.py):
 
 ```bash
-python3 c7_angle_table_recovery.py --orbits 1000 --seed 20260925
+python3 experiments/c7_angle_table_recovery.py --orbits 1000 --seed 20260925
 ```
 
 Здесь ключ строки — точная неупорядоченная тройка
@@ -523,7 +543,7 @@ python3 c7_angle_table_recovery.py --orbits 1000 --seed 20260925
 этап оставил окно `[a, a+w)`, передайте его в скрипт:
 
 ```bash
-python3 c7_angle_table_recovery.py --orbits 1000 --seed 20260925 \\
+python3 experiments/c7_angle_table_recovery.py --orbits 1000 --seed 20260925 \\
   --interval-start "$a" --interval-size "$w"
 ```
 
@@ -542,13 +562,13 @@ python3 c7_angle_table_recovery.py --orbits 1000 --seed 20260925 \\
 `k` и `n-k` требует внешнего знания диапазона или знака `y`.
 
 Для проверки идеи «якорь + смещение» добавлен
-[angle_anchor_experiment.py](angle_anchor_experiment.py): он сравнивает одну
+[angle_anchor_experiment.py](experiments/angle_anchor_experiment.py): он сравнивает одну
 квантованную угловую координату с парой
 `(Lambda(P), Lambda(phi(P)))` и измеряет, лежат ли совпавшие скаляры в одном
 локальном блоке. Например:
 
 ```bash
-python3 angle_anchor_experiment.py --range-size 2000 --block-size 100 --bits 8 12 16
+python3 experiments/angle_anchor_experiment.py --range-size 2000 --block-size 100 --bits 8 12 16
 ```
 
 На пробном окне из 2000 скаляров одна 12-битная координата имела средний
@@ -652,11 +672,11 @@ J*u^2 - (2*J + 27)*u + J = 0.
 класс одного симметричного инварианта обычно имеет 6 точек, а если ветвь
 `u^-1` также даёт точки кривой -- 12 точек.
 
-Скрипт [symmetric_orbit_invariant_experiment.py](symmetric_orbit_invariant_experiment.py)
+Скрипт [symmetric_orbit_invariant_experiment.py](experiments/symmetric_orbit_invariant_experiment.py)
 проверяет эти равенства и число обратных кандидатов:
 
 ```bash
-python3 symmetric_orbit_invariant_experiment.py
+python3 experiments/symmetric_orbit_invariant_experiment.py
 ```
 
 На 100 000 независимых 256-битных скаляров в десяти пакетах по 10 000
@@ -693,12 +713,12 @@ L1 = L0+d01,
 L2 = L1+d12.
 ```
 
-Скрипт [phase_difference_experiment.py](phase_difference_experiment.py)
+Скрипт [phase_difference_experiment.py](experiments/phase_difference_experiment.py)
 сначала обращает `L0` к кандидатам точки, затем оставляет только кандидаты,
 чья точная подпись `(d01, d12)` совпадает с исходной.
 
 ```bash
-python3 phase_difference_experiment.py
+python3 experiments/phase_difference_experiment.py
 ```
 
 На 10 000 независимых 256-битных скаляров в двух пакетах по 5 000 (зерна
@@ -728,7 +748,7 @@ theta(P) = Arg(exp(2*pi*i*Lambda(P)/p)).
 
 Его точным ключом в поле служит сам остаток `Lambda(P)`; вещественный угол
 используется только для построения окружности. Скрипт
-[area_angle_signature_experiment.py](area_angle_signature_experiment.py)
+[area_angle_signature_experiment.py](experiments/area_angle_signature_experiment.py)
 проверяет геометрическую подпись
 
 ```text
@@ -740,7 +760,7 @@ theta(P) = Arg(exp(2*pi*i*Lambda(P)/p)).
 по углу первого радиуса, и по площади.
 
 ```bash
-python3 area_angle_signature_experiment.py
+python3 experiments/area_angle_signature_experiment.py
 ```
 
 На 10 000 независимых 256-битных скаляров в двух пакетах по 5 000 получено:
@@ -796,7 +816,7 @@ phase(k) = d.
 Подробный анализ использует только стандартную библиотеку Python:
 
 ```bash
-python3 w1.py
+python3 experiments/w1.py
 ```
 
 Число образцов и `d` задаются в начале `w1.py`:
@@ -809,7 +829,7 @@ TORUS_TURNS = 3
 Для массового эксперимента необходим пакет `cryptography`:
 
 ```bash
-python3 -c "from w1 import print_256_bit_experiment_report, run_256_bit_invariant_experiment; print_256_bit_experiment_report(run_256_bit_invariant_experiment(100000, 3))"
+python3 -c "import sys; sys.path.insert(0, 'experiments'); from w1 import print_256_bit_experiment_report, run_256_bit_invariant_experiment; print_256_bit_experiment_report(run_256_bit_invariant_experiment(100000, 3))"
 ```
 
 Массовый режим равномерно выбирает скаляры из интервала
@@ -824,7 +844,7 @@ python3 -c "from w1 import print_256_bit_experiment_report, run_256_bit_invarian
 
 ## Экспериментальная связь `d = f(k)`
 
-Отдельный скрипт [d_from_height_experiment.py](d_from_height_experiment.py)
+Отдельный скрипт [d_from_height_experiment.py](experiments/d_from_height_experiment.py)
 задаёт воспроизводимую кандидатную связь между высотой и числом оборотов:
 
 ```text
@@ -838,7 +858,7 @@ d(k) = 1 + (Lambda(kG) mod TURN_MODULUS).
 Запуск:
 
 ```bash
-python3 d_from_height_experiment.py
+python3 experiments/d_from_height_experiment.py
 ```
 
 Скрипт использует 1 000 случайных скаляров длиной ровно 256 бит и считает:
@@ -851,7 +871,7 @@ python3 d_from_height_experiment.py
 
 ## Эксперимент с наблюдаемым периодом орбиты
 
-Скрипт [orbit_period_experiment.py](orbit_period_experiment.py) вводит
+Скрипт [orbit_period_experiment.py](experiments/orbit_period_experiment.py) вводит
 независимо вычисляемое наблюдаемое значение
 
 ```text
@@ -868,7 +888,7 @@ d_lambda(k) = 1 + (Lambda(kG) mod 256).
 Запуск полного эксперимента:
 
 ```bash
-python3 orbit_period_experiment.py
+python3 experiments/orbit_period_experiment.py
 ```
 
 На 100 000 независимых 256-битных скаляров, в четырёх пакетах по 25 000,
@@ -889,7 +909,7 @@ python3 orbit_period_experiment.py
 
 ## Обращение `Lambda` к кандидатам точки
 
-Скрипт [2edcl.py](2edcl.py) исследует обратную задачу для инварианта
+Скрипт [2edcl.py](experiments/2edcl.py) исследует обратную задачу для инварианта
 `Lambda(P)`. При известном `Lambda(P)` он выводит квадратное уравнение для
 `x(P)`, находит его корни в `F_p`, строит все точки кривой с этими
 координатами и оставляет только точки, дающие исходное значение `Lambda`.
@@ -899,7 +919,7 @@ python3 orbit_period_experiment.py
 четырёх точек `P`.
 
 ```bash
-python3 2edcl.py
+python3 experiments/2edcl.py
 ```
 
 Полный эксперимент выполнен на 100 000 независимых скаляров длиной ровно
@@ -918,7 +938,7 @@ python3 2edcl.py
 
 ## Проверка утечки битов скаляра через инварианты
 
-Скрипт [invariant_leakage_experiment.py](invariant_leakage_experiment.py)
+Скрипт [invariant_leakage_experiment.py](experiments/invariant_leakage_experiment.py)
 проверяет, уменьшают ли остатки орбитальной тройки инвариантов диапазон
 возможных значений `k`. Для каждого 256-битного скаляра используются
 
@@ -932,7 +952,7 @@ python3 2edcl.py
 предиктор.
 
 ```bash
-python3 invariant_leakage_experiment.py
+python3 experiments/invariant_leakage_experiment.py
 ```
 
 Проверочный прогон на 20 000 256-битных скалярах с 10 000 независимых
@@ -953,7 +973,7 @@ python3 invariant_leakage_experiment.py
 
 ## Контрольный вектор GLV для Puzzle 64
 
-В [2edcl.py](2edcl.py) добавлен контрольный вектор со скаляром
+В [2edcl.py](experiments/2edcl.py) добавлен контрольный вектор со скаляром
 
 ```text
 k = 000000000000000000000000000000000000000000000000f7051f27b09112d4
@@ -992,7 +1012,7 @@ phi(P) = (beta*x(P), y(P)) = [lambda]P.
 
 ## Фазовый тор и площади треугольников `Lambda`
 
-Скрипт [lambda_circle_triangle_experiment.py](lambda_circle_triangle_experiment.py)
+Скрипт [lambda_circle_triangle_experiment.py](experiments/lambda_circle_triangle_experiment.py)
 строит геометрическую визуализацию точных значений `Lambda` из `w1.py`.
 Для остатка `a` в `F_p` явно задаётся отображение на единичную окружность
 
@@ -1020,11 +1040,11 @@ T^2 = { (u0, u1, u2) in (S^1)^3 : u0*u1*u2 = 1 }.
 
 Точки `chi(L0)`, `chi(L1)`, `chi(L2)` являются вершинами вписанного в
 единичную окружность треугольника. Его площадь вычисляется формулой
-Гаусса (shoelace). Скрипт также создаёт [lambda_phase_torus.svg](lambda_phase_torus.svg)
+Гаусса (shoelace). Скрипт также создаёт [lambda_phase_torus.svg](figures/lambda_phase_torus.svg)
 с одним представительным треугольником и точкой на параметрическом торе.
 
 ```bash
-python3 lambda_circle_triangle_experiment.py
+python3 experiments/lambda_circle_triangle_experiment.py
 ```
 
 Важно: `chi` является соглашением для перехода от конечного поля к
@@ -1051,7 +1071,7 @@ python3 lambda_circle_triangle_experiment.py
 
 ## Табличный поиск и точная коллизия
 
-Скрипт [area_lookup_table_experiment.py](area_lookup_table_experiment.py)
+Скрипт [area_lookup_table_experiment.py](experiments/area_lookup_table_experiment.py)
 проверяет идею восстановления скаляра по заранее вычисленной таблице
 площадей. Для каждого скаляра `k` в таблицу намеренно добавляется пара
 
@@ -1075,7 +1095,7 @@ A(k) = A(n-k).
 ```
 
 ```bash
-python3 area_lookup_table_experiment.py
+python3 experiments/area_lookup_table_experiment.py
 ```
 
 На 100 000 табличных ключах, составленных из 50 000 пар `k, n-k`, получено:
@@ -1096,7 +1116,7 @@ python3 area_lookup_table_experiment.py
 
 ## Отношение площадей для `P` и `2P`
 
-Скрипт [area_ratio_experiment.py](area_ratio_experiment.py) исследует
+Скрипт [area_ratio_experiment.py](experiments/area_ratio_experiment.py) исследует
 нормированное отношение площадей
 
 ```text
@@ -1113,7 +1133,7 @@ S(2P) / S(P) = rho / (1-rho).
 значение `k mod 2^b`; вторая половина независимо проверяет предсказание.
 
 ```bash
-python3 area_ratio_experiment.py
+python3 experiments/area_ratio_experiment.py
 ```
 
 Пилот на 10 000 256-битных скаляров (5 000 для обучения и 5 000 для
@@ -1135,7 +1155,7 @@ python3 area_ratio_experiment.py
 
 ## Совместные отношения для `2P`, `3P`, `5P`
 
-Скрипт [area_multi_ratio_experiment.py](area_multi_ratio_experiment.py)
+Скрипт [area_multi_ratio_experiment.py](experiments/area_multi_ratio_experiment.py)
 расширяет проверку на вектор
 
 ```text
@@ -1148,7 +1168,7 @@ rho_m = S(mP) / (S(P) + S(mP)).
 соответствия строятся на первой половине данных и проверяются на второй.
 
 ```bash
-python3 area_multi_ratio_experiment.py
+python3 experiments/area_multi_ratio_experiment.py
 ```
 
 Пилот на 6 000 256-битных скаляров (3 000 для обучения и 3 000 для
@@ -1169,7 +1189,7 @@ python3 area_multi_ratio_experiment.py
 
 ## Смещение площади по высоте скаляра
 
-Скрипт [area_shift_experiment.py](area_shift_experiment.py) проверяет не
+Скрипт [area_shift_experiment.py](experiments/area_shift_experiment.py) проверяет не
 предсказание битов, а изменение распределения площади `S(kG)` при изменении
 высоты `k`. Интервал 256-битных скаляров `[2^255, n)` делится на восемь
 равных полос; для каждой измеряются средняя площадь, стандартная ошибка и
@@ -1177,7 +1197,7 @@ python3 area_multi_ratio_experiment.py
 полос.
 
 ```bash
-python3 area_shift_experiment.py
+python3 experiments/area_shift_experiment.py
 ```
 
 На 16 000 скаляров (2 000 на полосу, зерно `20260927`) получены:
@@ -1191,11 +1211,11 @@ python3 area_shift_experiment.py
 
 Наибольшее исходное расстояние наблюдалось у полосы `2/8`. Чтобы не принять
 случайный максимум среди восьми сравнений за эффект, он отдельно проверяется
-скриптом [area_shift_confirmation.py](area_shift_confirmation.py) на новой
+скриптом [area_shift_confirmation.py](experiments/area_shift_confirmation.py) на новой
 выборке без поиска новых полос:
 
 ```bash
-python3 area_shift_confirmation.py
+python3 experiments/area_shift_confirmation.py
 ```
 
 Проверка на 20 000 новых скаляров (10 000 в полосе `2/8` и 10 000 в смеси
