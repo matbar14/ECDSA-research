@@ -37,3 +37,4 @@ keyhunt/fnv1a64_tool
 
 # --- equivalence run checkpoints (repo root) ---
 /cp_eq_*.txt
+/cp_lc_*.txt

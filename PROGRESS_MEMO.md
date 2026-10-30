@@ -2164,3 +2164,63 @@ fallback ПОСЛЕ cover-цикла (в miss-прогоне: 4 chunk + 1 исх
    только на hit. Загрузчик v1 сохраняется (обратная совместимость).
 2. Длинный прогон покрытия в file-mode на CBT1 4M: release-сценарии
    long_cover_validation (kill/resume-цепочки) поверх --table-binary.
+
+
+## 30.10 (утро): релизный long-cover CBT1 4M - 6/6 PASS, 33 сессии, 25 SIGKILL
+
+Гейт эквивалентности зелёный (бит-в-бит на 100k и 4M) -> план из "Дальше
+(v2).2" исполнен целиком: keyhunt/long_cover_cbt1_4m.py, артефакт
+long_cover_cbt1_4m.json. Геометрия: START = 2^134, stride = 4M,
+G = 1M гигантов/chunk => chunk = 4e12, 12 chunk (cover 4.8e13).
+Прогон возобновляем между вызовами (JSON атомарно после каждой сессии).
+
+| сценарий | сессии | SIGKILL | результат |
+|---|---|---|---|
+| A_early (chunk 0, cap 0) | 1 | 0 | PASS, k точен, 1 сессия |
+| B_mid_kill (chunk 3, cap 4 c) | 4 | 3 | PASS, цепочка непрерывна |
+| E_partner (chunk 7, cap 6 c) | 7 | 6 | PASS, partner recoveries = 1 |
+| D_last (chunk 11, cap 5 c) | 12 | 11 | PASS, chunks 1->12 без дыр |
+| R_fingerprint_reject (chunk 5, cap 4 c) | 8 | 5 | PASS, rc 2 + cp не тронут |
+| M_miss_full (вне cover, cap 0) | 1 | 0 | PASS, ровно 13M шагов |
+
+Ключевые вердикты:
+
+- R: сессия с --resume против ДРУГОЙ валидной CBT1 (100k, дамп из
+  canonical_H100000, свои checksum'ы) отклонена: exit 2, stderr
+  "checkpoint belongs to a different plan (fingerprint 84560ed9...,
+  expected 33a863f7...)". digest чекпоинта до/после байт-в-бит совпадает
+  - reject не пишет ничего. Примечание: kill-цепочка дошла до chunk 5
+  быстрее cap'а, поэтому reject пришёлся на УЖЕ found-чекпоинт - это
+  сильнее исходного замысла: fingerprint проверяется ДО found-ветки,
+  чужая таблица не может перехватить даже найденный план; финальный
+  already-recovered resume (0.13 c, RSS 4.7 MB) подтвердил целостность.
+- D: 12 сессий, каждая --resume ровно с "chunks completed before" ==
+  chunks completed чекпоинта предыдущей; counter giant steps монотонен;
+  cumulative elapsed 43.38 c на 11 полных чанков => ~0.5 c на старт
+  сессии (cache-hit загрузка + restore счётчиков), стены 5.007 c при
+  cap 5 c - kill приходит сразу после границы chunk'а.
+- M: rc=1, chunks attempted == 12, гигант-шаги == (12+1)*G = 13,000,000
+  ТОЧНО (cover-цикл + fallback исходного интервала), 0 hits, 0 exact
+  checks - полный проход детерминирован и в релизной конфигурации.
+- E: partner-цель (d = -lambda*c, орбита c, прямого d в [1,H] нет)
+  найдена через kill-цепочку: invariant hits 1, exact checks 5,
+  partner recoveries 1 - exact-verify орбитных веток работает в
+  file-mode с восстановлением счётчиков.
+- Скорость/RSS: 280.8k-288.4k steps/s по всем сценариям, пик RSS
+  258.7-259.0 MB (сходится к payload, как в бенчмарке); table build
+  seconds в file-mode ~0 по конструкции (mmap+валидация идут на фазе
+  опций до таймера сборки; стартовая стоимость видна в cumulative
+  дельтах: ~0.5 c/старт тёплого кеша).
+
+Итого свиты: 33 сессии, 25 SIGKILL, 186.4 c стены, 0 FAIL. Полный
+релизный контур file-mode закрыт: генерация -> build+dump -> независимая
+валидация -> кеш старта -> эквивалентность трёх источников -> kill/
+resume-цепочки -> fingerprint-изоляция -> детерминизм полного прохода.
+
+### Дальше
+
+1. SoA-раскладка CBT1 (payload_kind=2) - v2, не сейчас (см. выше).
+2. Релизная цепочка make_expanded -> run_cbt1_build -> validate одним
+   запуском (сейчас три скрипта) - по мере надобности.
+3. Если понадобится масштаб: тот же скрипт параметризуется H/G/чанками
+   без изменений движка.

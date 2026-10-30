@@ -1,0 +1,1174 @@
+{
+ "heads": 4000000,
+ "stride": 4000000,
+ "giants per chunk": 1000000,
+ "chunk": 4000000000000,
+ "cover chunks": 12,
+ "cover size": 48000000000000,
+ "start": "0x4000000000000000000000000000000000",
+ "threads": 2,
+ "mode": "file (CBT1 mmap)",
+ "table": {
+  "path": "../table_cbt1_H4000000.cbt1",
+  "bytes": 260000256,
+  "sha256": "62ac5f29640b4887c4b0c3e645b1edb7f5dd0526614f67c7038feaa0b2805266"
+ },
+ "cache sidecar present at start": true,
+ "scenarios": {
+  "A_early": {
+   "target": "A",
+   "expect found": true,
+   "expect chunks": 1,
+   "cap seconds": 0,
+   "phase": "done",
+   "sessions": [
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 0.436,
+     "returncode": 0,
+     "recovered": "000000000000000000000000000000400000000000000000000000329727842f",
+     "already recovered": false,
+     "chunks attempted": 1,
+     "resumed chunks before": null,
+     "counters": {
+      "giant steps": 114572,
+      "giant steps scheduled": 114572,
+      "giant steps planned": 1000000,
+      "invariant hits": 1,
+      "search hits": 1,
+      "orbit factors scheduled": 1,
+      "exact candidate checks": 1,
+      "partner recoveries": 0,
+      "merged rows": 0,
+      "insert collisions": 0,
+      "EC scalar multiplications": 5,
+      "total EC operations": 114579,
+      "Lambda calculations": 0
+     },
+     "timing": {
+      "table build seconds": 9e-08,
+      "giant search seconds": 0.400356,
+      "giant steps/second": 286176.0,
+      "total seconds": 0.40038,
+      "time to solution seconds": 0.397708
+     },
+     "rss after table load kb": 4596,
+     "ticker": [],
+     "peak rss kb": 258844,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 1,
+      "found": "1",
+      "giant steps": 114572,
+      "exact checks": 1
+     }
+    }
+   ],
+   "done": true,
+   "verdict": {
+    "verdict": "PASS",
+    "reasons": [],
+    "sessions": 1,
+    "killed sessions": 0,
+    "chunks completed": 1,
+    "total seconds": 0.40038,
+    "table load seconds (last)": 9e-08,
+    "giant steps/second": 286176.0,
+    "tts seconds": 0.397708,
+    "peak rss kb": 258844
+   }
+  },
+  "B_mid_kill": {
+   "target": "B",
+   "expect found": true,
+   "expect chunks": 4,
+   "cap seconds": 4,
+   "phase": "done",
+   "sessions": [
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.01,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 257448,
+     "stderr tail": ""
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258748,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 1,
+      "found": "0",
+      "giant steps": 1000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 1,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258692,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 2,
+      "found": "0",
+      "giant steps": 2000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 3.566,
+     "returncode": 0,
+     "recovered": "00000000000000000000000000000040000000000000000000000af1360ef3ce",
+     "already recovered": false,
+     "chunks attempted": 2,
+     "resumed chunks before": 2,
+     "counters": {
+      "giant steps": 3014955,
+      "giant steps scheduled": 3014955,
+      "giant steps planned": 4000000,
+      "invariant hits": 1,
+      "search hits": 1,
+      "orbit factors scheduled": 1,
+      "exact candidate checks": 1,
+      "partner recoveries": 0,
+      "merged rows": 0,
+      "insert collisions": 0,
+      "EC scalar multiplications": 17,
+      "total EC operations": 3014983,
+      "Lambda calculations": 0
+     },
+     "timing": {
+      "table build seconds": 1.02e-07,
+      "giant search seconds": 3.52962,
+      "giant steps/second": 287554.0,
+      "total seconds": 3.52964,
+      "time to solution seconds": 3.46182,
+      "cumulative elapsed seconds (checkpoint)": 10.8366
+     },
+     "rss after table load kb": 4816,
+     "ticker": [],
+     "peak rss kb": 259008,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 4,
+      "found": "1",
+      "giant steps": 3014955,
+      "exact checks": 1
+     }
+    }
+   ],
+   "done": true,
+   "verdict": {
+    "verdict": "PASS",
+    "reasons": [],
+    "sessions": 4,
+    "killed sessions": 3,
+    "chunks completed": 4,
+    "total seconds": 3.52964,
+    "table load seconds (last)": 1.02e-07,
+    "giant steps/second": 287554.0,
+    "tts seconds": 3.46182,
+    "peak rss kb": 259008
+   }
+  },
+  "E_partner": {
+   "target": "E",
+   "expect found": true,
+   "expect chunks": 8,
+   "cap seconds": 6,
+   "phase": "done",
+   "sessions": [
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 6.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1441645,
+       "steps/s": 288142.7,
+       "rss kB": 259020
+      }
+     ],
+     "peak rss kb": 259020,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 1,
+      "found": "0",
+      "giant steps": 1000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 6.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 1,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1431916,
+       "steps/s": 286185.6,
+       "rss kB": 258724
+      }
+     ],
+     "peak rss kb": 258724,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 2,
+      "found": "0",
+      "giant steps": 2000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 6.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 2,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1446998,
+       "steps/s": 289206.7,
+       "rss kB": 258860
+      }
+     ],
+     "peak rss kb": 258860,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 3,
+      "found": "0",
+      "giant steps": 3000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 6.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 3,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1436062,
+       "steps/s": 287014.8,
+       "rss kB": 258888
+      }
+     ],
+     "peak rss kb": 258888,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 4,
+      "found": "0",
+      "giant steps": 4000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 6.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 4,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1432190,
+       "steps/s": 286253.5,
+       "rss kB": 258752
+      }
+     ],
+     "peak rss kb": 258752,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 5,
+      "found": "0",
+      "giant steps": 5000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 6.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 5,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1421492,
+       "steps/s": 282749.4,
+       "rss kB": 258992
+      }
+     ],
+     "peak rss kb": 258992,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 6,
+      "found": "0",
+      "giant steps": 6000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 5.756,
+     "returncode": 0,
+     "recovered": "80d1b5e5dcb8489fa53433f08ec77c6c1efa805a44b0c36a924bc5c621ea5988",
+     "already recovered": false,
+     "chunks attempted": 2,
+     "resumed chunks before": 6,
+     "counters": {
+      "giant steps": 7606510,
+      "giant steps scheduled": 7606510,
+      "giant steps planned": 8000000,
+      "invariant hits": 1,
+      "search hits": 1,
+      "orbit factors scheduled": 5,
+      "exact candidate checks": 5,
+      "partner recoveries": 1,
+      "merged rows": 0,
+      "insert collisions": 0,
+      "EC scalar multiplications": 37,
+      "total EC operations": 7606570,
+      "Lambda calculations": 0
+     },
+     "timing": {
+      "table build seconds": 9.4e-08,
+      "giant search seconds": 5.72067,
+      "giant steps/second": 280825.0,
+      "total seconds": 5.72069,
+      "time to solution seconds": 5.62842,
+      "cumulative elapsed seconds (checkpoint)": 26.9237
+     },
+     "rss after table load kb": 4536,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1432230,
+       "steps/s": 285298.2,
+       "rss kB": 258652
+      }
+     ],
+     "peak rss kb": 258672,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 8,
+      "found": "1",
+      "giant steps": 7606510,
+      "exact checks": 5
+     }
+    }
+   ],
+   "done": true,
+   "verdict": {
+    "verdict": "PASS",
+    "reasons": [],
+    "sessions": 7,
+    "killed sessions": 6,
+    "chunks completed": 8,
+    "total seconds": 5.72069,
+    "table load seconds (last)": 9.4e-08,
+    "giant steps/second": 280825.0,
+    "tts seconds": 5.62842,
+    "peak rss kb": 259020
+   }
+  },
+  "D_last": {
+   "target": "D",
+   "expect found": true,
+   "expect chunks": 12,
+   "cap seconds": 5,
+   "phase": "done",
+   "sessions": [
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258824,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 1,
+      "found": "0",
+      "giant steps": 1000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 1,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258980,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 2,
+      "found": "0",
+      "giant steps": 2000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 2,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258824,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 3,
+      "found": "0",
+      "giant steps": 3000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 3,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258748,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 4,
+      "found": "0",
+      "giant steps": 4000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 4,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258948,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 5,
+      "found": "0",
+      "giant steps": 5000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 5,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258984,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 6,
+      "found": "0",
+      "giant steps": 6000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 6,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258848,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 7,
+      "found": "0",
+      "giant steps": 7000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 7,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258708,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 8,
+      "found": "0",
+      "giant steps": 8000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 8,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258772,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 9,
+      "found": "0",
+      "giant steps": 9000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 9,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258712,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 10,
+      "found": "0",
+      "giant steps": 10000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 5.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 10,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258916,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 11,
+      "found": "0",
+      "giant steps": 11000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 3.438,
+     "returncode": 0,
+     "recovered": "00000000000000000000000000000040000000000000000000002ba7def2ffff",
+     "already recovered": false,
+     "chunks attempted": 1,
+     "resumed chunks before": 11,
+     "counters": {
+      "giant steps": 11981298,
+      "giant steps scheduled": 11981298,
+      "giant steps planned": 12000000,
+      "invariant hits": 1,
+      "search hits": 1,
+      "orbit factors scheduled": 1,
+      "exact candidate checks": 1,
+      "partner recoveries": 0,
+      "merged rows": 0,
+      "insert collisions": 0,
+      "EC scalar multiplications": 49,
+      "total EC operations": 11981382,
+      "Lambda calculations": 0
+     },
+     "timing": {
+      "table build seconds": 2.3e-07,
+      "giant search seconds": 3.40231,
+      "giant steps/second": 288421.0,
+      "total seconds": 3.40233,
+      "time to solution seconds": 3.39137,
+      "cumulative elapsed seconds (checkpoint)": 43.3763
+     },
+     "rss after table load kb": 4588,
+     "ticker": [],
+     "peak rss kb": 258716,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 12,
+      "found": "1",
+      "giant steps": 11981298,
+      "exact checks": 1
+     }
+    }
+   ],
+   "done": true,
+   "verdict": {
+    "verdict": "PASS",
+    "reasons": [],
+    "sessions": 12,
+    "killed sessions": 11,
+    "chunks completed": 12,
+    "total seconds": 3.40233,
+    "table load seconds (last)": 2.3e-07,
+    "giant steps/second": 288421.0,
+    "tts seconds": 3.39137,
+    "peak rss kb": 258984
+   }
+  },
+  "R_fingerprint_reject": {
+   "target": "R",
+   "expect found": true,
+   "expect chunks": 6,
+   "cap seconds": 4,
+   "phase": "after_reject",
+   "sessions": [
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258772,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 1,
+      "found": "0",
+      "giant steps": 1000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.032,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 1,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258856,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 2,
+      "found": "0",
+      "giant steps": 2000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.006,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 2,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258816,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 3,
+      "found": "0",
+      "giant steps": 3000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.005,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 3,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258808,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 4,
+      "found": "0",
+      "giant steps": 4000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": true,
+     "wall seconds": 4.007,
+     "returncode": null,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": 4,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 258872,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 5,
+      "found": "0",
+      "giant steps": 5000000,
+      "exact checks": 0
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 3.641,
+     "returncode": 0,
+     "recovered": "000000000000000000000000000000400000000000000000000015d3ef4f4d87",
+     "already recovered": false,
+     "chunks attempted": 1,
+     "resumed chunks before": 5,
+     "counters": {
+      "giant steps": 5958648,
+      "giant steps scheduled": 5958648,
+      "giant steps planned": 6000000,
+      "invariant hits": 1,
+      "search hits": 1,
+      "orbit factors scheduled": 1,
+      "exact candidate checks": 1,
+      "partner recoveries": 0,
+      "merged rows": 0,
+      "insert collisions": 0,
+      "EC scalar multiplications": 25,
+      "total EC operations": 5958690,
+      "Lambda calculations": 0
+     },
+     "timing": {
+      "table build seconds": 1.55e-07,
+      "giant search seconds": 3.60245,
+      "giant steps/second": 266110.0,
+      "total seconds": 3.60248,
+      "time to solution seconds": 3.53628,
+      "cumulative elapsed seconds (checkpoint)": 21.4285
+     },
+     "rss after table load kb": 4788,
+     "ticker": [],
+     "peak rss kb": 258980,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 6,
+      "found": "1",
+      "giant steps": 5958648,
+      "exact checks": 1
+     }
+    },
+    {
+     "role": "reject",
+     "table": "wrong(100k)",
+     "cp digest before": "9eb83ea51d996151eff1640d88fa6a40383c720eb08a7b12c9ba7000704bf74c",
+     "killed": false,
+     "wall seconds": 0.17,
+     "returncode": 2,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 8116,
+     "stderr tail": "[E] --resume: checkpoint belongs to a different plan (fingerprint 84560ed9de687940, expected 33a863f7fd95333e)\n",
+     "cp digest after": "9eb83ea51d996151eff1640d88fa6a40383c720eb08a7b12c9ba7000704bf74c",
+     "checkpoint after": {
+      "chunks completed": 6,
+      "found": "1",
+      "giant steps": 5958648,
+      "exact checks": 1
+     }
+    },
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 0.131,
+     "returncode": 0,
+     "recovered": "000000000000000000000000000000400000000000000000000015d3ef4f4d87",
+     "already recovered": true,
+     "chunks attempted": null,
+     "resumed chunks before": null,
+     "counters": {},
+     "timing": {},
+     "rss after table load kb": null,
+     "ticker": [],
+     "peak rss kb": 4964,
+     "stderr tail": "",
+     "checkpoint after": {
+      "chunks completed": 6,
+      "found": "1",
+      "giant steps": 5958648,
+      "exact checks": 1
+     }
+    }
+   ],
+   "done": true,
+   "verdict": {
+    "verdict": "PASS",
+    "reasons": [],
+    "sessions": 8,
+    "killed sessions": 5,
+    "chunks completed": 6,
+    "total seconds": null,
+    "table load seconds (last)": null,
+    "giant steps/second": null,
+    "tts seconds": null,
+    "peak rss kb": 258980
+   }
+  },
+  "M_miss_full": {
+   "target": "M",
+   "expect found": false,
+   "expect chunks": 12,
+   "cap seconds": 0,
+   "phase": "done",
+   "sessions": [
+    {
+     "role": "main",
+     "table": "correct",
+     "killed": false,
+     "wall seconds": 46.064,
+     "returncode": 1,
+     "recovered": null,
+     "already recovered": false,
+     "chunks attempted": 12,
+     "resumed chunks before": null,
+     "counters": {
+      "giant steps": 13000000,
+      "giant steps scheduled": 13000000,
+      "giant steps planned": 13000000,
+      "invariant hits": 0,
+      "search hits": 0,
+      "orbit factors scheduled": 0,
+      "exact candidate checks": 0,
+      "partner recoveries": 0,
+      "merged rows": 0,
+      "insert collisions": 0,
+      "EC scalar multiplications": 50,
+      "total EC operations": 13000087,
+      "Lambda calculations": 0
+     },
+     "timing": {
+      "table build seconds": 9.5e-08,
+      "giant search seconds": 46.0303,
+      "giant steps/second": 282423.0,
+      "total seconds": 46.0303
+     },
+     "rss after table load kb": 4576,
+     "ticker": [
+      {
+       "elapsed": 5.0,
+       "giant steps": 1384509,
+       "steps/s": 276718.9,
+       "rss kB": 258692
+      },
+      {
+       "elapsed": 10.0,
+       "giant steps": 2790133,
+       "steps/s": 278827.2,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 15.0,
+       "giant steps": 4188757,
+       "steps/s": 279068.1,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 20.0,
+       "giant steps": 5603884,
+       "steps/s": 280008.0,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 25.0,
+       "giant steps": 7034323,
+       "steps/s": 281187.2,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 30.0,
+       "giant steps": 8462482,
+       "steps/s": 281896.6,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 35.0,
+       "giant steps": 9903863,
+       "steps/s": 282781.0,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 40.0,
+       "giant steps": 11316499,
+       "steps/s": 282726.6,
+       "rss kB": 258696
+      },
+      {
+       "elapsed": 45.0,
+       "giant steps": 12736773,
+       "steps/s": 282853.7,
+       "rss kB": 258696
+      }
+     ],
+     "peak rss kb": 258704,
+     "stderr tail": ""
+    }
+   ],
+   "done": true,
+   "verdict": {
+    "verdict": "PASS",
+    "reasons": [],
+    "sessions": 1,
+    "killed sessions": 0,
+    "chunks completed": null,
+    "total seconds": 46.0303,
+    "table load seconds (last)": 9.5e-08,
+    "giant steps/second": 282423.0,
+    "tts seconds": null,
+    "peak rss kb": 258704
+   }
+  }
+ },
+ "wrong table": {
+  "path": "table_cbt1_H100000.cbt1",
+  "bytes": 6500256,
+  "sha256": "eeef68c12557d898ef12095fa73574494d252a74ae7de65cdc69563ca1a44fce"
+ },
+ "targets": {
+  "A": {
+   "offset": 217284314159,
+   "scalar": "0x400000000000000000000000329727842f",
+   "pubkey": "028b6c69d1ee21c91c6c580fa51313bec4da1350ad7fa84d4750074d717ecab932",
+   "chunk index": 0
+  },
+  "B": {
+   "offset": 12031110345678,
+   "scalar": "0x40000000000000000000000af1360ef3ce",
+   "pubkey": "03e7e7d4d398ef2b783a9500a8681c97adf4114b95ae949c795027944947204954",
+   "chunk index": 3
+  },
+  "D": {
+   "offset": 47999999999999,
+   "scalar": "0x40000000000000000000002ba7def2ffff",
+   "pubkey": "03b34d8fc04191766ae91135f1a4bb9ca96119ab119be1bac71f17a78f080161a7",
+   "chunk index": 11
+  },
+  "R": {
+   "offset": 23999997234567,
+   "scalar": "0x400000000000000000000015d3ef4f4d87",
+   "pubkey": "03dacf03abd63c5c337a313329ab5c9f1502fb42c82c03c491a063fad616f57267",
+   "chunk index": 5
+  },
+  "M": {
+   "offset": 48000000012345,
+   "scalar": "0x40000000000000000000002ba7def33039",
+   "pubkey": "027f3615a3c6afe7f32e0308a097de2ab3a1a12a1c929dbb979fb507a9ddd2a948",
+   "chunk index": 11
+  },
+  "E": {
+   "offset": 58266571068357849984578947748154582140741005690344933489429976194777403251080,
+   "partner": {
+    "i giant": 7313159,
+    "c": 271829
+   },
+   "scalar": "0x80d1b5e5dcb8489fa53433f08ec77c6c1efa805a44b0c36a924bc5c621ea5988",
+   "pubkey": "039669dbae47a05bcee04ace0931de47513ad9ac78bca0eae2611e53f0b9eb84e5",
+   "chunk index": 11
+  }
+ }
+}
