@@ -25,7 +25,12 @@
      q_a = [0..w-1], q_b = [w..2w-1], q_z = [2w..3w-1] (MSB первым) -
      регрессионный тест бага конвенции;
   8. coset_state_posterior: ненулевые амплитуды точно на косете
-     {(a, b): a + b*x = z0 (mod n)}, вес 1/sqrt(n).
+     {(a, b): a + b*x = z0 (mod n)}, вес 1/sqrt(n);
+  9. assert_distribution: полносекторная проверка состояния (фиделити
+     + поточечные вероятности, инвариант к глобальной фазе),
+     с негативными контролями - «правильный пик при неверной форме»
+     обязан падать; на пике Гровера распределение против sin^2-теории
+     с tol = 1e-9.
 
 Запуск из корня репо: python3 experiments/qip_test_engine.py
 Выход: строки [PASS]/[FAIL], код возврата 0/1.
@@ -70,6 +75,46 @@ def dft_positive(N):
 def assert_close(A, B, tol=1e-10, msg=""):
     d = float(np.max(np.abs(A - B)))
     assert d < tol, f"{msg}: max|A-B| = {d:.3e} >= {tol:.0e}"
+
+
+def assert_distribution(psi, expected, tol=1e-3, msg=""):
+    """Полносекторная проверка состояния: сравнивает весь вектор, не argmax.
+
+    Мотивация: проверка «по пику» пропускает класс ошибок, при котором
+    совпадает только максимум распределения (реальный случай: масса на
+    помеченном множестве считалась как |sum(psi[marked])|^2 вместо
+    sum(|psi|^2) - на пике Гровера оба выражения совпадают с точностью
+    до множителя, и тест зелёный).
+
+    Два режима по типу expected:
+      - амплитуды (complex): нормируются оба вектора, проверяется
+        фиделити |<psi|expected>|^2 >= 1 - tol (инвариант к глобальной
+        фазе) И поточечные вероятности max_i ||psi_i|^2 - |exp_i|^2| <= tol;
+      - вероятности (real >= 0): max_i ||psi_i|^2 - p_i| <= tol и
+        L1-норма расхождения <= tol.
+    """
+    psi = np.asarray(psi, dtype=np.complex128)
+    expected = np.asarray(expected)
+    assert psi.shape == expected.shape, f"{msg}: формы {psi.shape} != {expected.shape}"
+    p_psi = np.abs(psi) ** 2
+    p_psi = p_psi / p_psi.sum()
+    if np.iscomplexobj(expected):
+        e = np.asarray(expected, dtype=np.complex128)
+        n_e = np.linalg.norm(e)
+        assert n_e > 0, f"{msg}: нулевой expected"
+        n_p = np.linalg.norm(psi)
+        fid = float(abs(np.vdot(psi / n_p, e / n_e)) ** 2)
+        assert fid >= 1.0 - tol, f"{msg}: фиделити {fid:.6f} < {1 - tol}"
+        p_e = np.abs(e) ** 2
+        p_e = p_e / p_e.sum()
+    else:
+        p_e = np.asarray(expected, dtype=np.float64)
+        assert (p_e >= 0).all(), f"{msg}: отрицательная вероятность"
+        p_e = p_e / p_e.sum()
+    linf = float(np.max(np.abs(p_psi - p_e)))
+    l1 = float(np.abs(p_psi - p_e).sum())
+    assert linf <= tol, f"{msg}: Linf(psi, expected) = {linf:.3e} > {tol:.0e}"
+    assert l1 <= 10.0 * tol, f"{msg}: L1(psi, expected) = {l1:.3e} > {10 * tol:.0e}"
 
 
 # ---------- тесты ----------
@@ -244,6 +289,59 @@ def test_coset_state_posterior():
                  np.full(n, 1.0 / np.sqrt(n)), msg="веса косета")
 
 
+def test_assert_distribution():
+    """Тест самого хелпера: фаза, форма, и негативный контроль -
+    вектор с тем же пиком, но неверной формой обязан падать."""
+    u = np.ones(4, dtype=np.complex128) / 2.0          # равномерное
+
+    # точное совпадение и глобальная фаза - проходят (амплитудный режим)
+    assert_distribution(u, u, tol=1e-12, msg="точное")
+    assert_distribution(u * np.exp(1j * np.pi / 3), u, tol=1e-12,
+                        msg="глобальная фаза")
+
+    # негативный контроль: тот же argmax (индекс 0), неверная форма
+    wrong = np.array([0.9, 0.4, 0.0, 0.0], dtype=np.complex128)
+    wrong /= np.linalg.norm(wrong)
+    try:
+        assert_distribution(wrong, u, tol=1e-3, msg="неверная форма")
+        raise SystemExit("негативный контроль не сработал: "
+                         "неверная форма прошла проверку")
+    except AssertionError:
+        pass
+
+    # вероятностный режим: сходится с точным, падает на перестановке
+    amplitudes = np.sqrt(np.array([0.5, 0.25, 0.25, 0.0]))
+    assert_distribution(amplitudes, [0.5, 0.25, 0.25, 0.0], tol=1e-12,
+                        msg="вероятностный режим")
+    try:
+        assert_distribution(np.ones(4) / 2.0, [0.5, 0.25, 0.25, 0.0],
+                            tol=1e-3, msg="перестановка")
+        raise SystemExit("негативный контроль не сработал: "
+                         "перестановка прошла проверку")
+    except AssertionError:
+        pass
+
+    # Grover-подобный негатив: масса на C посчитана как |sum|^2
+    n, c = 64, 3
+    theta = np.arcsin(np.sqrt(c / n))
+    k = round(np.pi / (4 * theta) - 0.5)
+    psi = np.full(n, 1.0 / np.sqrt(n))
+    mset = np.zeros(n, dtype=bool)
+    mset[10:13] = True
+    for _ in range(k):
+        psi[mset] *= -1.0
+        psi = 2.0 * psi.sum() / n - psi
+    # теория Гровера на k итерациях: масса на C равномерно по c,
+    # остаток равномерно вне C (не ноль!) - первая версия ожидания с
+    # нулевой вне-C массой давала Linf = 6.2e-4 и была поймана здесь же
+    p_on_c = np.sin((2 * k + 1) * theta) ** 2 / c
+    p_off_c = np.cos((2 * k + 1) * theta) ** 2 / (n - c)
+    expected = np.full(n, p_off_c)
+    expected[mset] = p_on_c
+    assert_distribution(psi, expected, tol=1e-9,
+                        msg="распределение Гровера на пике")
+
+
 TESTS = [
     ("1. qft_pow2 == DFT+ (w=1..4)", test_qft_matrix),
     ("2. cx все пары (w=3)", test_cx_all_pairs),
@@ -253,6 +351,8 @@ TESTS = [
     ("6. измерение и коллапс", test_measurement),
     ("7. конвенция оракула Шора", test_shor_oracle_convention),
     ("8. coset_state_posterior", test_coset_state_posterior),
+    ("9. assert_distribution полносекторная проверка",
+     test_assert_distribution),
 ]
 
 

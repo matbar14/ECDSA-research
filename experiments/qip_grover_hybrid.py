@@ -36,18 +36,19 @@ import numpy as np
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qip_engine import Statevector  # noqa: E402
+from qip_test_engine import assert_distribution  # noqa: E402
 
 
 # ---------- оракул-уровень Grover ----------
 
-def grover_curve(n, marked, k_max, x_true):
+def grover_curve(n, marked, k_max, x_true, return_psi=False):
     """Точная кривая успеха: P_marked(k) и |psi[x_true]|^2 для k=0..k_max.
 
     marked - np.array индексов помеченных кандидатов (включая x_true).
     Оракул: psi[marked] *= -1; диффузия: psi -> 2*sum(psi)/N - psi.
+    return_psi=True дополнительно возвращает финальный вектор.
     """
     psi = np.full(n, 1.0 / math.sqrt(n), dtype=np.complex128)
-    inv = 1.0 / math.sqrt(n)
     p_marked = np.empty(k_max + 1)
     p_true = np.empty(k_max + 1)
     mset = np.zeros(n, dtype=bool)
@@ -60,13 +61,32 @@ def grover_curve(n, marked, k_max, x_true):
         psi[mset] *= -1.0                       # оракул
         s = psi.sum()                           # диффузия 2|s><s| - I
         psi = 2.0 * s / n - psi
+    if return_psi:
+        return p_marked, p_true, psi
     return p_marked, p_true
 
 
 def analyze_curve(p_marked, c_over_n):
-    """Теория против замера: theta, k*, пик, k90."""
+    """Верификация теории по ВСЕЙ кривой, не по позиции пика.
+
+    Отклонение пика от k* - арифметика (k* нецелый, отклонение < 0.5
+    гарантировано округлением), а не тест. Настоящая проверка:
+    поточечное max|P(k) - sin^2((2k+1)*theta)| по всем k (чувствительно
+    к искажению theta: при ошибке 1% в theta фаза (2k+1)*theta уплывает
+    на O(1) к концу кривой и максимум расхождения становится O(1)) и
+    относительная ошибка в целочисленном оптимуме (<= 1e-3).
+    """
     theta = math.asin(math.sqrt(c_over_n))
     k_theory = math.pi / (4.0 * theta) - 0.5
+    k_arr = np.arange(p_marked.size)
+    p_theory = np.sin((2.0 * k_arr + 1.0) * theta) ** 2
+    max_abs = float(np.max(np.abs(p_marked - p_theory)))
+    k_int = int(round(k_theory))
+    p_meas_int = float(p_marked[k_int])
+    p_theory_int = float(p_theory[k_int])
+    rel_int = abs(p_meas_int - p_theory_int) / max(p_theory_int, 1e-12)
+    assert max_abs < 1e-9, f"поточечная кривая: max|P-Ptheor| = {max_abs:.3e}"
+    assert rel_int < 1e-3, f"P в целочисленном оптимуме: rel = {rel_int:.3e}"
     k_peak = int(np.argmax(p_marked))
     peak = float(p_marked[k_peak])
     k90 = int(np.argmax(p_marked >= 0.90)) if (p_marked >= 0.90).any() else None
@@ -74,7 +94,11 @@ def analyze_curve(p_marked, c_over_n):
         "theta": theta,
         "k theory peak": k_theory,
         "k measured peak": k_peak,
-        "peak deviation": abs(k_peak - k_theory),
+        "pointwise max abs err": max_abs,
+        "k integer optimum": k_int,
+        "P meas at k int": p_meas_int,
+        "P theory at k int": p_theory_int,
+        "rel err at k int": rel_int,
         "peak P marked": round(peak, 6),
         "k first >= 0.90": k90,
     }
@@ -103,6 +127,17 @@ def run_case(n, c, mode, x_true=None, rng=None):
     res["p marked at k90"] = (round(float(p_marked[res["k first >= 0.90"]]), 4)
                               if res["k first >= 0.90"] is not None else None)
     res["p true at peak"] = round(float(p_true[res["k measured peak"]]), 6)
+    # полносекторная проверка распределения в целочисленном оптимуме:
+    # on-C равномерно sin^2/c, вне C cos^2/(N-c); хелпер сравнивает весь
+    # вектор (фиделити + Linf), а не argmax
+    k_int = res["k integer optimum"]
+    exp_vec = np.full(n, math.cos((2 * k_int + 1) * res["theta"]) ** 2
+                      / (n - c))
+    exp_vec[marked] = math.sin((2 * k_int + 1) * res["theta"]) ** 2 / c
+    _, _, psi_k = grover_curve(n, marked, k_int, x_true, return_psi=True)
+    assert_distribution(psi_k, exp_vec, tol=1e-9,
+                        msg=f"распределение k={k_int} c={c} {mode}")
+    res["distribution assert"] = "pass (tol 1e-9)"
     return res
 
 
@@ -191,9 +226,10 @@ def real_parameters():
         "grover full window": {
             "oracle calls": round(k_full, 0),
             "ratio to classical giant steps": round(k_full / gs, 2),
-            "note": "каждый вызов оракула = скалярное умножение EC в "
-                    "суперпозиции (кси*10^6 логических вентилей); "
-                    "классический шаг = одно сложение точек (~микросекунды)",
+            "note": "каждый вызов оракула - скалярное умножение EC в "
+                    "суперпозиции; kappa_eff в кроссовере ниже - его "
+                    "эффективная длительность в секундах на "
+                    "fault-tolerant железе",
         },
         "hybrid signature routing (rho=3)": {
             "oracle calls": round(k_routed, 0),
@@ -247,7 +283,8 @@ def main():
         r = run_case(n18, c, mode, rng=rng)
         report["cases"].append(r)
         print(f"[w=18 c={c:2d} {mode:10s}] k*={r['k theory peak']:7.1f} "
-              f"замер={r['k measured peak']:4d} (откл {r['peak deviation']:.1f}) "
+              f"pointwise={r['pointwise max abs err']:.1e} "
+              f"rel@kint={r['rel err at k int']:.1e} "
               f"P_peak={r['peak P marked']:.4f} k90={r['k first >= 0.90']} "
               f"за {r['iterations seconds']} с")
 
@@ -258,7 +295,9 @@ def main():
         r["note"] = "подтверждение 1/sqrt(c) на большем регистре"
         report["cases"].append(r)
         print(f"[w=20 c={c:2d} interval  ] k*={r['k theory peak']:7.1f} "
-              f"замер={r['k measured peak']:4d} P_peak={r['peak P marked']:.4f} "
+              f"pointwise={r['pointwise max abs err']:.1e} "
+              f"rel@kint={r['rel err at k int']:.1e} "
+              f"P_peak={r['peak P marked']:.4f} "
               f"за {r['iterations seconds']} с")
 
     # редукция итераций от фильтрации: замер против теории 1/sqrt(c)
