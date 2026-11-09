@@ -1,0 +1,117 @@
+{
+  "curves": [
+    {
+      "p": 127,
+      "a": 1,
+      "b": 0,
+      "order": 128,
+      "kind": "supersingular",
+      "family": "y^2=x^3+ax, p=3 (mod 4), #E=p+1",
+      "generator": [
+        3,
+        41
+      ],
+      "max order": 128
+    },
+    {
+      "p": 8191,
+      "a": 1,
+      "b": 0,
+      "order": 8192,
+      "kind": "supersingular",
+      "family": "y^2=x^3+ax, p=3 (mod 4), #E=p+1",
+      "generator": [
+        6,
+        4555
+      ],
+      "max order": 8192
+    },
+    {
+      "p": 31,
+      "a": 0,
+      "b": 3,
+      "order": 43,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 36,
+      "generator": [
+        1,
+        2
+      ]
+    },
+    {
+      "p": 139,
+      "a": 0,
+      "b": 2,
+      "order": 163,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 58,
+      "generator": [
+        3,
+        86
+      ]
+    },
+    {
+      "p": 541,
+      "a": 0,
+      "b": 2,
+      "order": 571,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 109,
+      "generator": [
+        1,
+        484
+      ]
+    },
+    {
+      "p": 1999,
+      "a": 0,
+      "b": 3,
+      "order": 2089,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 1262,
+      "generator": [
+        1,
+        2
+      ]
+    }
+  ],
+  "shots per run": 4,
+  "runs": [
+    {
+      "path": "gate",
+      "p": 127,
+      "n": 128,
+      "x": 17,
+      "shots": 4,
+      "on lattice": 4,
+      "recovered": 17,
+      "seconds": 5.94,
+      "qubits": 21
+    },
+    {
+      "path": "fft",
+      "p": 8191,
+      "n": 8192,
+      "bits": 14,
+      "kind": "supersingular",
+      "x": 3913,
+      "shots": 4,
+      "u zero": 0,
+      "seconds": 17.154,
+      "build s": 0.473,
+      "qft s": 14.47,
+      "statevector MB": 1024.0,
+      "recovered": true
+    }
+  ],
+  "equivalence": {
+    "n": 128,
+    "gate on lattice": "4/4",
+    "fft on lattice": "4/4",
+    "both on dual lattice": true
+  }
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "p": 127,
+    "a": 1,
+    "b": 0,
+    "order": 128,
+    "kind": "supersingular",
+    "family": "y^2=x^3+ax, p=3 (mod 4), #E=p+1"
+  },
+  {
+    "p": 8191,
+    "a": 1,
+    "b": 0,
+    "order": 8192,
+    "kind": "supersingular",
+    "family": "y^2=x^3+ax, p=3 (mod 4), #E=p+1"
+  },
+  {
+    "p": 31,
+    "a": 0,
+    "b": 3,
+    "order": 43,
+    "kind": "glv",
+    "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E \u043f\u0440\u043e\u0441\u0442\u043e\u0435 = 1 (mod 3)"
+  },
+  {
+    "p": 139,
+    "a": 0,
+    "b": 2,
+    "order": 163,
+    "kind": "glv",
+    "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E \u043f\u0440\u043e\u0441\u0442\u043e\u0435 = 1 (mod 3)"
+  },
+  {
+    "p": 541,
+    "a": 0,
+    "b": 2,
+    "order": 571,
+    "kind": "glv",
+    "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E \u043f\u0440\u043e\u0441\u0442\u043e\u0435 = 1 (mod 3)"
+  },
+  {
+    "p": 1999,
+    "a": 0,
+    "b": 3,
+    "order": 2089,
+    "kind": "glv",
+    "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E \u043f\u0440\u043e\u0441\u0442\u043e\u0435 = 1 (mod 3)"
+  }
+]
