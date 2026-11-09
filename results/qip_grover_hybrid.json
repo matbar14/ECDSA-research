@@ -1,0 +1,220 @@
+{
+  "description": "Гровер на движке: интервальный оракул, фрагментация, гибрид с классической фильтрацией",
+  "seed": 20261110,
+  "cases": [
+    {
+      "n": 262144,
+      "marked c": 1,
+      "mode": "interval",
+      "k max": 563,
+      "iterations seconds": 0.57,
+      "theta": 0.0019531262417655645,
+      "k theory peak": 401.62360399575255,
+      "k measured peak": 402,
+      "peak deviation": 0.3763960042474537,
+      "peak P marked": 0.999998,
+      "k first >= 0.90": 320,
+      "p marked at k90": 0.9017,
+      "p true at peak": 0.999998
+    },
+    {
+      "n": 262144,
+      "marked c": 2,
+      "mode": "interval",
+      "k max": 398,
+      "iterations seconds": 0.4,
+      "theta": 0.002762139376259386,
+      "k theory peak": 283.84414647861473,
+      "k measured peak": 284,
+      "peak deviation": 0.15585352138526787,
+      "peak P marked": 0.999999,
+      "k first >= 0.90": 226,
+      "p marked at k90": 0.9013,
+      "p true at peak": 0.5
+    },
+    {
+      "n": 262144,
+      "marked c": 3,
+      "mode": "interval",
+      "k max": 325,
+      "iterations seconds": 0.33,
+      "theta": 0.003382918185958262,
+      "k theory peak": 231.66587579843363,
+      "k measured peak": 232,
+      "peak deviation": 0.33412420156636813,
+      "peak P marked": 0.999995,
+      "k first >= 0.90": 185,
+      "p marked at k90": 0.9036,
+      "p true at peak": 0.333332
+    },
+    {
+      "n": 262144,
+      "marked c": 3,
+      "mode": "fragmented",
+      "k max": 325,
+      "iterations seconds": 0.33,
+      "theta": 0.003382918185958262,
+      "k theory peak": 231.66587579843363,
+      "k measured peak": 232,
+      "peak deviation": 0.33412420156636813,
+      "peak P marked": 0.999995,
+      "k first >= 0.90": 185,
+      "p marked at k90": 0.9036,
+      "p true at peak": 0.333332
+    },
+    {
+      "n": 262144,
+      "marked c": 6,
+      "mode": "interval",
+      "k max": 230,
+      "iterations seconds": 0.23,
+      "theta": 0.004784177904182117,
+      "k theory peak": 163.66575201162314,
+      "k measured peak": 164,
+      "peak deviation": 0.334247988376859,
+      "peak P marked": 0.99999,
+      "k first >= 0.90": 131,
+      "p marked at k90": 0.9054,
+      "p true at peak": 0.166665
+    },
+    {
+      "n": 262144,
+      "marked c": 16,
+      "mode": "interval",
+      "k max": 141,
+      "iterations seconds": 0.14,
+      "theta": 0.007812579475042568,
+      "k theory peak": 100.02994224332917,
+      "k measured peak": 100,
+      "peak deviation": 0.029942243329173834,
+      "peak P marked": 1.0,
+      "k first >= 0.90": 80,
+      "p marked at k90": 0.9052,
+      "p true at peak": 0.0625
+    },
+    {
+      "n": 1048576,
+      "marked c": 1,
+      "mode": "interval",
+      "k max": 1126,
+      "iterations seconds": 3.54,
+      "theta": 0.0009765626552204957,
+      "k theory peak": 803.7475914872201,
+      "k measured peak": 804,
+      "peak deviation": 0.25240851277987986,
+      "peak P marked": 1.0,
+      "k first >= 0.90": 640,
+      "p marked at k90": 0.9012,
+      "p true at peak": 1.0,
+      "note": "подтверждение 1/sqrt(c) на большем регистре"
+    },
+    {
+      "n": 1048576,
+      "marked c": 3,
+      "mode": "interval",
+      "k max": 650,
+      "iterations seconds": 2.17,
+      "theta": 0.0016914566733165289,
+      "k theory peak": 463.8324158327251,
+      "k measured peak": 464,
+      "peak deviation": 0.1675841672749243,
+      "peak P marked": 1.0,
+      "k first >= 0.90": 369,
+      "p marked at k90": 0.9006,
+      "p true at peak": 0.333333,
+      "note": "подтверждение 1/sqrt(c) на большем регистре"
+    }
+  ],
+  "shots validation": {
+    "n": 16384,
+    "c": 3,
+    "k used": 57,
+    "shots": 400,
+    "hit C sampled": 400,
+    "P C exact": 0.9998,
+    "hit x sampled": 134,
+    "P x exact": 0.3333
+  },
+  "real parameters": {
+    "source": "results/h_curve_summary.json (H=400k, canonical H rows) + results/phase_signature_135bit.json (orbit_mode)",
+    "window W": 1440000000000,
+    "table rows M": 400000,
+    "giant steps measured": 3600000,
+    "steps per second": 309918.0,
+    "search seconds": 11.616,
+    "build seconds": 5.35654,
+    "wall seconds": 17.1452,
+    "grover full window": {
+      "oracle calls": 942478.0,
+      "ratio to classical giant steps": 0.26,
+      "note": "каждый вызов оракула = скалярное умножение EC в суперпозиции (кси*10^6 логических вентилей); классический шаг = одно сложение точек (~микросекунды)"
+    },
+    "hybrid signature routing (rho=3)": {
+      "oracle calls": 544140.0,
+      "iterations removed": 42.3,
+      "reduction factor": 1.732,
+      "classical routing cost ms": 0.062
+    },
+    "hybrid post-hit (six-branch c=2.75)": {
+      "oracle calls": 0.0,
+      "note": "после попадания таблицы кандидат ~2.75 скаляра - проверяется классически, Гровер не нужен вовсе"
+    },
+    "crossover W*(kappa_eff) = ((pi/4)*rate*M*kappa)^2": {
+      "kappa_eff 1 us": "2^33.1",
+      "kappa_eff 1 ms": "2^53.1",
+      "kappa_eff 1 s": "2^73.0",
+      "note": "окно, при котором Гровер догоняет наш классический скан: левее - классика быстрее, правее - Гровер дешевле по секундам, но оба времени при больших W астрономичны; практичный квантовый путь - только Шор"
+    },
+    "puzzle 135 (W=2^135)": {
+      "classical giant steps": "1.089e+35",
+      "classical years (309918 шагов/с)": "1.11e+22",
+      "grover oracle calls": "1.639e+20",
+      "grover years (kappa_eff=1 s)": "5.19e+12",
+      "shor": "2330 лог. кубитов, ~1.26e11 Тоффоли (Roetteler et al. 2017) - вне таблиц, вне поиска"
+    }
+  },
+  "filtering reduction": [
+    {
+      "c": 1,
+      "w": 18,
+      "reduction measured": 1.0,
+      "reduction theory 1/sqrt(c)": 1.0
+    },
+    {
+      "c": 2,
+      "w": 18,
+      "reduction measured": 0.706,
+      "reduction theory 1/sqrt(c)": 0.707
+    },
+    {
+      "c": 3,
+      "w": 18,
+      "reduction measured": 0.577,
+      "reduction theory 1/sqrt(c)": 0.577
+    },
+    {
+      "c": 6,
+      "w": 18,
+      "reduction measured": 0.408,
+      "reduction theory 1/sqrt(c)": 0.408
+    },
+    {
+      "c": 16,
+      "w": 18,
+      "reduction measured": 0.249,
+      "reduction theory 1/sqrt(c)": 0.25
+    },
+    {
+      "c": 1,
+      "w": 20,
+      "reduction measured": 1.0,
+      "reduction theory 1/sqrt(c)": 1.0
+    },
+    {
+      "c": 3,
+      "w": 20,
+      "reduction measured": 0.577,
+      "reduction theory 1/sqrt(c)": 0.577
+    }
+  ]
+}
