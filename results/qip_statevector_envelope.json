@@ -1,40 +1,50 @@
 {
   "statevector bytes per qubit": 16,
-  "qubits max here (GiB=0.50)": 25,
+  "qubits max here (GiB=1.00)": 26,
   "qubits max target (GiB=32)": 31,
   "bench": [
     {
       "qubits": 20,
       "statevector MB": 16.0,
-      "h layer ms": 311.62,
-      "cx layer ms": 324.47,
-      "qft16 gates ms": 1553.98
+      "h layer ms": 252.32,
+      "cx layer ms": 291.7,
+      "qft16 gates ms": 1318.39
     },
     {
       "qubits": 22,
       "statevector MB": 64.0,
-      "h layer ms": 1459.36,
-      "cx layer ms": 1646.74,
-      "qft16 gates ms": 6853.32
+      "h layer ms": 1039.79,
+      "cx layer ms": 1264.48,
+      "qft16 gates ms": 5249.62
     },
     {
       "qubits": 24,
       "statevector MB": 256.0,
-      "h layer ms": 6798.38,
-      "cx layer ms": 7693.68,
-      "qft16 gates ms": 30797.55
+      "h layer ms": 5924.14,
+      "cx layer ms": 6812.67,
+      "qft16 gates ms": 26717.33
     },
     {
       "qubits": 25,
       "statevector MB": 512.0,
-      "h layer ms": 12469.83,
-      "cx layer ms": 15107.75,
-      "qft16 gates ms": 53096.81
+      "h layer ms": 12542.1,
+      "cx layer ms": 15052.79,
+      "qft16 gates ms": 53832.83
+    },
+    {
+      "qubits": 26,
+      "statevector MB": 1024.0,
+      "h layer ms": 26469.85,
+      "cx layer ms": 31216.91,
+      "qft16 gates ms": 110200.18
     }
   ],
   "qft16 extrapolation": {
     "target qubits": 31,
-    "seconds": 122.0,
-    "note": "линейная в 2^w экстраполяция по замерам здесь; на 8-ядерной машине ожидание то же (однопоточный NumPy) +- кэш-эффекты"
-  }
+    "seconds": 4405.2,
+    "per-qubit growth": 2.091,
+    "note": "экстраполяция по фактическому росту замеров g за кубит (однопоточный NumPy; число ядер не меняет однопоточную оценку)"
+  },
+  "qft16 peak bytes per amplitude": 40,
+  "qft16 peak guard gib": 3.0
 }

@@ -6,7 +6,7 @@ w кубитов стоит 16*2^w байт, каждый следующий к�
 Замеряем время типовых слоёв (1-кубитный слой, CNOT-слой, QFT-16 гейтами)
 на доступной машине и экстраполируем на целевой бюджет памяти.
 
-Запуск из корня репо: python3 experiments/qip_statevector.py [--max-gib 0.5]
+Запуск из корня репо: python3 experiments/qip_statevector.py [--max-gib 1.0]
 Выход: results/qip_statevector_envelope.json
 """
 import argparse
@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from qip_engine import Statevector  # noqa: E402
 
 
-def bench_width(w, rng):
+def bench_width(w, rng, qft16_peak_gib=None):
     sv = Statevector(w)
     res = {"qubits": w, "statevector MB": 16.0 * 2 ** w / 2 ** 20}
 
@@ -37,8 +37,14 @@ def bench_width(w, rng):
         sv.cx(q, q + 1)
     res["cx layer ms"] = round((time.perf_counter() - t0) * 1000, 2)
 
-    # QFT-16 гейтами на младших 16 кубитах (если помещаются)
-    if w >= 16:
+    # QFT-16 гейтами на младших 16 кубитах (если помещаются).
+    # Пик QFT-16 ~40 Б/амплитуду: состояние 16 + factor-массив 16 +
+    # idx (int64) 8; guard по физическому потолку машины, не по бюджету
+    # бенча (бюджет - политика выбора ширин, физика - доступная RAM).
+    qft16_ok = True
+    if qft16_peak_gib is not None:
+        qft16_ok = 40 * 2 ** w <= qft16_peak_gib * 2 ** 30
+    if w >= 16 and qft16_ok:
         t0 = time.perf_counter()
         sv.qft_pow2(list(range(15, -1, -1)))
         res["qft16 gates ms"] = round((time.perf_counter() - t0) * 1000, 2)
@@ -51,6 +57,9 @@ def main():
                     help="бюджет памяти на вектор состояния в GiB")
     ap.add_argument("--target-gib", type=float, default=32.0,
                     help="бюджет целевой машины для экстраполяции")
+    ap.add_argument("--qft16-peak-gib", type=float, default=3.0,
+                    help="физический потолок RAM для пика QFT-16; "
+                         "выше - слой пропускается (H/CX замеряются)")
     args = ap.parse_args()
 
     q_here = int(np.floor(np.log2(args.max_gib * 2 ** 30 / 16)))
@@ -62,7 +71,7 @@ def main():
           f"{q_target} кубитов")
     runs = []
     for w in widths:
-        run = bench_width(w, None)
+        run = bench_width(w, None, args.qft16_peak_gib)
         runs.append(run)
         print(f"[w={w:2d}] {run['statevector MB']:8.1f} MB | "
               f"H-слой {run['h layer ms']:9.2f} ms | "
@@ -72,10 +81,15 @@ def main():
     # линейная в 2^w экстраполяция QFT16 на целевой максимум
     pts = [(r["qubits"], r["qft16 gates ms"]) for r in runs
            if "qft16 gates ms" in r]
+    # экстраполяция QFT16 на целевой максимум: фактический рост за кубит
+    # g = (t2/t1)^(1/(w2-w1)) (замер 2.0-2.15, супралинейно на кэш-границе),
+    # t(target) = t2 * g^(target-w2). Ранняя формула 2^(dw/(w2-w1)) на концах
+    # (20, 25) давала 122 с на 31 кубите - занижение ~36x.
+    g_per_qubit = None
     if len(pts) >= 2:
         (w1, t1), (w2, t2) = pts[0], pts[-1]
-        scale = 2.0 ** ((q_target - w2) / (w2 - w1))
-        qft_target = t2 * scale
+        g_per_qubit = (t2 / t1) ** (1.0 / (w2 - w1))
+        qft_target = t2 * g_per_qubit ** (q_target - w2)
     else:
         qft_target = None
 
@@ -87,10 +101,13 @@ def main():
         "qft16 extrapolation": {
             "target qubits": q_target,
             "seconds": round(qft_target / 1000, 1) if qft_target else None,
-            "note": "линейная в 2^w экстраполяция по замерам здесь; "
-                    "на 8-ядерной машине ожидание то же (однопоточный "
-                    "NumPy) +- кэш-эффекты",
+            "per-qubit growth": round(g_per_qubit, 3) if g_per_qubit else None,
+            "note": "экстраполяция по фактическому росту замеров g за кубит "
+                    "(однопоточный NumPy; число ядер не меняет "
+                    "однопоточную оценку)",
         },
+        "qft16 peak bytes per amplitude": 40,
+        "qft16 peak guard gib": args.qft16_peak_gib,
     }
     out = Path("results/qip_statevector_envelope.json")
     out.write_text(json.dumps(envelope, indent=2, ensure_ascii=False) + "\n")
