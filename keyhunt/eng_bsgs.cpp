@@ -162,6 +162,7 @@ static std::string checkpoint_path;
 static uint64_t checkpoint_steps = 1;
 static bool checkpoint_resume = false;
 bool lambda_priority = false;
+bool lambda_priority_explicit = false;
 uint64_t lambda_sector_count = 16;
 bool phase_signature = false;
 // --partner-table: exact-verify out-of-interval GLV orbit branches. A K3 hit
@@ -653,6 +654,12 @@ void finalize_table(size_t raw_count) {
 // the mmap'd keys directly, so a cold start needs no build EC work and no
 // in-RAM table (RSS stays at the scan working set even at H=4M, where the
 // text loader would hold ~576 MB of Int vectors).
+// payload_kind 2 (plain_grid): the same container for plain (non-GLV)
+// tables - rows of {point key: 33 B = SEC1 prefix + x} + {row scalar: 32 B}.
+// The format itself is mode-agnostic: which payload a file carries is a
+// header field, and the load path requires the payload to match the search
+// mode (giant_grid -> --glv-orbit, plain_grid -> no --glv-orbit), so a dump
+// from either build is reusable without rebuilding.
 // Header: 256 bytes, big-endian, fixed offsets:
 //    0 magic "CBT1" |  4 canonical_version |  8 payload_kind
 //   12 header_size  | 16 row_size         | 20 curve_id (1 = secp256k1)
@@ -669,7 +676,12 @@ void finalize_table(size_t raw_count) {
 static constexpr char CBT1_MAGIC[4] = {'C', 'B', 'T', '1'};
 static constexpr uint32_t CBT1_VERSION = 1;
 static constexpr uint32_t CBT1_PAYLOAD_GIANT_GRID = 1;
+static constexpr uint32_t CBT1_PAYLOAD_PLAIN_GRID = 2;
 static constexpr uint32_t CBT1_CURVE_SECP256K1 = 1;
+
+const char *cbt1_payload_kind_name(uint32_t kind) {
+  return kind == CBT1_PAYLOAD_GIANT_GRID ? "giant_grid" : "plain_grid";
+}
 static constexpr uint32_t CBT1_HEADER_SIZE = 256;
 static constexpr uint32_t CBT1_ROW_SIZE = 65;
 static std::string table_binary_path;       // --table-binary (mmap load)
@@ -798,8 +810,30 @@ int load_table_binary(const std::string &path) {
     ::munmap(base, size);
     return 2;
   }
-  if (get_u32be(h + 8) != CBT1_PAYLOAD_GIANT_GRID)
+  const uint32_t payload_kind = get_u32be(h + 8);
+  if (payload_kind != CBT1_PAYLOAD_GIANT_GRID &&
+      payload_kind != CBT1_PAYLOAD_PLAIN_GRID)
     return reject("unsupported payload_kind");
+  // The payload kind binds the file to a search mode: giant_grid keys are
+  // K3 invariant keys (GLV orbit search), plain_grid keys are SEC1 point
+  // keys (plain base+j candidates). A kind/mode mismatch would silently
+  // compare keys from different quotient maps - reject up front.
+  if (payload_kind == CBT1_PAYLOAD_GIANT_GRID && !glv_orbit_mode) {
+    std::fprintf(stderr,
+                 "[E] table binary %s: payload giant_grid requires "
+                 "--glv-orbit (payload keys are K3 invariant keys)\n",
+                 path.c_str());
+    ::munmap(base, size);
+    return 2;
+  }
+  if (payload_kind == CBT1_PAYLOAD_PLAIN_GRID && glv_orbit_mode) {
+    std::fprintf(stderr,
+                 "[E] table binary %s: payload plain_grid requires plain "
+                 "mode without --glv-orbit (payload keys are point keys)\n",
+                 path.c_str());
+    ::munmap(base, size);
+    return 2;
+  }
   if (get_u32be(h + 12) != CBT1_HEADER_SIZE) return reject("header_size");
   if (get_u32be(h + 16) != CBT1_ROW_SIZE) return reject("row_size");
   if (get_u32be(h + 20) != CBT1_CURVE_SECP256K1) return reject("curve_id");
@@ -903,7 +937,8 @@ int load_table_binary(const std::string &path) {
   ::madvise(const_cast<unsigned char *>(table_map.base), table_map.size,
             MADV_DONTNEED);
   std::cout << "  table binary file: " << path << " (" << rows
-            << " rows, payload giant_grid, 65 B/row)\n"
+            << " rows, payload " << cbt1_payload_kind_name(payload_kind)
+            << ", 65 B/row)\n"
             << "  table binary validation: "
             << (cache_hit
                     ? "cache hit (size+mtime bound to full pass, sha256 "
@@ -922,7 +957,13 @@ int load_table_binary(const std::string &path) {
 
 int dump_table_binary(const std::string &path) {
   const size_t rows = shared_table.size();
-  if (rows == 0 || rows != shared_scalars.size()) {
+  // Payload kind follows the build mode: giant_grid (K3 key + canonical
+  // scalar) under --glv-orbit, plain_grid (point key + row scalar) in plain
+  // mode. Both are 33 B key + 32 B scalar, sorted ascending by key.
+  const uint32_t payload_kind =
+      glv_orbit_mode ? CBT1_PAYLOAD_GIANT_GRID : CBT1_PAYLOAD_PLAIN_GRID;
+  if (rows == 0 ||
+      (glv_orbit_mode && rows != shared_scalars.size())) {
     std::fprintf(stderr,
                  "[E] dump table binary: table/scalars size mismatch "
                  "(%zu vs %zu)\n",
@@ -934,11 +975,11 @@ int dump_table_binary(const std::string &path) {
   unsigned char *h = buf.data();
   std::memcpy(h, CBT1_MAGIC, 4);
   put_u32be(h + 4, CBT1_VERSION);
-  put_u32be(h + 8, CBT1_PAYLOAD_GIANT_GRID);
+  put_u32be(h + 8, payload_kind);
   put_u32be(h + 12, CBT1_HEADER_SIZE);
   put_u32be(h + 16, CBT1_ROW_SIZE);
   put_u32be(h + 20, CBT1_CURVE_SECP256K1);
-  put_u32be(h + 24, 6);            // orbit_size: full C6 GLV orbit
+  put_u32be(h + 24, glv_orbit_mode ? 6 : 1);  // orbit size: C6 orbit / none
   put_u32be(h + 28, 1);            // flags: keys sorted ascending
   put_u64be(h + 32, rows);
   put_u64be(h + 40, shared_baby_rows);  // giant stride == stored rows
@@ -954,7 +995,14 @@ int dump_table_binary(const std::string &path) {
   for (size_t i = 0; i < rows; ++i) {
     unsigned char *row = payload + i * CBT1_ROW_SIZE;
     std::memcpy(row, shared_table[i].key.data(), 33);
-    std::memcpy(row + 33, shared_scalars[i].data(), 32);
+    if (glv_orbit_mode) {
+      std::memcpy(row + 33, shared_scalars[i].data(), 32);
+    } else {
+      // Plain rows are consecutive integers [0, m): the scalar column is
+      // the row index j, zero-extended to 32 big-endian bytes.
+      std::memset(row + 33, 0, 24);
+      put_u64be(row + 57, shared_table[i].j);
+    }
     if (i > 0 && std::memcmp(row, row - CBT1_ROW_SIZE, 33) < 0) {
       std::fprintf(stderr,
                    "[E] dump table binary: table not sorted ascending at "
@@ -989,8 +1037,9 @@ int dump_table_binary(const std::string &path) {
     std::fprintf(stderr, "[E] dump table binary: rename failed\n");
     return 2;
   }
-  std::cout << "  dumped canonical table: " << path << " (" << rows
-            << " rows, " << buf.size() << " bytes, payload giant_grid)\n";
+  std::cout << "  dumped table: " << path << " (" << rows << " rows, "
+            << buf.size() << " bytes, payload "
+            << cbt1_payload_kind_name(payload_kind) << ")\n";
   return 0;
 }
 
@@ -1291,7 +1340,12 @@ void search_slice(uint64_t local_start, uint64_t local_size,
                                             local_offset);
             }
           } else {
-            uint64_t j = shared_table[row_index].j;
+            // Plain row scalar: the build stores j in BabyRow; a plain_grid
+            // CBT1 file stores the same value zero-extended in the row's
+            // 32-byte scalar column (low 8 bytes, big-endian).
+            uint64_t j = file_mode
+                ? get_u64be(file_rows + row_index * 65 + 57)
+                : shared_table[row_index].j;
             local_offset = local_start + i * m + j;
             if (local_offset < local_start + local_size) {
               candidate.Set(&base_scalar);
@@ -1706,11 +1760,15 @@ void usage(const char *name) {
       "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
       "      --canonical-k3   store one canonical row per C6 orbit: scalar min(k, n-k) over lambda^r*k (requires --glv-orbit)\n"
       "      --table-scalars FILE  build baby rows from explicit hex scalars, one per line (requires --glv-orbit)\n"
-      "      --table-binary FILE  mmap a CBT1 canonical table as the table backend (payload giant_grid;\n"
+      "      --table-binary FILE  mmap a CBT1 table as the table backend; payload kind must match\n"
+      "                          the search mode (giant_grid <-> --glv-orbit, plain_grid <-> plain)\n"
       "                          full validation cached in FILE.cache, keyed by sha256+mtime)\n"
-      "      --dump-table-binary FILE  write the built table as a CBT1 file (65 B/row, sorted, checksummed)\n"
+      "      --dump-table-binary FILE  write the built table as a CBT1 file (65 B/row, sorted, checksummed);\n"
+      "                          payload kind follows the build mode (giant_grid under --glv-orbit,\n"
+      "                          plain_grid otherwise)\n"
       "      --partner-table  exact-verify out-of-interval orbit branches (requires --glv-orbit)\n"
       "      --lambda-priority order local slices by the Lambda triangle, then fallback\n"
+      "                          (default: off for a single segment, on for multi-segment runs)\n"
       "      --lambda-sectors N number of local numeric slices (default 16)\n"
       "      --cover-start V   external coverage interval start (Int/hex)\n"
       "      --cover-size V    external coverage interval width (Int/hex)\n"
@@ -1770,7 +1828,7 @@ int main(int argc, char **argv) {
       case 'Z': if (!parse_u64(optarg, giant_stride_override)) { usage(argv[0]); return 2; } break;
       case 'd': shift_texts.emplace_back(optarg); break;
       case 'g': glv_orbit_mode = true; break;
-      case 'l': lambda_priority = true; break;
+      case 'l': lambda_priority = true; lambda_priority_explicit = true; break;
       case 'L': if (!parse_u64(optarg, lambda_sector_count) || lambda_sector_count == 0) { usage(argv[0]); return 2; } break;
       case 'P': phase_signature = true; break;
       case 'p': partner_table_mode = true; break;
@@ -1836,6 +1894,12 @@ int main(int argc, char **argv) {
     segment_size = requested_baby_rows * requested_baby_rows;
   }
 
+  // Default: lambda-priority is on for multi-segment runs (range > segment)
+  // and off for a single segment (segment == size), unless chosen explicitly.
+  if (!lambda_priority_explicit) {
+    lambda_priority = (range_size > segment_size);
+  }
+
   bool automatic_coverage = !cover_start_text.empty() || !cover_size_text.empty();
   if (automatic_coverage && (cover_start_text.empty() || cover_size_text.empty())) {
     std::fprintf(stderr, "[E] --cover-start and --cover-size must be supplied together\n");
@@ -1877,12 +1941,10 @@ int main(int argc, char **argv) {
                    "--dump-table-binary\n");
       return 2;
     }
-    if (!glv_orbit_mode) {
-      std::fprintf(stderr,
-                   "[E] --table-binary requires --glv-orbit (payload keys are "
-                   "K3 invariant keys)\n");
-      return 2;
-    }
+    // Payload/mode compatibility is enforced by load_table_binary, which
+    // inspects the file's payload_kind: giant_grid needs --glv-orbit,
+    // plain_grid needs plain mode. Rejecting here unconditionally would
+    // block the plain build -> dump -> reuse path.
     int rc = load_table_binary(table_binary_path);
     if (rc != 0) return rc;
     if (phase_signature) {
