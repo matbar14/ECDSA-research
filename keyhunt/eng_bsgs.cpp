@@ -53,6 +53,12 @@ Int range_start;
 uint64_t range_size = 0;
 uint64_t segment_size = 100000;
 uint64_t requested_baby_rows = 0;
+// --giant-stride S: run the giant phase with stride S instead of the stored
+// row count (0 = default, stride == rows). Mirror-tiling mode: with rows
+// C = [R, 2R-1] (consecutive heads) and S = 2R-1 the covered residues
+// ±C mod S are all of Z_S, so the sweep stays gapless at HALF the giant
+// steps (mod-stride counting: gapless needs |±C mod S| = S, hence S <= 2R-1).
+uint64_t giant_stride_override = 0;
 bool glv_orbit_mode = false;
 unsigned worker_count = 1;
 std::atomic<uint64_t> segments_done{0};
@@ -1098,7 +1104,25 @@ void search_slice(uint64_t local_start, uint64_t local_size,
   if (local_size == 0 || local_start >= active_range_size) return;
   local_size = std::min(local_size, active_range_size - local_start);
   uint64_t m = shared_baby_rows;
-  uint64_t giant_count = (local_size - 1) / m + 1;
+  // Giant stride: stored rows by default; --giant-stride overrides.
+  // Coverage semantics (mod-stride counting, memo 10.11): a relative offset
+  // t is coverable iff t mod stride lies in ±C mod stride; gapless tiling
+  // therefore needs ±C mod stride = Z_stride, bounded by 2*rows-1. The
+  // default (stride == rows, C = [1, rows]) covers each offset exactly
+  // twice (mirror folds into the core); the mirror-tiling table
+  // C = [R, 2R-1] with stride 2R-1 covers each offset once or twice and
+  // halves the giant count for the same window.
+  uint64_t stride = giant_stride_override ? giant_stride_override : m;
+  uint64_t giant_count = (local_size - 1) / stride + 1;
+  if (giant_stride_override != 0) {
+    // Tail rule: with a widened stride the low residues of the last partial
+    // period are covered only by the NEXT center's back window (t = i*stride
+    // - c, c in rows), so one extra giant per slice closes the tail. For any
+    // table with +/-C mod stride = Z_stride this is provably sufficient; the
+    // default layout (stride == rows) needs no correction - its tail is
+    // covered by the last center's front window.
+    ++giant_count;
+  }
   giant_steps_planned.fetch_add(giant_count, std::memory_order_relaxed);
 
   Int anchor_scalar(&range_start);
@@ -1109,8 +1133,8 @@ void search_slice(uint64_t local_start, uint64_t local_size,
   Point neg_anchor = curve.Negation(anchor);
   Point giant_zero = add_safe(search_target, neg_anchor);
 
-  Int m_int(m);
-  Point step = ec_mult(m_int);
+  Int stride_int(stride);
+  Point step = ec_mult(stride_int);
   Point neg_step = curve.Negation(step);
 
   std::vector<std::thread> workers;
@@ -1125,7 +1149,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
       if (begin != 0) {
         Int delta;
         delta.SetInt64(begin);
-        delta.Mult(m);
+        delta.Mult(stride);
         delta.Mod(&curve.order);
         base_scalar.Add(&delta);
         base_scalar.Mod(&curve.order);
@@ -1308,7 +1332,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
           ++row_index;
         }
         giant = add_safe(giant, neg_step);
-        base_scalar.Add(&m_int);
+        base_scalar.Add(&stride_int);
         base_scalar.Mod(&curve.order);
       }
     });
@@ -1674,6 +1698,9 @@ void usage(const char *name) {
       "  -w, --size N          interval width (finite bounded test)\n"
       "  -s, --segment N       local segment width (default 100000)\n"
       "      --baby-rows N     choose segment width as N^2\n"
+      "      --giant-stride S  giant stride S instead of the row count (requires --glv-orbit;\n"
+      "                        mirror-tiling: consecutive heads [R,2R-1] with S = 2R-1 stay\n"
+      "                        gapless at half the giant steps; S > 2*rows-1 leaves gaps)\n"
       "      --shift T         search Q+T*G before the original target (repeatable)\n"
       "      --glv-orbit       use K3=x^3 quotient plus exact GLV branches\n"
       "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
@@ -1705,6 +1732,7 @@ int main(int argc, char **argv) {
       {"size", required_argument, nullptr, 'w'},
       {"segment", required_argument, nullptr, 's'},
       {"baby-rows", required_argument, nullptr, 'b'},
+      {"giant-stride", required_argument, nullptr, 'Z'},
       {"shift", required_argument, nullptr, 'd'},
       {"glv-orbit", no_argument, nullptr, 'g'},
       {"lambda-priority", no_argument, nullptr, 'l'},
@@ -1732,13 +1760,14 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:B:T:c:C:x:y:zR:Dh", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:B:T:c:C:x:y:zR:DZ:h", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
       case 'w': if (!parse_u64(optarg, range_size)) { usage(argv[0]); return 2; } break;
       case 's': if (!parse_u64(optarg, segment_size)) { usage(argv[0]); return 2; } break;
       case 'b': if (!parse_u64(optarg, requested_baby_rows) || requested_baby_rows == 0) { usage(argv[0]); return 2; } break;
+      case 'Z': if (!parse_u64(optarg, giant_stride_override)) { usage(argv[0]); return 2; } break;
       case 'd': shift_texts.emplace_back(optarg); break;
       case 'g': glv_orbit_mode = true; break;
       case 'l': lambda_priority = true; break;
@@ -1790,6 +1819,13 @@ int main(int argc, char **argv) {
   }
   if (!table_scalars_path.empty() && requested_baby_rows != 0) {
     std::fprintf(stderr, "[E] --baby-rows cannot be combined with --table-scalars\n");
+    return 2;
+  }
+  if (giant_stride_override != 0 && !glv_orbit_mode) {
+    // Plain mode derives candidates as base + row only (no mirror branch),
+    // so a widened stride would leave holes; the mirror-tiling argument
+    // below relies on the ± orbit branches of check_orbit_candidate.
+    std::fprintf(stderr, "[E] --giant-stride requires --glv-orbit\n");
     return 2;
   }
   if (requested_baby_rows != 0) {
@@ -2110,6 +2146,17 @@ int main(int argc, char **argv) {
               << "\n"
               << std::flush;
   }
+  if (giant_stride_override != 0) {
+    if (shared_baby_rows != 0 &&
+        giant_stride_override > 2 * shared_baby_rows - 1) {
+      std::cout << "  [W] giant stride " << giant_stride_override
+                << " > 2*rows-1 (" << 2 * shared_baby_rows - 1
+                << "): coverage density < 1, gaps guaranteed by mod-stride"
+                << " counting\n";
+    }
+    std::cout << "  giant stride override: " << giant_stride_override
+              << " (rows " << shared_baby_rows << ")\n" << std::flush;
+  }
   if (!dump_table_binary_path.empty()) {
     int rc = dump_table_binary(dump_table_binary_path);
     if (rc != 0) return rc;
@@ -2148,6 +2195,12 @@ int main(int argc, char **argv) {
       table_identity = "cbt1|" + table_binary_path + "|"
           + std::to_string(file_bytes) + "|" + std::to_string(file_row_count)
           + "|" + fnv_hex;
+    }
+    if (giant_stride_override != 0) {
+      // The stride changes the giant grid, so a checkpoint written under one
+      // stride must never resume under another.
+      table_identity += "|giant-stride=" +
+          std::to_string(giant_stride_override);
     }
     const std::string plan_fingerprint = cover_fingerprint(
         target_hex, start_text, range_size, cover_start_text,
