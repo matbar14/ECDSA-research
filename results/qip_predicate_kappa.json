@@ -1,0 +1,409 @@
+{
+  "predicate": "k in S routed-economy: k - канонический представитель Lambda-орбиты (порядок lambda = 3, ровно 2 сравнения) и сигнатура (старшие 2 бита) в интервале [0, 2)",
+  "falsifier": {
+    "pre-registered": "memo 10.11 «Дальше», коммит edd802d (до кода)",
+    "branch O(N)": "канонизация сравнением со всеми элементами орбиты вместо двух соседей",
+    "outcome": "не сработал: в схеме канонизация - ровно 2 сравнения; предикат 8*n^2 Toffoli и ~20*n^2 глубины на эталонной схеме, глубина O(n log n) с префикс-суммами"
+  },
+  "construction": {
+    "adder": "Cuccaro-структура: 2 Toffoli + 4 CNOT на бит, 1 ancilla; выведена и бит-верифицирована исчерпывающе",
+    "comparator": "заёмная цепочка, 5 Toffoli на бит",
+    "mult": "широкий аккумулятор n+ceil(log2 n) бит, n inplace-сложений, бинарное сокращение mod p за m шагов (каскад промежуточных регистров неизбежен: реверс шага j требует R_{j+1})",
+    "cleanup": "реверс под-схем в обратном хронологическом порядке; каждая под-схема - биекция",
+    "secp256k1 constants": "порядок N и lambda/lambda^2 из phase_signature_135bit.json (lambda^3 = 1 mod N проверена в рантайме)"
+  },
+  "verification": {
+    "engine primitives": {
+      "n": 4,
+      "p": 13,
+      "lambda": 9,
+      "adder bit-level pairs": 256,
+      "adder bit-level fails": 0,
+      "adder engine fails": 0,
+      "comparator bit-level pairs": 256,
+      "comparator bit-level fails": 0,
+      "comparator engine fails": 0
+    },
+    "reduce bit-level": {
+      "4": {
+        "values": 52,
+        "fails": 0
+      },
+      "5": {
+        "values": 95,
+        "fails": 0
+      },
+      "6": {
+        "values": 258,
+        "fails": 0
+      }
+    },
+    "predicate bit-level": {
+      "4": {
+        "inputs": 16,
+        "fails": 0,
+        "wires": 184,
+        "toffoli": 1469,
+        "depth": 882
+      },
+      "5": {
+        "inputs": 32,
+        "fails": 0,
+        "wires": 303,
+        "toffoli": 3025,
+        "depth": 1542
+      },
+      "6": {
+        "inputs": 64,
+        "fails": 0,
+        "wires": 334,
+        "toffoli": 3477,
+        "depth": 1822
+      },
+      "7": {
+        "inputs": 128,
+        "fails": 0,
+        "wires": 365,
+        "toffoli": 3945,
+        "depth": 2156
+      },
+      "8": {
+        "inputs": 256,
+        "fails": 0,
+        "wires": 396,
+        "toffoli": 4429,
+        "depth": 2488
+      }
+    },
+    "note": "полный предикат и reduce на движке не прогоняются (>45 проводов = 2^45 амплитуд); их корректность покрывается бит-уровнем на всех 2^n входах"
+  },
+  "scaling": {
+    "rows": [
+      {
+        "n": 4,
+        "modulus bits": 4,
+        "toffoli": 1469,
+        "cnot": 1566,
+        "x gates": 1136,
+        "gates total": 4171,
+        "depth": 882,
+        "wires": 184,
+        "toffoli / n^2": 91.81,
+        "build seconds": 0.0
+      },
+      {
+        "n": 5,
+        "modulus bits": 5,
+        "toffoli": 3025,
+        "cnot": 3114,
+        "x gates": 2320,
+        "gates total": 8459,
+        "depth": 1542,
+        "wires": 303,
+        "toffoli / n^2": 121.0,
+        "build seconds": 0.01
+      },
+      {
+        "n": 6,
+        "modulus bits": 6,
+        "toffoli": 3477,
+        "cnot": 3654,
+        "x gates": 2616,
+        "gates total": 9747,
+        "depth": 1822,
+        "wires": 334,
+        "toffoli / n^2": 96.58,
+        "build seconds": 0.01
+      },
+      {
+        "n": 7,
+        "modulus bits": 7,
+        "toffoli": 3945,
+        "cnot": 4302,
+        "x gates": 2992,
+        "gates total": 11239,
+        "depth": 2156,
+        "wires": 365,
+        "toffoli / n^2": 80.51,
+        "build seconds": 0.01
+      },
+      {
+        "n": 8,
+        "modulus bits": 8,
+        "toffoli": 4429,
+        "cnot": 4906,
+        "x gates": 3168,
+        "gates total": 12503,
+        "depth": 2488,
+        "wires": 396,
+        "toffoli / n^2": 69.2,
+        "build seconds": 0.01
+      },
+      {
+        "n": 9,
+        "modulus bits": 9,
+        "toffoli": 6985,
+        "cnot": 7514,
+        "x gates": 5168,
+        "gates total": 19667,
+        "depth": 3542,
+        "wires": 571,
+        "toffoli / n^2": 86.23,
+        "build seconds": 0.02
+      },
+      {
+        "n": 10,
+        "modulus bits": 10,
+        "toffoli": 7637,
+        "cnot": 8318,
+        "x gates": 5520,
+        "gates total": 21475,
+        "depth": 3966,
+        "wires": 610,
+        "toffoli / n^2": 76.37,
+        "build seconds": 0.02
+      },
+      {
+        "n": 11,
+        "modulus bits": 11,
+        "toffoli": 8305,
+        "cnot": 9218,
+        "x gates": 5984,
+        "gates total": 23507,
+        "depth": 4422,
+        "wires": 649,
+        "toffoli / n^2": 68.64,
+        "build seconds": 0.03
+      },
+      {
+        "n": 12,
+        "modulus bits": 12,
+        "toffoli": 8989,
+        "cnot": 10094,
+        "x gates": 6280,
+        "gates total": 25363,
+        "depth": 4912,
+        "wires": 688,
+        "toffoli / n^2": 62.42,
+        "build seconds": 0.03
+      },
+      {
+        "n": 13,
+        "modulus bits": 13,
+        "toffoli": 9689,
+        "cnot": 11082,
+        "x gates": 6576,
+        "gates total": 27347,
+        "depth": 5410,
+        "wires": 727,
+        "toffoli / n^2": 57.33,
+        "build seconds": 0.03
+      },
+      {
+        "n": 16,
+        "modulus bits": 16,
+        "toffoli": 11885,
+        "cnot": 14150,
+        "x gates": 7744,
+        "gates total": 33779,
+        "depth": 7074,
+        "wires": 844,
+        "toffoli / n^2": 46.43,
+        "build seconds": 0.04
+      },
+      {
+        "n": 24,
+        "modulus bits": 24,
+        "toffoli": 22797,
+        "cnot": 28282,
+        "x gates": 14176,
+        "gates total": 65255,
+        "depth": 13964,
+        "wires": 1436,
+        "toffoli / n^2": 39.58,
+        "build seconds": 0.07
+      },
+      {
+        "n": 32,
+        "modulus bits": 32,
+        "toffoli": 31469,
+        "cnot": 41834,
+        "x gates": 17904,
+        "gates total": 91207,
+        "depth": 21346,
+        "wires": 1812,
+        "toffoli / n^2": 30.73,
+        "build seconds": 0.1
+      },
+      {
+        "n": 48,
+        "modulus bits": 48,
+        "toffoli": 59757,
+        "cnot": 84494,
+        "x gates": 31608,
+        "gates total": 175859,
+        "depth": 43200,
+        "wires": 3052,
+        "toffoli / n^2": 25.94,
+        "build seconds": 0.2
+      },
+      {
+        "n": 64,
+        "modulus bits": 64,
+        "toffoli": 86445,
+        "cnot": 132046,
+        "x gates": 41016,
+        "gates total": 259507,
+        "depth": 69408,
+        "wires": 3932,
+        "toffoli / n^2": 21.1,
+        "build seconds": 0.29
+      },
+      {
+        "n": 96,
+        "modulus bits": 96,
+        "toffoli": 166765,
+        "cnot": 270366,
+        "x gates": 70840,
+        "gates total": 507971,
+        "depth": 144946,
+        "wires": 6580,
+        "toffoli / n^2": 18.1,
+        "build seconds": 0.58
+      },
+      {
+        "n": 128,
+        "modulus bits": 128,
+        "toffoli": 253165,
+        "cnot": 441662,
+        "x gates": 94024,
+        "gates total": 788851,
+        "depth": 241774,
+        "wires": 8596,
+        "toffoli / n^2": 15.45,
+        "build seconds": 0.91
+      },
+      {
+        "n": 192,
+        "modulus bits": 192,
+        "toffoli": 503085,
+        "cnot": 931690,
+        "x gates": 160312,
+        "gates total": 1595087,
+        "depth": 518136,
+        "wires": 14300,
+        "toffoli / n^2": 13.65,
+        "build seconds": 1.86
+      },
+      {
+        "n": 256,
+        "modulus bits": 256,
+        "toffoli": 799277,
+        "cnot": 1567326,
+        "x gates": 217736,
+        "gates total": 2584339,
+        "depth": 886590,
+        "wires": 18844,
+        "toffoli / n^2": 12.2,
+        "build seconds": 3.05
+      }
+    ],
+    "fit toffoli": {
+      "a": 8.4394,
+      "b": 1007.832,
+      "c": -8947.45,
+      "max rel residual": 0.11823,
+      "points": "n = 24..256 (малые n исключены: скачки m маскируют n^2)"
+    },
+    "adder n=256 depth": 1536,
+    "adder depth per bit": 6.0,
+    "brent-kung depth": 15.0,
+    "prefix factor": 0.00977
+  },
+  "kappa_w_star": {
+    "formula": "W* = ((pi/4)*rate*M*kappa)^2 - определение из memo 10.11; rate/M - замеры canonical H rows @400k",
+    "rate steps/s": 309918.0,
+    "M rows": 400000,
+    "rows": [
+      {
+        "tau": "10 ns",
+        "variant": "эталонная схема",
+        "kappa seconds": 0.008866,
+        "log2 W*": 59.4
+      },
+      {
+        "tau": "10 ns",
+        "variant": "префикс-суммы",
+        "kappa seconds": 8.658e-05,
+        "log2 W*": 46.0
+      },
+      {
+        "tau": "10 ns",
+        "variant": "древесный параллелизм (оценка)",
+        "kappa seconds": 3.84e-06,
+        "log2 W*": 37.0
+      },
+      {
+        "tau": "100 ns",
+        "variant": "эталонная схема",
+        "kappa seconds": 0.08866,
+        "log2 W*": 66.0
+      },
+      {
+        "tau": "100 ns",
+        "variant": "префикс-суммы",
+        "kappa seconds": 0.0008658,
+        "log2 W*": 52.7
+      },
+      {
+        "tau": "100 ns",
+        "variant": "древесный параллелизм (оценка)",
+        "kappa seconds": 3.84e-05,
+        "log2 W*": 43.7
+      },
+      {
+        "tau": "1 mks",
+        "variant": "эталонная схема",
+        "kappa seconds": 0.8866,
+        "log2 W*": 72.7
+      },
+      {
+        "tau": "1 mks",
+        "variant": "префикс-суммы",
+        "kappa seconds": 0.008658,
+        "log2 W*": 59.3
+      },
+      {
+        "tau": "1 mks",
+        "variant": "древесный параллелизм (оценка)",
+        "kappa seconds": 0.000384,
+        "log2 W*": 50.3
+      }
+    ],
+    "reference": [
+      {
+        "kappa": "kappa = 1 mks (ранний угол memo)",
+        "log2 W*": 33.1
+      },
+      {
+        "kappa": "kappa = 1 ms",
+        "log2 W*": 53.1
+      },
+      {
+        "kappa": "нижняя граница бенда [2^40, 2^55] из постановки",
+        "log2 W*": 40.1
+      },
+      {
+        "kappa": "верхняя граница бенда [2^40, 2^55] из постановки",
+        "log2 W*": 55.1
+      }
+    ],
+    "note n": "n в схеме - ширина арифметики log2(N) = 256 для secp256k1; ширина окна W входит только в число итераций Гровера, не в стоимость оракула"
+  },
+  "marking_iterations": {
+    "S density": "routed 1.167 кандидата на гигантский шаг (h_curve_summary.json economy)",
+    "S(W)": "1.167*W/M",
+    "grover iterations": 459.8,
+    "grover iterations note": "(pi/4)*sqrt(W/|S|) = (pi/4)*sqrt(M/1.167) - константа, не зависит от W; но Гровер с предикатом возвращает равномерного кандидата из S, а не ключ - как финишёр он неполон без QRAM или EC-оракула"
+  }
+}
