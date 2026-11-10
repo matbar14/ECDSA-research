@@ -1,0 +1,301 @@
+{
+  "points": {
+    "50000": {
+      "continuous 3H rows": {
+        "rows": 150000,
+        "build seconds": 1.51206,
+        "search seconds": 0.413672,
+        "giant steps/second": 362606.0,
+        "EC scalar multiplications": 4,
+        "EC point additions": 300001,
+        "total EC operations": 300005,
+        "peak rss mb": 46.9,
+        "wall seconds": 1.9579,
+        "canonical rows merged": 0
+      },
+      "expanded 3H rows": {
+        "rows": 150000,
+        "build seconds": 1.8913,
+        "search seconds": 0.433292,
+        "giant steps/second": 346187.0,
+        "EC scalar multiplications": 150003,
+        "EC point additions": 150002,
+        "total EC operations": 300005,
+        "peak rss mb": 53.9,
+        "wall seconds": 2.6461,
+        "canonical rows merged": 0
+      },
+      "canonical H rows": {
+        "rows": 50000,
+        "build seconds": 0.508354,
+        "search seconds": 1.27984,
+        "giant steps/second": 351606.0,
+        "EC scalar multiplications": 50003,
+        "EC point additions": 450002,
+        "total EC operations": 500005,
+        "peak rss mb": 20.9,
+        "wall seconds": 1.832,
+        "canonical rows merged": 0
+      },
+      "expanded->canonical merge": {
+        "rows": 50000,
+        "build seconds": 0.528405,
+        "search seconds": 1.30318,
+        "giant steps/second": 345308.0,
+        "EC scalar multiplications": 50003,
+        "EC point additions": 450002,
+        "total EC operations": 500005,
+        "peak rss mb": 24.5,
+        "wall seconds": 2.171,
+        "canonical rows merged": 100000
+      },
+      "economy canonical six-branch": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 2.833,
+        "avg total EC ops per run": 251035.1,
+        "partner recoveries": 7,
+        "signature pair mismatches": 0
+      },
+      "economy canonical routed": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.333,
+        "avg total EC ops per run": 252674.8,
+        "partner recoveries": 7,
+        "signature pair mismatches": 0
+      },
+      "economy expanded routed": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.667,
+        "avg total EC ops per run": 222581.8,
+        "partner recoveries": 9,
+        "signature pair mismatches": 0
+      },
+      "economy expanded routed + canonical merge": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.5,
+        "avg total EC ops per run": 261375.2,
+        "partner recoveries": 9,
+        "signature pair mismatches": 0
+      }
+    },
+    "100000": {
+      "continuous 3H rows": {
+        "rows": 300000,
+        "build seconds": 3.10015,
+        "search seconds": 0.916266,
+        "giant steps/second": 327416.0,
+        "EC scalar multiplications": 4,
+        "EC point additions": 600001,
+        "total EC operations": 600005,
+        "peak rss mb": 89.5,
+        "wall seconds": 4.0481,
+        "canonical rows merged": 0
+      },
+      "expanded 3H rows": {
+        "rows": 300000,
+        "build seconds": 3.74148,
+        "search seconds": 0.881563,
+        "giant steps/second": 340305.0,
+        "EC scalar multiplications": 300003,
+        "EC point additions": 300002,
+        "total EC operations": 600005,
+        "peak rss mb": 101.0,
+        "wall seconds": 5.1961,
+        "canonical rows merged": 0
+      },
+      "canonical H rows": {
+        "rows": 100000,
+        "build seconds": 1.06754,
+        "search seconds": 2.60409,
+        "giant steps/second": 345610.0,
+        "EC scalar multiplications": 100003,
+        "EC point additions": 900002,
+        "total EC operations": 1000005,
+        "peak rss mb": 36.5,
+        "wall seconds": 3.738,
+        "canonical rows merged": 0
+      },
+      "expanded->canonical merge": {
+        "rows": 100000,
+        "build seconds": 1.04889,
+        "search seconds": 2.66139,
+        "giant steps/second": 338170.0,
+        "EC scalar multiplications": 100003,
+        "EC point additions": 900002,
+        "total EC operations": 1000005,
+        "peak rss mb": 44.4,
+        "wall seconds": 4.3733,
+        "canonical rows merged": 200000
+      },
+      "economy canonical six-branch": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 2.833,
+        "avg total EC ops per run": 502000.7,
+        "partner recoveries": 7,
+        "signature pair mismatches": 0
+      },
+      "economy canonical routed": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.333,
+        "avg total EC ops per run": 507021.1,
+        "partner recoveries": 7,
+        "signature pair mismatches": 0
+      },
+      "economy expanded routed": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.667,
+        "avg total EC ops per run": 439677.2,
+        "partner recoveries": 9,
+        "signature pair mismatches": 0
+      },
+      "economy expanded routed + canonical merge": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.5,
+        "avg total EC ops per run": 529315.2,
+        "partner recoveries": 9,
+        "signature pair mismatches": 0
+      }
+    },
+    "200000": {
+      "continuous 3H rows": {
+        "rows": 600000,
+        "build seconds": 6.2057,
+        "search seconds": 1.87868,
+        "giant steps/second": 319374.0,
+        "EC scalar multiplications": 4,
+        "EC point additions": 1200001,
+        "total EC operations": 1200005,
+        "peak rss mb": 174.0,
+        "wall seconds": 8.1165,
+        "canonical rows merged": 0
+      },
+      "expanded 3H rows": {
+        "rows": 600000,
+        "build seconds": 8.14535,
+        "search seconds": 1.90743,
+        "giant steps/second": 314559.0,
+        "EC scalar multiplications": 600003,
+        "EC point additions": 600002,
+        "total EC operations": 1200005,
+        "peak rss mb": 197.8,
+        "wall seconds": 11.1721,
+        "canonical rows merged": 0
+      },
+      "canonical H rows": {
+        "rows": 200000,
+        "build seconds": 2.12297,
+        "search seconds": 5.58783,
+        "giant steps/second": 322129.0,
+        "EC scalar multiplications": 200003,
+        "EC point additions": 1800002,
+        "total EC operations": 2000005,
+        "peak rss mb": 70.9,
+        "wall seconds": 7.7969,
+        "canonical rows merged": 0
+      },
+      "expanded->canonical merge": {
+        "rows": 200000,
+        "build seconds": 2.16267,
+        "search seconds": 5.32544,
+        "giant steps/second": 338000.0,
+        "EC scalar multiplications": 200003,
+        "EC point additions": 1800002,
+        "total EC operations": 2000005,
+        "peak rss mb": 84.1,
+        "wall seconds": 8.7644,
+        "canonical rows merged": 400000
+      },
+      "economy expanded routed": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.583,
+        "avg total EC ops per run": 929881.7,
+        "partner recoveries": 8,
+        "signature pair mismatches": 0
+      },
+      "economy expanded routed + canonical merge": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.333,
+        "avg total EC ops per run": 1195018.8,
+        "partner recoveries": 8,
+        "signature pair mismatches": 0
+      }
+    },
+    "400000": {
+      "continuous 3H rows": {
+        "rows": 1200000,
+        "build seconds": 12.4605,
+        "search seconds": 3.79675,
+        "giant steps/second": 316060.0,
+        "EC scalar multiplications": 4,
+        "EC point additions": 2400001,
+        "total EC operations": 2400005,
+        "peak rss mb": 343.6,
+        "wall seconds": 16.2894,
+        "canonical rows merged": 0
+      },
+      "expanded 3H rows": {
+        "rows": 1200000,
+        "build seconds": 14.9817,
+        "search seconds": 3.7928,
+        "giant steps/second": 316389.0,
+        "EC scalar multiplications": 1200003,
+        "EC point additions": 1200002,
+        "total EC operations": 2400005,
+        "peak rss mb": 390.2,
+        "wall seconds": 20.9769,
+        "canonical rows merged": 0
+      },
+      "canonical H rows": {
+        "rows": 400000,
+        "build seconds": 4.262,
+        "search seconds": 11.3177,
+        "giant steps/second": 318085.0,
+        "EC scalar multiplications": 400003,
+        "EC point additions": 3600002,
+        "total EC operations": 4000005,
+        "peak rss mb": 132.9,
+        "wall seconds": 15.7197,
+        "canonical rows merged": 0
+      },
+      "expanded->canonical merge": {
+        "rows": 400000,
+        "build seconds": 4.29961,
+        "search seconds": 11.1016,
+        "giant steps/second": 324277.0,
+        "EC scalar multiplications": 400003,
+        "EC point additions": 3600002,
+        "total EC operations": 4000005,
+        "peak rss mb": 163.3,
+        "wall seconds": 17.8963,
+        "canonical rows merged": 800000
+      },
+      "economy expanded routed": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.583,
+        "avg total EC ops per run": 1862886.1,
+        "partner recoveries": 8,
+        "signature pair mismatches": 0
+      },
+      "economy expanded routed + canonical merge": {
+        "targets": 12,
+        "correct": 12,
+        "avg exact checks per hit": 1.333,
+        "avg total EC ops per run": 2407886.0,
+        "partner recoveries": 8,
+        "signature pair mismatches": 0
+      }
+    }
+  },
+  "failures": []
+}

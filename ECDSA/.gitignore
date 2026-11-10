@@ -1,0 +1,40 @@
+# --- build artifacts ---
+keyhunt/eng_bsgs
+keyhunt/keyhunt
+keyhunt/keyhunt_legacy
+keyhunt/bsgsd
+keyhunt/*.o
+keyhunt/*/*.o
+keyhunt/**/*.o
+
+# --- temporary / cache ---
+*.bin.temporary
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+*~
+
+# --- local scratch docs ---
+Пустой документ*
+Несохранённый документ*
+
+# --- secrets / env ---
+.env
+*.token
+*_token.txt
+
+# --- long cover validation artifacts ---
+representatives_expanded_H*.txt
+keyhunt/cp_*.txt
+
+# --- CBT1 regenerable artifacts (deterministic: make_expanded -> run_cbt1_build) ---
+table_cbt1_*.cbt1
+keyhunt/fnv1a64_tool
+
+# --- CBT1 validation sidecars ---
+*.cbt1.cache
+
+# --- equivalence / long-cover checkpoints (рядом с таблицами, keyhunt) ---
+cp_eq_*.txt
+cp_lc_*.txt

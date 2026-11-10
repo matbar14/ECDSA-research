@@ -1,0 +1,61 @@
+{
+  "start": 21778071482940061661655974875633165533184,
+  "width": 21778071482940061661655974875633165533184,
+  "samples": 30000,
+  "mode": "random",
+  "bands": 16,
+  "sectors": 8,
+  "train_count": 21000,
+  "holdout_count": 9000,
+  "seed": 20261003,
+  "features": {
+    "ordered_vertices": {
+      "training_buckets": 128,
+      "mean_bucket_members": 164.0625,
+      "top1_holdout_accuracy": 0.06477777777777778,
+      "top1_random_baseline": 0.0625,
+      "top_quarter_holdout_accuracy": 0.25344444444444447,
+      "top_quarter_random_baseline": 0.25,
+      "mean_training_short_span_fraction": 0.7583967184133551,
+      "holdout_short_span_coverage": 0.7665555555555555,
+      "holdout_short_span_fraction": 0.7588843174423441,
+      "normalized_mutual_information": 0.016182766361784395
+    },
+    "sorted_vertices": {
+      "training_buckets": 30,
+      "mean_bucket_members": 700.0,
+      "top1_holdout_accuracy": 0.06444444444444444,
+      "top1_random_baseline": 0.0625,
+      "top_quarter_holdout_accuracy": 0.24255555555555555,
+      "top_quarter_random_baseline": 0.25,
+      "mean_training_short_span_fraction": 0.7802927787894001,
+      "holdout_short_span_coverage": 0.7863333333333333,
+      "holdout_short_span_fraction": 0.7832514656909227,
+      "normalized_mutual_information": 0.0035175466102407224
+    },
+    "sorted_gaps": {
+      "training_buckets": 15,
+      "mean_bucket_members": 1400.0,
+      "top1_holdout_accuracy": 0.05811111111111111,
+      "top1_random_baseline": 0.0625,
+      "top_quarter_holdout_accuracy": 0.25166666666666665,
+      "top_quarter_random_baseline": 0.25,
+      "mean_training_short_span_fraction": 0.7878517361980122,
+      "holdout_short_span_coverage": 0.7941111111111111,
+      "holdout_short_span_fraction": 0.7882996984668144,
+      "normalized_mutual_information": 0.0016925312809459693
+    },
+    "center": {
+      "training_buckets": 50,
+      "mean_bucket_members": 420.0,
+      "top1_holdout_accuracy": 0.06311111111111112,
+      "top1_random_baseline": 0.0625,
+      "top_quarter_holdout_accuracy": 0.2457777777777778,
+      "top_quarter_random_baseline": 0.25,
+      "mean_training_short_span_fraction": 0.7301678877265364,
+      "holdout_short_span_coverage": 0.7833333333333333,
+      "holdout_short_span_fraction": 0.7765655492504703,
+      "normalized_mutual_information": 0.00615811751027172
+    }
+  }
+}

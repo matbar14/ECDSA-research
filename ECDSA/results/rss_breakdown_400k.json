@@ -1,0 +1,65 @@
+{
+  "canonical direct": {
+    "mode": "canonical direct",
+    "cmd": "--target 02d3fee1dd23eb00e7b1ecd022ef1203c77e44fc390c76126c24b0b6aa40f3fadd --start 0x4000000000000000000000000000000000 --size 500000000000 --segment 500000000000 --threads 2 --table-scalars /home/z/my-project/ECDSA-research/representatives_canonical_H400000.txt --glv-orbit --phase-signature --partner-table",
+    "returncode": 0,
+    "recovered": true,
+    "build seconds": 3.96833,
+    "stride line": 400000,
+    "rss timeline": {
+      "RSS after table load": {
+        "rss": 21668,
+        "hwm": 25548
+      },
+      "RSS after canonical pre-pass": {
+        "rss": 21668,
+        "hwm": 25548
+      },
+      "RSS after table build": {
+        "rss": 78072,
+        "hwm": 137372
+      }
+    },
+    "external peak rss kb (0.25s sampler)": 80992,
+    "counters": {
+      "merged rows": 0,
+      "insert collisions": 0,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "EC scalar multiplications (build)": 400000
+    },
+    "stderr tail": []
+  },
+  "merge (expanded + --canonical-k3)": {
+    "mode": "merge (expanded + --canonical-k3)",
+    "cmd": "--target 02d3fee1dd23eb00e7b1ecd022ef1203c77e44fc390c76126c24b0b6aa40f3fadd --start 0x4000000000000000000000000000000000 --size 500000000000 --segment 500000000000 --threads 2 --table-scalars /home/z/my-project/ECDSA-research/representatives_expanded_H400000.txt --glv-orbit --phase-signature --partner-table --canonical-k3",
+    "returncode": 0,
+    "recovered": true,
+    "build seconds": 4.06218,
+    "stride line": 400000,
+    "rss timeline": {
+      "RSS after table load": {
+        "rss": 51748,
+        "hwm": 86568
+      },
+      "RSS after canonical pre-pass": {
+        "rss": 20124,
+        "hwm": 86568
+      },
+      "RSS after table build": {
+        "rss": 76784,
+        "hwm": 135896
+      }
+    },
+    "external peak rss kb (0.25s sampler)": 79780,
+    "counters": {
+      "merged rows": 800000,
+      "insert collisions": 0,
+      "raw baby rows built": 400000,
+      "unique baby rows built": 400000,
+      "table rows stored": 400000,
+      "EC scalar multiplications (build)": 400000
+    },
+    "stderr tail": []
+  }
+}

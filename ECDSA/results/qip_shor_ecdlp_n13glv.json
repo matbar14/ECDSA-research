@@ -1,0 +1,143 @@
+{
+  "curves": [
+    {
+      "p": 127,
+      "a": 1,
+      "b": 0,
+      "order": 128,
+      "kind": "supersingular",
+      "family": "y^2=x^3+ax, p=3 (mod 4), #E=p+1",
+      "generator": [
+        3,
+        41
+      ],
+      "max order": 128
+    },
+    {
+      "p": 8191,
+      "a": 1,
+      "b": 0,
+      "order": 8192,
+      "kind": "supersingular",
+      "family": "y^2=x^3+ax, p=3 (mod 4), #E=p+1",
+      "generator": [
+        6,
+        4555
+      ],
+      "max order": 8192
+    },
+    {
+      "p": 31,
+      "a": 0,
+      "b": 3,
+      "order": 43,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 36,
+      "generator": [
+        1,
+        2
+      ]
+    },
+    {
+      "p": 139,
+      "a": 0,
+      "b": 2,
+      "order": 163,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 58,
+      "generator": [
+        3,
+        86
+      ]
+    },
+    {
+      "p": 541,
+      "a": 0,
+      "b": 2,
+      "order": 571,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 109,
+      "generator": [
+        1,
+        484
+      ]
+    },
+    {
+      "p": 1999,
+      "a": 0,
+      "b": 3,
+      "order": 2089,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 1262,
+      "generator": [
+        1,
+        2
+      ]
+    },
+    {
+      "p": 4003,
+      "a": 0,
+      "b": 2,
+      "order": 4111,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 1055,
+      "generator": [
+        2,
+        2920
+      ]
+    },
+    {
+      "p": 8089,
+      "a": 0,
+      "b": 19,
+      "order": 8233,
+      "kind": "glv",
+      "family": "y^2=x^3+b, j=0, p=1 (mod 3), #E простое = 1 (mod 3)",
+      "lambda": 5620,
+      "generator": [
+        1,
+        7150
+      ]
+    }
+  ],
+  "shots per run": 2,
+  "runs": [
+    {
+      "path": "gate",
+      "p": 127,
+      "n": 128,
+      "x": 39,
+      "shots": 2,
+      "on lattice": 2,
+      "recovered": null,
+      "seconds": 3.13,
+      "qubits": 21
+    },
+    {
+      "path": "fft",
+      "p": 4003,
+      "n": 4111,
+      "bits": 13,
+      "kind": "glv",
+      "x": 3298,
+      "shots": 2,
+      "u zero": 0,
+      "seconds": 5.098,
+      "build s": 0.052,
+      "qft s": 4.781,
+      "statevector MB": 257.9,
+      "recovered": "2/2"
+    }
+  ],
+  "equivalence": {
+    "n": 128,
+    "gate on lattice": "2/2",
+    "fft on lattice": "2/2",
+    "both on dual lattice": true
+  }
+}

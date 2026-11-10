@@ -1,0 +1,15 @@
+{
+  "source_start": 4096,
+  "source_width": 1000,
+  "covered_start": 101,
+  "covered_width": 100,
+  "sectors": 16,
+  "shift_count": 10,
+  "full_candidates": 1000000,
+  "ordered_candidates": 955570,
+  "ordered_fraction_of_full": 0.95557,
+  "ordered_savings": 0.04442999999999997,
+  "canonical_baseline_candidates": 959080,
+  "canonical_baseline_fraction": 0.95908,
+  "prediction_recall": 0.19
+}

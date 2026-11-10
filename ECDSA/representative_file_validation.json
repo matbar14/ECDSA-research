@@ -1,0 +1,19 @@
+{
+  "heads": 1000000,
+  "head": 594039,
+  "rotation": 0,
+  "sign": -1,
+  "stride index": 5837237,
+  "correct": true,
+  "wall seconds": 18.8,
+  "counters": {
+    "giant steps": 2687267,
+    "invariant hits": 1,
+    "exact candidate checks": 1,
+    "EC scalar multiplications": 1000005,
+    "EC point additions": 2687269,
+    "total EC operations": 3687274,
+    "signature routes": 1,
+    "partner recoveries": 0
+  }
+}

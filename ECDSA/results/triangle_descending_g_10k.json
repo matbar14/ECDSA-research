@@ -1,0 +1,797 @@
+{
+  "max_scalar": 10000,
+  "circle_circumference": 10000,
+  "sectors": 32,
+  "base_lambda_orbit": [
+    1,
+    0,
+    0
+  ],
+  "terminal_point": "0*G = infinity; Lambda undefined",
+  "raw_summary": {
+    "count": 10000,
+    "mean_min_arc_fraction": 0.38918669,
+    "median_min_arc_fraction": 0.4063,
+    "minimum_min_arc_fraction": 0.0,
+    "all_same_sector_fraction": 0.0007,
+    "mean_sector_count": 2.9058
+  },
+  "rotated_summary": {
+    "count": 10000,
+    "mean_min_arc_fraction": 0.3891867,
+    "median_min_arc_fraction": 0.4063,
+    "minimum_min_arc_fraction": 0.0001,
+    "all_same_sector_fraction": 0.0006,
+    "mean_sector_count": 2.9059
+  },
+  "wrap_integer_counts": {
+    "0": 1,
+    "1": 4982,
+    "2": 5017
+  },
+  "first_records": [
+    {
+      "scalar": 10000,
+      "offset_from_zero": 10000,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661663,
+      "raw": {
+        "min_arc_fraction": 0.5422,
+        "max_gap_fraction": 0.4578,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2649,
+          2773,
+          4578
+        ],
+        "positions": [
+          8,
+          31,
+          23
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5422,
+        "max_gap_fraction": 0.4578,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2649,
+          2773,
+          4578
+        ],
+        "positions": [
+          8,
+          31,
+          23
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9999,
+      "offset_from_zero": 9999,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661664,
+      "raw": {
+        "min_arc_fraction": 0.5448,
+        "max_gap_fraction": 0.4552,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2283,
+          3165,
+          4552
+        ],
+        "positions": [
+          13,
+          20,
+          30
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5448,
+        "max_gap_fraction": 0.4552,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2283,
+          3165,
+          4552
+        ],
+        "positions": [
+          13,
+          20,
+          30
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9998,
+      "offset_from_zero": 9998,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661665,
+      "raw": {
+        "min_arc_fraction": 0.2434,
+        "max_gap_fraction": 0.7566,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          877,
+          1557,
+          7566
+        ],
+        "positions": [
+          17,
+          24,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.2434,
+        "max_gap_fraction": 0.7566,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          877,
+          1557,
+          7566
+        ],
+        "positions": [
+          17,
+          24,
+          22
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9997,
+      "offset_from_zero": 9997,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661666,
+      "raw": {
+        "min_arc_fraction": 0.536,
+        "max_gap_fraction": 0.464,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1332,
+          4028,
+          4640
+        ],
+        "positions": [
+          24,
+          10,
+          29
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.536,
+        "max_gap_fraction": 0.464,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1332,
+          4028,
+          4640
+        ],
+        "positions": [
+          24,
+          10,
+          29
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9996,
+      "offset_from_zero": 9996,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661667,
+      "raw": {
+        "min_arc_fraction": 0.3761,
+        "max_gap_fraction": 0.6239,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          541,
+          3220,
+          6239
+        ],
+        "positions": [
+          16,
+          18,
+          28
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.3761,
+        "max_gap_fraction": 0.6239,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          541,
+          3220,
+          6239
+        ],
+        "positions": [
+          16,
+          18,
+          28
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9995,
+      "offset_from_zero": 9995,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661668,
+      "raw": {
+        "min_arc_fraction": 0.3982,
+        "max_gap_fraction": 0.6018,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1697,
+          2285,
+          6018
+        ],
+        "positions": [
+          28,
+          20,
+          15
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.3982,
+        "max_gap_fraction": 0.6018,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1697,
+          2285,
+          6018
+        ],
+        "positions": [
+          28,
+          20,
+          15
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9994,
+      "offset_from_zero": 9994,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661669,
+      "raw": {
+        "min_arc_fraction": 0.1918,
+        "max_gap_fraction": 0.8082,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          289,
+          1629,
+          8082
+        ],
+        "positions": [
+          9,
+          14,
+          8
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.1918,
+        "max_gap_fraction": 0.8082,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          289,
+          1629,
+          8082
+        ],
+        "positions": [
+          9,
+          14,
+          8
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 9993,
+      "offset_from_zero": 9993,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661670,
+      "raw": {
+        "min_arc_fraction": 0.5363,
+        "max_gap_fraction": 0.4637,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1752,
+          3611,
+          4637
+        ],
+        "positions": [
+          11,
+          23,
+          28
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5363,
+        "max_gap_fraction": 0.4637,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1752,
+          3611,
+          4637
+        ],
+        "positions": [
+          11,
+          23,
+          28
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9992,
+      "offset_from_zero": 9992,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661671,
+      "raw": {
+        "min_arc_fraction": 0.3291,
+        "max_gap_fraction": 0.6709,
+        "sector_count": 2,
+        "all_same_sector": false,
+        "gaps": [
+          75,
+          3216,
+          6709
+        ],
+        "positions": [
+          3,
+          14,
+          14
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.3291,
+        "max_gap_fraction": 0.6709,
+        "sector_count": 2,
+        "all_same_sector": false,
+        "gaps": [
+          75,
+          3216,
+          6709
+        ],
+        "positions": [
+          3,
+          14,
+          14
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 9991,
+      "offset_from_zero": 9991,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834661672,
+      "raw": {
+        "min_arc_fraction": 0.5487,
+        "max_gap_fraction": 0.4513,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2309,
+          3178,
+          4513
+        ],
+        "positions": [
+          29,
+          12,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5487,
+        "max_gap_fraction": 0.4513,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2309,
+          3178,
+          4513
+        ],
+        "positions": [
+          29,
+          12,
+          22
+        ]
+      },
+      "wrap_integer": 2
+    }
+  ],
+  "last_records": [
+    {
+      "scalar": 10,
+      "offset_from_zero": 10,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671653,
+      "raw": {
+        "min_arc_fraction": 0.5829,
+        "max_gap_fraction": 0.4171,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2866,
+          2963,
+          4171
+        ],
+        "positions": [
+          31,
+          9,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5829,
+        "max_gap_fraction": 0.4171,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2866,
+          2963,
+          4171
+        ],
+        "positions": [
+          31,
+          9,
+          22
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9,
+      "offset_from_zero": 9,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671654,
+      "raw": {
+        "min_arc_fraction": 0.0958,
+        "max_gap_fraction": 0.9042,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          118,
+          840,
+          9042
+        ],
+        "positions": [
+          1,
+          0,
+          30
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.0958,
+        "max_gap_fraction": 0.9042,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          118,
+          840,
+          9042
+        ],
+        "positions": [
+          1,
+          0,
+          30
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 8,
+      "offset_from_zero": 8,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671655,
+      "raw": {
+        "min_arc_fraction": 0.2953,
+        "max_gap_fraction": 0.7047,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1464,
+          1489,
+          7047
+        ],
+        "positions": [
+          16,
+          21,
+          26
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.2953,
+        "max_gap_fraction": 0.7047,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1464,
+          1489,
+          7047
+        ],
+        "positions": [
+          16,
+          21,
+          26
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 7,
+      "offset_from_zero": 7,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671656,
+      "raw": {
+        "min_arc_fraction": 0.5858,
+        "max_gap_fraction": 0.4142,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2420,
+          3438,
+          4142
+        ],
+        "positions": [
+          19,
+          11,
+          0
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5858,
+        "max_gap_fraction": 0.4142,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2420,
+          3438,
+          4142
+        ],
+        "positions": [
+          19,
+          11,
+          0
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 6,
+      "offset_from_zero": 6,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671657,
+      "raw": {
+        "min_arc_fraction": 0.4667,
+        "max_gap_fraction": 0.5333,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1670,
+          2997,
+          5333
+        ],
+        "positions": [
+          23,
+          1,
+          6
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4667,
+        "max_gap_fraction": 0.5333,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1670,
+          2997,
+          5333
+        ],
+        "positions": [
+          23,
+          1,
+          6
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 5,
+      "offset_from_zero": 5,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671658,
+      "raw": {
+        "min_arc_fraction": 0.4537,
+        "max_gap_fraction": 0.5463,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          960,
+          3577,
+          5463
+        ],
+        "positions": [
+          23,
+          2,
+          5
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4537,
+        "max_gap_fraction": 0.5463,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          960,
+          3577,
+          5463
+        ],
+        "positions": [
+          23,
+          2,
+          5
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 4,
+      "offset_from_zero": 4,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671659,
+      "raw": {
+        "min_arc_fraction": 0.4684,
+        "max_gap_fraction": 0.5316,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          255,
+          4429,
+          5316
+        ],
+        "positions": [
+          5,
+          4,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4684,
+        "max_gap_fraction": 0.5316,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          255,
+          4429,
+          5316
+        ],
+        "positions": [
+          5,
+          4,
+          22
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 3,
+      "offset_from_zero": 3,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671660,
+      "raw": {
+        "min_arc_fraction": 0.4284,
+        "max_gap_fraction": 0.5716,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1035,
+          3249,
+          5716
+        ],
+        "positions": [
+          4,
+          18,
+          8
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4284,
+        "max_gap_fraction": 0.5716,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          1035,
+          3249,
+          5716
+        ],
+        "positions": [
+          4,
+          18,
+          8
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 2,
+      "offset_from_zero": 2,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671661,
+      "raw": {
+        "min_arc_fraction": 0.6052,
+        "max_gap_fraction": 0.3948,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2951,
+          3101,
+          3948
+        ],
+        "positions": [
+          10,
+          20,
+          0
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.6052,
+        "max_gap_fraction": 0.3948,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          2951,
+          3101,
+          3948
+        ],
+        "positions": [
+          10,
+          20,
+          0
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1,
+      "offset_from_zero": 1,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671662,
+      "raw": {
+        "min_arc_fraction": 0.0,
+        "max_gap_fraction": 1.0,
+        "sector_count": 1,
+        "all_same_sector": true,
+        "gaps": [
+          0,
+          0,
+          10000
+        ],
+        "positions": [
+          0,
+          0,
+          0
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.0001,
+        "max_gap_fraction": 0.9999,
+        "sector_count": 2,
+        "all_same_sector": false,
+        "gaps": [
+          0,
+          1,
+          9999
+        ],
+        "positions": [
+          0,
+          31,
+          31
+        ]
+      },
+      "wrap_integer": 0
+    }
+  ],
+  "csv": "triangle_descending_g_10k.csv"
+}

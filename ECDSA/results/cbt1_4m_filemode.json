@@ -1,0 +1,170 @@
+{
+ "table": "table_cbt1_H4000000.cbt1",
+ "table bytes": 260000256,
+ "recovery": {
+  "target hex": "0x40000000000000000000000000007a1509",
+  "recovered hex": "00000000000000000000000000000040000000000000000000000000007a1509",
+  "correct": true,
+  "stride": "4000000",
+  "mmap backend reported": true,
+  "counters": {
+   "merged rows": "0",
+   "insert collisions": "0",
+   "exact candidate checks": "1",
+   "invariant hits": "1",
+   "EC scalar multiplications": "5"
+  },
+  "table build seconds (mmap+validate)": "8.3",
+  "build EC scalar mults": "0",
+  "wall seconds": 0.361,
+  "pass": true
+ },
+ "paired scan (20M giants, far target)": {
+  "scan size": 80000000000000,
+  "far target hex": "0x40000000000000000000038d7ea4c68000",
+  "ram": {
+   "wall seconds": 78.684,
+   "table build seconds": 14.0948,
+   "rss after build kB": 473832,
+   "hwm after build kB": 817696,
+   "ticker samples": [
+    {
+     "elapsed": 5.0,
+     "steps/s": 324217.6,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 10.0,
+     "steps/s": 324658.6,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 15.0,
+     "steps/s": 324467.6,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 20.0,
+     "steps/s": 324178.1,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 25.0,
+     "steps/s": 323830.2,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 30.0,
+     "steps/s": 323132.7,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 35.0,
+     "steps/s": 321896.0,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 40.0,
+     "steps/s": 321818.9,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 45.0,
+     "steps/s": 321731.0,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 50.0,
+     "steps/s": 321776.7,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 55.1,
+     "steps/s": 321211.8,
+     "rss kB": 473832
+    },
+    {
+     "elapsed": 60.1,
+     "steps/s": 321207.9,
+     "rss kB": 473832
+    }
+   ],
+   "steps/s median": 323132.7
+  },
+  "mmap": {
+   "wall seconds": 66.564,
+   "table build seconds": 2.25,
+   "rss after build kB": 4748,
+   "hwm after build kB": 257308,
+   "ticker samples": [
+    {
+     "elapsed": 5.0,
+     "steps/s": 305305.2,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 10.0,
+     "steps/s": 303740.6,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 15.0,
+     "steps/s": 304074.5,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 20.0,
+     "steps/s": 302912.0,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 25.0,
+     "steps/s": 303735.3,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 30.0,
+     "steps/s": 305337.2,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 35.0,
+     "steps/s": 306514.4,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 40.0,
+     "steps/s": 307185.9,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 45.0,
+     "steps/s": 307892.7,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 50.0,
+     "steps/s": 308008.2,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 55.0,
+     "steps/s": 306881.0,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 60.0,
+     "steps/s": 306070.5,
+     "rss kB": 253696
+    },
+    {
+     "elapsed": 65.1,
+     "steps/s": 304184.1,
+     "rss kB": 256772
+    }
+   ],
+   "steps/s median": 305337.2
+  },
+  "mmap/ram steps/s ratio": 0.9449
+ }
+}

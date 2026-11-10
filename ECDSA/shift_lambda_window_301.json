@@ -1,0 +1,28 @@
+{
+  "source_start": 4096,
+  "source_width": 1000,
+  "covered_start": 301,
+  "covered_width": 100,
+  "sectors": 16,
+  "shift_count": 10,
+  "shifts": [
+    -3795,
+    -3895,
+    -3995,
+    -4095,
+    -4195,
+    -4295,
+    -4395,
+    -4495,
+    -4595,
+    -4695
+  ],
+  "scalar_coverage_fraction": 1.0,
+  "triangle_sector_hit_fraction": 0.14,
+  "triangle_hit_baseline_per_window": 0.1875,
+  "minimum_inside_shifts_per_key": 1,
+  "maximum_inside_shifts_per_key": 1,
+  "point_identity_failures": 0,
+  "verification_samples": 32,
+  "seed": 20260926
+}

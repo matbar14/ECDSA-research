@@ -1,0 +1,1445 @@
+{
+  "start": 21778071482940061661655974875633165533184,
+  "width": 10000,
+  "sectors": 8,
+  "parity_counts": {
+    "0": 5050,
+    "1": 4950
+  },
+  "parity_hit_counts": {
+    "0": 1672,
+    "1": 1646
+  },
+  "parity_hit_rates": {
+    "0": 0.3310891089108911,
+    "1": 0.3325252525252525
+  },
+  "random_any_hit_baseline": 0.330078125,
+  "negation_lambda_triangle_mismatches": 0,
+  "parity_step_direction": {
+    "1": {
+      "positive": 0.4946127946127946,
+      "negative": 0.5053198653198653,
+      "zero": 6.734006734006734e-05
+    },
+    "0": {
+      "positive": 0.4946193965801809,
+      "negative": 0.5051165247243679,
+      "zero": 0.00026407869545124445
+    }
+  },
+  "shift_target": 21778071482940061661655974875633165538184,
+  "shift_radius": 100,
+  "shift_count": 201,
+  "shift_inside_window_count": 201,
+  "shift_point_check_failures": 0,
+  "shifts": [
+    {
+      "shift": -100,
+      "scalar": 21778071482940061661655974875633165538084,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -99,
+      "scalar": 21778071482940061661655974875633165538085,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -98,
+      "scalar": 21778071482940061661655974875633165538086,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -97,
+      "scalar": 21778071482940061661655974875633165538087,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -96,
+      "scalar": 21778071482940061661655974875633165538088,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -95,
+      "scalar": 21778071482940061661655974875633165538089,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -94,
+      "scalar": 21778071482940061661655974875633165538090,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -93,
+      "scalar": 21778071482940061661655974875633165538091,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -92,
+      "scalar": 21778071482940061661655974875633165538092,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -91,
+      "scalar": 21778071482940061661655974875633165538093,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -90,
+      "scalar": 21778071482940061661655974875633165538094,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -89,
+      "scalar": 21778071482940061661655974875633165538095,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -88,
+      "scalar": 21778071482940061661655974875633165538096,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -87,
+      "scalar": 21778071482940061661655974875633165538097,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -86,
+      "scalar": 21778071482940061661655974875633165538098,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -85,
+      "scalar": 21778071482940061661655974875633165538099,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -84,
+      "scalar": 21778071482940061661655974875633165538100,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -83,
+      "scalar": 21778071482940061661655974875633165538101,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -82,
+      "scalar": 21778071482940061661655974875633165538102,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -81,
+      "scalar": 21778071482940061661655974875633165538103,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -80,
+      "scalar": 21778071482940061661655974875633165538104,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -79,
+      "scalar": 21778071482940061661655974875633165538105,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -78,
+      "scalar": 21778071482940061661655974875633165538106,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -77,
+      "scalar": 21778071482940061661655974875633165538107,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -76,
+      "scalar": 21778071482940061661655974875633165538108,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -75,
+      "scalar": 21778071482940061661655974875633165538109,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -74,
+      "scalar": 21778071482940061661655974875633165538110,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -73,
+      "scalar": 21778071482940061661655974875633165538111,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -72,
+      "scalar": 21778071482940061661655974875633165538112,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -71,
+      "scalar": 21778071482940061661655974875633165538113,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -70,
+      "scalar": 21778071482940061661655974875633165538114,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -69,
+      "scalar": 21778071482940061661655974875633165538115,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -68,
+      "scalar": 21778071482940061661655974875633165538116,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -67,
+      "scalar": 21778071482940061661655974875633165538117,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -66,
+      "scalar": 21778071482940061661655974875633165538118,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -65,
+      "scalar": 21778071482940061661655974875633165538119,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -64,
+      "scalar": 21778071482940061661655974875633165538120,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -63,
+      "scalar": 21778071482940061661655974875633165538121,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -62,
+      "scalar": 21778071482940061661655974875633165538122,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -61,
+      "scalar": 21778071482940061661655974875633165538123,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -60,
+      "scalar": 21778071482940061661655974875633165538124,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -59,
+      "scalar": 21778071482940061661655974875633165538125,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -58,
+      "scalar": 21778071482940061661655974875633165538126,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -57,
+      "scalar": 21778071482940061661655974875633165538127,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -56,
+      "scalar": 21778071482940061661655974875633165538128,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -55,
+      "scalar": 21778071482940061661655974875633165538129,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -54,
+      "scalar": 21778071482940061661655974875633165538130,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -53,
+      "scalar": 21778071482940061661655974875633165538131,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -52,
+      "scalar": 21778071482940061661655974875633165538132,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -51,
+      "scalar": 21778071482940061661655974875633165538133,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -50,
+      "scalar": 21778071482940061661655974875633165538134,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -49,
+      "scalar": 21778071482940061661655974875633165538135,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -48,
+      "scalar": 21778071482940061661655974875633165538136,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -47,
+      "scalar": 21778071482940061661655974875633165538137,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -46,
+      "scalar": 21778071482940061661655974875633165538138,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -45,
+      "scalar": 21778071482940061661655974875633165538139,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -44,
+      "scalar": 21778071482940061661655974875633165538140,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -43,
+      "scalar": 21778071482940061661655974875633165538141,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -42,
+      "scalar": 21778071482940061661655974875633165538142,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -41,
+      "scalar": 21778071482940061661655974875633165538143,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -40,
+      "scalar": 21778071482940061661655974875633165538144,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -39,
+      "scalar": 21778071482940061661655974875633165538145,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -38,
+      "scalar": 21778071482940061661655974875633165538146,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -37,
+      "scalar": 21778071482940061661655974875633165538147,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -36,
+      "scalar": 21778071482940061661655974875633165538148,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -35,
+      "scalar": 21778071482940061661655974875633165538149,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -34,
+      "scalar": 21778071482940061661655974875633165538150,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -33,
+      "scalar": 21778071482940061661655974875633165538151,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -32,
+      "scalar": 21778071482940061661655974875633165538152,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -31,
+      "scalar": 21778071482940061661655974875633165538153,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -30,
+      "scalar": 21778071482940061661655974875633165538154,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -29,
+      "scalar": 21778071482940061661655974875633165538155,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -28,
+      "scalar": 21778071482940061661655974875633165538156,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -27,
+      "scalar": 21778071482940061661655974875633165538157,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -26,
+      "scalar": 21778071482940061661655974875633165538158,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -25,
+      "scalar": 21778071482940061661655974875633165538159,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -24,
+      "scalar": 21778071482940061661655974875633165538160,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -23,
+      "scalar": 21778071482940061661655974875633165538161,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -22,
+      "scalar": 21778071482940061661655974875633165538162,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -21,
+      "scalar": 21778071482940061661655974875633165538163,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -20,
+      "scalar": 21778071482940061661655974875633165538164,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -19,
+      "scalar": 21778071482940061661655974875633165538165,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -18,
+      "scalar": 21778071482940061661655974875633165538166,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -17,
+      "scalar": 21778071482940061661655974875633165538167,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -16,
+      "scalar": 21778071482940061661655974875633165538168,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -15,
+      "scalar": 21778071482940061661655974875633165538169,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -14,
+      "scalar": 21778071482940061661655974875633165538170,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -13,
+      "scalar": 21778071482940061661655974875633165538171,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -12,
+      "scalar": 21778071482940061661655974875633165538172,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -11,
+      "scalar": 21778071482940061661655974875633165538173,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -10,
+      "scalar": 21778071482940061661655974875633165538174,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -9,
+      "scalar": 21778071482940061661655974875633165538175,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -8,
+      "scalar": 21778071482940061661655974875633165538176,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -7,
+      "scalar": 21778071482940061661655974875633165538177,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -6,
+      "scalar": 21778071482940061661655974875633165538178,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -5,
+      "scalar": 21778071482940061661655974875633165538179,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -4,
+      "scalar": 21778071482940061661655974875633165538180,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -3,
+      "scalar": 21778071482940061661655974875633165538181,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": -2,
+      "scalar": 21778071482940061661655974875633165538182,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": -1,
+      "scalar": 21778071482940061661655974875633165538183,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 0,
+      "scalar": 21778071482940061661655974875633165538184,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 1,
+      "scalar": 21778071482940061661655974875633165538185,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 2,
+      "scalar": 21778071482940061661655974875633165538186,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 3,
+      "scalar": 21778071482940061661655974875633165538187,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 4,
+      "scalar": 21778071482940061661655974875633165538188,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 5,
+      "scalar": 21778071482940061661655974875633165538189,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 6,
+      "scalar": 21778071482940061661655974875633165538190,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 7,
+      "scalar": 21778071482940061661655974875633165538191,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 8,
+      "scalar": 21778071482940061661655974875633165538192,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 9,
+      "scalar": 21778071482940061661655974875633165538193,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 10,
+      "scalar": 21778071482940061661655974875633165538194,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 11,
+      "scalar": 21778071482940061661655974875633165538195,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 12,
+      "scalar": 21778071482940061661655974875633165538196,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 13,
+      "scalar": 21778071482940061661655974875633165538197,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 14,
+      "scalar": 21778071482940061661655974875633165538198,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 15,
+      "scalar": 21778071482940061661655974875633165538199,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 16,
+      "scalar": 21778071482940061661655974875633165538200,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 17,
+      "scalar": 21778071482940061661655974875633165538201,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 18,
+      "scalar": 21778071482940061661655974875633165538202,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 19,
+      "scalar": 21778071482940061661655974875633165538203,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 20,
+      "scalar": 21778071482940061661655974875633165538204,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 21,
+      "scalar": 21778071482940061661655974875633165538205,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 22,
+      "scalar": 21778071482940061661655974875633165538206,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 23,
+      "scalar": 21778071482940061661655974875633165538207,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 24,
+      "scalar": 21778071482940061661655974875633165538208,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 25,
+      "scalar": 21778071482940061661655974875633165538209,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 26,
+      "scalar": 21778071482940061661655974875633165538210,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 27,
+      "scalar": 21778071482940061661655974875633165538211,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 28,
+      "scalar": 21778071482940061661655974875633165538212,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 29,
+      "scalar": 21778071482940061661655974875633165538213,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 30,
+      "scalar": 21778071482940061661655974875633165538214,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 31,
+      "scalar": 21778071482940061661655974875633165538215,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 32,
+      "scalar": 21778071482940061661655974875633165538216,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 33,
+      "scalar": 21778071482940061661655974875633165538217,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 34,
+      "scalar": 21778071482940061661655974875633165538218,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 35,
+      "scalar": 21778071482940061661655974875633165538219,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 36,
+      "scalar": 21778071482940061661655974875633165538220,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 37,
+      "scalar": 21778071482940061661655974875633165538221,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 38,
+      "scalar": 21778071482940061661655974875633165538222,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 39,
+      "scalar": 21778071482940061661655974875633165538223,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 40,
+      "scalar": 21778071482940061661655974875633165538224,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 41,
+      "scalar": 21778071482940061661655974875633165538225,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 42,
+      "scalar": 21778071482940061661655974875633165538226,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 43,
+      "scalar": 21778071482940061661655974875633165538227,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 44,
+      "scalar": 21778071482940061661655974875633165538228,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 45,
+      "scalar": 21778071482940061661655974875633165538229,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 46,
+      "scalar": 21778071482940061661655974875633165538230,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 47,
+      "scalar": 21778071482940061661655974875633165538231,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 48,
+      "scalar": 21778071482940061661655974875633165538232,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 49,
+      "scalar": 21778071482940061661655974875633165538233,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 50,
+      "scalar": 21778071482940061661655974875633165538234,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 51,
+      "scalar": 21778071482940061661655974875633165538235,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 52,
+      "scalar": 21778071482940061661655974875633165538236,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 53,
+      "scalar": 21778071482940061661655974875633165538237,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 54,
+      "scalar": 21778071482940061661655974875633165538238,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 55,
+      "scalar": 21778071482940061661655974875633165538239,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 56,
+      "scalar": 21778071482940061661655974875633165538240,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 57,
+      "scalar": 21778071482940061661655974875633165538241,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 58,
+      "scalar": 21778071482940061661655974875633165538242,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 59,
+      "scalar": 21778071482940061661655974875633165538243,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 60,
+      "scalar": 21778071482940061661655974875633165538244,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 61,
+      "scalar": 21778071482940061661655974875633165538245,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 62,
+      "scalar": 21778071482940061661655974875633165538246,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 63,
+      "scalar": 21778071482940061661655974875633165538247,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 64,
+      "scalar": 21778071482940061661655974875633165538248,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 65,
+      "scalar": 21778071482940061661655974875633165538249,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 66,
+      "scalar": 21778071482940061661655974875633165538250,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 67,
+      "scalar": 21778071482940061661655974875633165538251,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 68,
+      "scalar": 21778071482940061661655974875633165538252,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 69,
+      "scalar": 21778071482940061661655974875633165538253,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 70,
+      "scalar": 21778071482940061661655974875633165538254,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 71,
+      "scalar": 21778071482940061661655974875633165538255,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 72,
+      "scalar": 21778071482940061661655974875633165538256,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 73,
+      "scalar": 21778071482940061661655974875633165538257,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 74,
+      "scalar": 21778071482940061661655974875633165538258,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 75,
+      "scalar": 21778071482940061661655974875633165538259,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 76,
+      "scalar": 21778071482940061661655974875633165538260,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 77,
+      "scalar": 21778071482940061661655974875633165538261,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 78,
+      "scalar": 21778071482940061661655974875633165538262,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 79,
+      "scalar": 21778071482940061661655974875633165538263,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 80,
+      "scalar": 21778071482940061661655974875633165538264,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 81,
+      "scalar": 21778071482940061661655974875633165538265,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 82,
+      "scalar": 21778071482940061661655974875633165538266,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 83,
+      "scalar": 21778071482940061661655974875633165538267,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 84,
+      "scalar": 21778071482940061661655974875633165538268,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 85,
+      "scalar": 21778071482940061661655974875633165538269,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 86,
+      "scalar": 21778071482940061661655974875633165538270,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 87,
+      "scalar": 21778071482940061661655974875633165538271,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 88,
+      "scalar": 21778071482940061661655974875633165538272,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 89,
+      "scalar": 21778071482940061661655974875633165538273,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 90,
+      "scalar": 21778071482940061661655974875633165538274,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 91,
+      "scalar": 21778071482940061661655974875633165538275,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 92,
+      "scalar": 21778071482940061661655974875633165538276,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 93,
+      "scalar": 21778071482940061661655974875633165538277,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 94,
+      "scalar": 21778071482940061661655974875633165538278,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 95,
+      "scalar": 21778071482940061661655974875633165538279,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 96,
+      "scalar": 21778071482940061661655974875633165538280,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 97,
+      "scalar": 21778071482940061661655974875633165538281,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 1
+    },
+    {
+      "shift": 98,
+      "scalar": 21778071482940061661655974875633165538282,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 99,
+      "scalar": 21778071482940061661655974875633165538283,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    },
+    {
+      "shift": 100,
+      "scalar": 21778071482940061661655974875633165538284,
+      "inside_window": true,
+      "point_matches_scalar_shift": true,
+      "compressed_parity": 0
+    }
+  ]
+}

@@ -1,0 +1,797 @@
+{
+  "max_scalar": 2000,
+  "circle_circumference": 2000,
+  "sectors": 32,
+  "base_lambda_orbit": [
+    1,
+    0,
+    0
+  ],
+  "terminal_point": "0*G = infinity; Lambda undefined",
+  "raw_summary": {
+    "count": 2000,
+    "mean_min_arc_fraction": 0.383129,
+    "median_min_arc_fraction": 0.3965,
+    "minimum_min_arc_fraction": 0.0,
+    "all_same_sector_fraction": 0.0015,
+    "mean_sector_count": 2.9
+  },
+  "rotated_summary": {
+    "count": 2000,
+    "mean_min_arc_fraction": 0.38312925000000003,
+    "median_min_arc_fraction": 0.3965,
+    "minimum_min_arc_fraction": 0.0005,
+    "all_same_sector_fraction": 0.001,
+    "mean_sector_count": 2.9005
+  },
+  "wrap_integer_counts": {
+    "0": 1,
+    "1": 1039,
+    "2": 960
+  },
+  "first_records": [
+    {
+      "scalar": 2000,
+      "offset_from_zero": 2000,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669663,
+      "raw": {
+        "min_arc_fraction": 0.5985,
+        "max_gap_fraction": 0.4015,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          561,
+          636,
+          803
+        ],
+        "positions": [
+          1,
+          10,
+          20
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5985,
+        "max_gap_fraction": 0.4015,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          561,
+          636,
+          803
+        ],
+        "positions": [
+          1,
+          10,
+          20
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1999,
+      "offset_from_zero": 1999,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669664,
+      "raw": {
+        "min_arc_fraction": 0.473,
+        "max_gap_fraction": 0.527,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          157,
+          789,
+          1054
+        ],
+        "positions": [
+          1,
+          16,
+          14
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.473,
+        "max_gap_fraction": 0.527,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          157,
+          789,
+          1054
+        ],
+        "positions": [
+          1,
+          16,
+          14
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1998,
+      "offset_from_zero": 1998,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669665,
+      "raw": {
+        "min_arc_fraction": 0.2865,
+        "max_gap_fraction": 0.7135,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          136,
+          437,
+          1427
+        ],
+        "positions": [
+          30,
+          5,
+          28
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.2865,
+        "max_gap_fraction": 0.7135,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          136,
+          437,
+          1427
+        ],
+        "positions": [
+          30,
+          5,
+          28
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 1997,
+      "offset_from_zero": 1997,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669666,
+      "raw": {
+        "min_arc_fraction": 0.2925,
+        "max_gap_fraction": 0.7075,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          46,
+          539,
+          1415
+        ],
+        "positions": [
+          2,
+          26,
+          3
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.2925,
+        "max_gap_fraction": 0.7075,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          46,
+          539,
+          1415
+        ],
+        "positions": [
+          2,
+          26,
+          3
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1996,
+      "offset_from_zero": 1996,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669667,
+      "raw": {
+        "min_arc_fraction": 0.385,
+        "max_gap_fraction": 0.615,
+        "sector_count": 2,
+        "all_same_sector": false,
+        "gaps": [
+          4,
+          766,
+          1230
+        ],
+        "positions": [
+          14,
+          2,
+          14
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.385,
+        "max_gap_fraction": 0.615,
+        "sector_count": 2,
+        "all_same_sector": false,
+        "gaps": [
+          4,
+          766,
+          1230
+        ],
+        "positions": [
+          14,
+          2,
+          14
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1995,
+      "offset_from_zero": 1995,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669668,
+      "raw": {
+        "min_arc_fraction": 0.3035,
+        "max_gap_fraction": 0.6965,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          58,
+          549,
+          1393
+        ],
+        "positions": [
+          29,
+          28,
+          6
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.3035,
+        "max_gap_fraction": 0.6965,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          58,
+          549,
+          1393
+        ],
+        "positions": [
+          29,
+          28,
+          6
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 1994,
+      "offset_from_zero": 1994,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669669,
+      "raw": {
+        "min_arc_fraction": 0.206,
+        "max_gap_fraction": 0.794,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          188,
+          224,
+          1588
+        ],
+        "positions": [
+          17,
+          24,
+          21
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.206,
+        "max_gap_fraction": 0.794,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          188,
+          224,
+          1588
+        ],
+        "positions": [
+          17,
+          24,
+          21
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 1993,
+      "offset_from_zero": 1993,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669670,
+      "raw": {
+        "min_arc_fraction": 0.5205,
+        "max_gap_fraction": 0.4795,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          386,
+          655,
+          959
+        ],
+        "positions": [
+          7,
+          1,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5205,
+        "max_gap_fraction": 0.4795,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          386,
+          655,
+          959
+        ],
+        "positions": [
+          7,
+          1,
+          22
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1992,
+      "offset_from_zero": 1992,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669671,
+      "raw": {
+        "min_arc_fraction": 0.5915,
+        "max_gap_fraction": 0.4085,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          427,
+          756,
+          817
+        ],
+        "positions": [
+          1,
+          8,
+          21
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.5915,
+        "max_gap_fraction": 0.4085,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          427,
+          756,
+          817
+        ],
+        "positions": [
+          1,
+          8,
+          21
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1991,
+      "offset_from_zero": 1991,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834669672,
+      "raw": {
+        "min_arc_fraction": 0.3195,
+        "max_gap_fraction": 0.6805,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          180,
+          459,
+          1361
+        ],
+        "positions": [
+          27,
+          19,
+          16
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.3195,
+        "max_gap_fraction": 0.6805,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          180,
+          459,
+          1361
+        ],
+        "positions": [
+          27,
+          19,
+          16
+        ]
+      },
+      "wrap_integer": 2
+    }
+  ],
+  "last_records": [
+    {
+      "scalar": 10,
+      "offset_from_zero": 10,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671653,
+      "raw": {
+        "min_arc_fraction": 0.583,
+        "max_gap_fraction": 0.417,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          573,
+          593,
+          834
+        ],
+        "positions": [
+          31,
+          9,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.583,
+        "max_gap_fraction": 0.417,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          573,
+          593,
+          834
+        ],
+        "positions": [
+          31,
+          9,
+          22
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 9,
+      "offset_from_zero": 9,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671654,
+      "raw": {
+        "min_arc_fraction": 0.0955,
+        "max_gap_fraction": 0.9045,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          23,
+          168,
+          1809
+        ],
+        "positions": [
+          1,
+          0,
+          30
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.0955,
+        "max_gap_fraction": 0.9045,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          23,
+          168,
+          1809
+        ],
+        "positions": [
+          1,
+          0,
+          30
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 8,
+      "offset_from_zero": 8,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671655,
+      "raw": {
+        "min_arc_fraction": 0.2955,
+        "max_gap_fraction": 0.7045,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          293,
+          298,
+          1409
+        ],
+        "positions": [
+          16,
+          21,
+          26
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.2955,
+        "max_gap_fraction": 0.7045,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          293,
+          298,
+          1409
+        ],
+        "positions": [
+          16,
+          21,
+          26
+        ]
+      },
+      "wrap_integer": 2
+    },
+    {
+      "scalar": 7,
+      "offset_from_zero": 7,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671656,
+      "raw": {
+        "min_arc_fraction": 0.586,
+        "max_gap_fraction": 0.414,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          484,
+          688,
+          828
+        ],
+        "positions": [
+          19,
+          11,
+          0
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.586,
+        "max_gap_fraction": 0.414,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          484,
+          688,
+          828
+        ],
+        "positions": [
+          19,
+          11,
+          0
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 6,
+      "offset_from_zero": 6,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671657,
+      "raw": {
+        "min_arc_fraction": 0.4665,
+        "max_gap_fraction": 0.5335,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          334,
+          599,
+          1067
+        ],
+        "positions": [
+          23,
+          1,
+          6
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4665,
+        "max_gap_fraction": 0.5335,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          334,
+          599,
+          1067
+        ],
+        "positions": [
+          23,
+          1,
+          6
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 5,
+      "offset_from_zero": 5,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671658,
+      "raw": {
+        "min_arc_fraction": 0.4535,
+        "max_gap_fraction": 0.5465,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          192,
+          715,
+          1093
+        ],
+        "positions": [
+          23,
+          2,
+          5
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4535,
+        "max_gap_fraction": 0.5465,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          192,
+          715,
+          1093
+        ],
+        "positions": [
+          23,
+          2,
+          5
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 4,
+      "offset_from_zero": 4,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671659,
+      "raw": {
+        "min_arc_fraction": 0.4685,
+        "max_gap_fraction": 0.5315,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          51,
+          886,
+          1063
+        ],
+        "positions": [
+          5,
+          4,
+          22
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.4685,
+        "max_gap_fraction": 0.5315,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          51,
+          886,
+          1063
+        ],
+        "positions": [
+          5,
+          4,
+          22
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 3,
+      "offset_from_zero": 3,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671660,
+      "raw": {
+        "min_arc_fraction": 0.428,
+        "max_gap_fraction": 0.572,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          207,
+          649,
+          1144
+        ],
+        "positions": [
+          4,
+          18,
+          8
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.428,
+        "max_gap_fraction": 0.572,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          207,
+          649,
+          1144
+        ],
+        "positions": [
+          4,
+          18,
+          8
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 2,
+      "offset_from_zero": 2,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671661,
+      "raw": {
+        "min_arc_fraction": 0.605,
+        "max_gap_fraction": 0.395,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          590,
+          620,
+          790
+        ],
+        "positions": [
+          10,
+          20,
+          0
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.605,
+        "max_gap_fraction": 0.395,
+        "sector_count": 3,
+        "all_same_sector": false,
+        "gaps": [
+          590,
+          620,
+          790
+        ],
+        "positions": [
+          10,
+          20,
+          0
+        ]
+      },
+      "wrap_integer": 1
+    },
+    {
+      "scalar": 1,
+      "offset_from_zero": 1,
+      "rotation_field": 115792089237316195423570985008687907853269984665640564039457584007908834671662,
+      "raw": {
+        "min_arc_fraction": 0.0,
+        "max_gap_fraction": 1.0,
+        "sector_count": 1,
+        "all_same_sector": true,
+        "gaps": [
+          0,
+          0,
+          2000
+        ],
+        "positions": [
+          0,
+          0,
+          0
+        ]
+      },
+      "rotated": {
+        "min_arc_fraction": 0.0005,
+        "max_gap_fraction": 0.9995,
+        "sector_count": 2,
+        "all_same_sector": false,
+        "gaps": [
+          0,
+          1,
+          1999
+        ],
+        "positions": [
+          0,
+          31,
+          31
+        ]
+      },
+      "wrap_integer": 0
+    }
+  ],
+  "csv": "triangle_descending_g.csv"
+}

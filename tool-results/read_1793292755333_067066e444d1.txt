@@ -1,0 +1,984 @@
+     1→     1→/*
+     2→     2→ * Experimental bounded/segmented BSGS benchmark.
+     3→     3→ *
+     4→     4→ * This intentionally lives outside keyhunt.cpp: the production search modes
+     5→     5→ * remain unchanged while the memory/time trade-off can be measured on a
+     6→     6→ * finite, user-supplied interval and a known test public key.
+     7→     7→ */
+     8→     8→
+     9→     9→#include <algorithm>
+    10→    10→#include <array>
+    11→    11→#include <atomic>
+    12→    12→#include <chrono>
+    13→    13→#include <cmath>
+    14→    14→#include <cstdlib>
+    15→    15→#include <cstdint>
+    16→    16→#include <cstdio>
+    17→    17→#include <cstring>
+    18→    18→#include <getopt.h>
+    19→    19→#include <iostream>
+    20→    20→#include <limits>
+    21→    21→#include <mutex>
+    22→    22→#include <string>
+    23→    23→#include <thread>
+    24→    24→#include <vector>
+    25→    25→
+    26→    26→#include "secp256k1/SECP256k1.h"
+    27→    27→#include "secp256k1/Point.h"
+    28→    28→#include "secp256k1/Int.h"
+    29→    29→
+    30→    30→namespace {
+    31→    31→
+    32→    32→struct BabyRow {
+    33→    33→  std::array<unsigned char, 33> key;
+    34→    34→  uint64_t j;
+    35→    35→};
+    36→    36→
+    37→    37→Secp256K1 curve;
+    38→    38→Point target;
+    39→    39→Point search_target;
+    40→    40→Int range_start;
+    41→    41→uint64_t range_size = 0;
+    42→    42→uint64_t segment_size = 100000;
+    43→    43→uint64_t requested_baby_rows = 0;
+    44→    44→bool glv_orbit_mode = false;
+    45→    45→unsigned worker_count = 1;
+    46→    46→std::atomic<uint64_t> segments_done{0};
+    47→    47→std::atomic<uint64_t> baby_rows{0};
+    48→    48→std::atomic<uint64_t> raw_baby_rows{0};
+    49→    49→std::atomic<uint64_t> giant_steps{0};
+    50→    50→std::atomic<uint64_t> giant_steps_scheduled{0};
+    51→    51→std::atomic<uint64_t> giant_steps_planned{0};
+    52→    52→std::atomic<uint64_t> invariant_hits{0};
+    53→    53→std::atomic<uint64_t> exact_candidate_checks{0};
+    54→    54→std::atomic<uint64_t> orbit_factor_checks{0};
+    55→    55→std::atomic<uint64_t> signature_routes{0};
+    56→    56→std::atomic<uint64_t> signature_anomalies{0};
+    57→    57→std::atomic<uint64_t> orbit_duplicate_rows{0};
+    58→    58→std::atomic<uint64_t> partner_recoveries{0};
+    59→    59→std::atomic<uint64_t> lambda_calculations{0};
+    60→    60→std::atomic<uint64_t> priority_slices{0};
+    61→    61→std::atomic<uint64_t> fallback_slices{0};
+    62→    62→std::atomic<bool> found{false};
+    63→    63→std::mutex found_mutex;
+    64→    64→std::vector<BabyRow> shared_table;
+    65→    65→uint64_t shared_baby_rows = 0;
+    66→    66→Int found_scalar;
+    67→    67→Int found_shift;
+    68→    68→Int found_shifted_scalar;
+    69→    69→uint64_t found_segment = 0;
+    70→    70→uint64_t found_local_offset = 0;
+    71→    71→Int glv_lambda;
+    72→    72→Int glv_lambda2;
+    73→    73→Int active_shift;
+    74→    74→uint64_t active_range_size = 0;
+    75→    75→bool enforce_cover_range = false;
+    76→    76→Int cover_start;
+    77→    77→Int cover_end;
+    78→    78→bool lambda_priority = false;
+    79→    79→uint64_t lambda_sector_count = 16;
+    80→    80→bool phase_signature = false;
+    81→    81→// --partner-table: exact-verify out-of-interval GLV orbit branches. A K3 hit
+    82→    82→// never fires spuriously (roots of X^3-c are exactly one orbit's x-triple),
+    83→    83→// so any branch candidate that passes the EC check IS the target scalar even
+    84→    84→// when it lies outside the searched interval (an orbit partner of a row).
+    85→    85→bool partner_table_mode = false;
+    86→    86→Int beta;
+    87→    87→Int beta_g;
+    88→    88→
+    89→    89→// Parallel to shared_table (same order): (d01, d12) of the row point, used
+    90→    90→// by --phase-signature to route a K3 bucket match to one GLV branch pair.
+    91→    91→std::vector<std::array<unsigned char, 64>> shared_signatures;
+    92→    92→
+    93→    93→Point add_safe(Point &a, Point &b) {
+    94→    94→  if (a.isZero()) return Point(b);
+    95→    95→  if (b.isZero()) return Point(a);
+    96→    96→  if (a.x.IsEqual(&b.x)) {
+    97→    97→    if (a.y.IsEqual(&b.y)) return curve.DoubleDirect(a);
+    98→    98→    Int y_sum(&a.y);
+    99→    99→    y_sum.Add(&b.y);
+   100→   100→    y_sum.Mod(&curve.P);
+   101→   101→    if (y_sum.IsZero()) {
+   102→   102→      Point infinity;
+   103→   103→      infinity.Clear();
+   104→   104→      return infinity;
+   105→   105→    }
+   106→   106→  }
+   107→   107→  return curve.AddDirect(a, b);
+   108→   108→}
+   109→   109→
+   110→   110→std::array<unsigned char, 33> point_key(Point &p) {
+   111→   111→  std::array<unsigned char, 33> raw{};
+   112→   112→  if (p.isZero()) {
+   113→   113→    return raw;
+   114→   114→  }
+   115→   115→  raw[0] = p.y.IsEven() ? 0x02 : 0x03;
+   116→   116→  alignas(8) unsigned char x_bytes[32];
+   117→   117→  p.x.Get32Bytes(x_bytes);
+   118→   118→  std::memcpy(raw.data() + 1, x_bytes, 32);
+   119→   119→  return raw;
+   120→   120→}
+   121→   121→
+   122→   122→std::array<unsigned char, 33> invariant_key(Point &p) {
+   123→   123→  std::array<unsigned char, 33> raw{};
+   124→   124→  if (p.isZero()) return raw;
+   125→   125→  Int cube;
+   126→   126→  cube.ModCube(&p.x);
+   127→   127→  alignas(8) unsigned char cube_bytes[32];
+   128→   128→  cube.Get32Bytes(cube_bytes);
+   129→   129→  std::memcpy(raw.data() + 1, cube_bytes, 32);
+   130→   130→  return raw;
+   131→   131→}
+   132→   132→
+   133→   133→bool row_less(const BabyRow &a, const BabyRow &b) {
+   134→   134→  return a.key < b.key;
+   135→   135→}
+   136→   136→
+   137→   137→Int lambda_value_for_x(Int x) {
+   138→   138→  if (x.IsZero()) {
+   139→   139→    Int zero;
+   140→   140→    zero.SetInt32(0);
+   141→   141→    return zero;
+   142→   142→  }
+   143→   143→  Int beta_x;
+   144→   144→  beta_x.ModMulK1(&beta, &x);
+   145→   145→  Int left_g;
+   146→   146→  left_g.ModSub(&curve.G.x, &beta_g);
+   147→   147→  Int left_x;
+   148→   148→  left_x.ModSub(&x, &beta_x);
+   149→   149→  Int numerator;
+   150→   150→  numerator.ModMulK1(&left_g, &left_x);
+   151→   151→
+   152→   152→  Int right_g;
+   153→   153→  right_g.ModSub(&curve.G.x, &beta_x);
+   154→   154→  Int right_x;
+   155→   155→  right_x.ModSub(&x, &beta_g);
+   156→   156→  Int denominator;
+   157→   157→  denominator.ModMulK1(&right_g, &right_x);
+   158→   158→  if (denominator.IsZero()) {
+   159→   159→    Int zero;
+   160→   160→    zero.SetInt32(0);
+   161→   161→    return zero;
+   162→   162→  }
+   163→   163→  denominator.ModInv();
+   164→   164→  numerator.ModMulK1(&denominator);
+   165→   165→  return numerator;
+   166→   166→}
+   167→   167→
+   168→   168→std::array<Int, 3> lambda_triangle_values(Point &point) {
+   169→   169→  Int x0;
+   170→   170→  if (!point.isZero()) x0.Set(&point.x);
+   171→   171→  else x0.SetInt32(0);
+   172→   172→  Int x1;
+   173→   173→  x1.ModMulK1(&beta, &x0);
+   174→   174→  Int x2;
+   175→   175→  x2.ModMulK1(&beta, &x1);
+   176→   176→  return {lambda_value_for_x(x0), lambda_value_for_x(x1),
+   177→   177→          lambda_value_for_x(x2)};
+   178→   178→}
+   179→   179→
+   180→   180→// Phase signature (d01, d12) of the ordered Lambda triple of p:
+   181→   181→//   d01 = Lambda(phi(p)) - Lambda(p), d12 = Lambda(phi^2(p)) - Lambda(phi(p)).
+   182→   182→// It is invariant under p -> -p and cyclically permuted by phi, so a bucket
+   183→   183→// match on K3=x^3 can be routed to one (+/- lambda^r) branch pair.
+   184→   184→std::array<unsigned char, 64> phase_signature_of(Point &p) {
+   185→   185→  std::array<unsigned char, 64> raw{};
+   186→   186→  if (p.isZero()) return raw;
+   187→   187→  std::array<Int, 3> values = lambda_triangle_values(p);
+   188→   188→  Int d01;
+   189→   189→  d01.ModSub(&values[1], &values[0]);
+   190→   190→  Int d12;
+   191→   191→  d12.ModSub(&values[2], &values[1]);
+   192→   192→  alignas(8) unsigned char tmp[32];
+   193→   193→  d01.Get32Bytes(tmp);
+   194→   194→  std::memcpy(raw.data(), tmp, 32);
+   195→   195→  d12.Get32Bytes(tmp);
+   196→   196→  std::memcpy(raw.data() + 32, tmp, 32);
+   197→   197→  return raw;
+   198→   198→}
+   199→   199→
+   200→   200→uint64_t ceil_sqrt_u64(uint64_t n) {
+   201→   201→  if (n <= 1) return 1;
+   202→   202→  uint64_t r = static_cast<uint64_t>(std::sqrt(static_cast<long double>(n)));
+   203→   203→  if (r == 0) r = 1;
+   204→   204→  while (r != UINT64_MAX && r < (n - 1) / r + 1) ++r;
+   205→   205→  while (r > 1 && (r - 1) >= (n - 1) / (r - 1) + 1) --r;
+   206→   206→  return r;
+   207→   207→}
+   208→   208→
+   209→   209→bool parse_u64(const char *s, uint64_t &out) {
+   210→   210→  if (!s || !*s) return false;
+   211→   211→  // Reject leading '+'/'-' and blanks: strtoull silently wraps "-1" into
+   212→   212→  // ULLONG_MAX, which used to be accepted as a valid width.
+   213→   213→  for (const char *p = s; *p; ++p) {
+   214→   214→    if (*p == '+' || *p == '-' || *p == ' ' || *p == '\t') return false;
+   215→   215→  }
+   216→   216→  char *end = nullptr;
+   217→   217→  unsigned long long value = std::strtoull(s, &end, 0);
+   218→   218→  if (*end != '\0') return false;
+   219→   219→  out = static_cast<uint64_t>(value);
+   220→   220→  return true;
+   221→   221→}
+   222→   222→
+   223→   223→bool parse_int(const std::string &text, Int &out) {
+   224→   224→  if (text.size() > 2 && text[0] == '0' &&
+   225→   225→      (text[1] == 'x' || text[1] == 'X')) {
+   226→   226→    out.SetBase16(text.c_str() + 2);
+   227→   227→    return true;
+   228→   228→  }
+   229→   229→  bool decimal = !text.empty();
+   230→   230→  for (char ch : text) decimal = decimal && ch >= '0' && ch <= '9';
+   231→   231→  if (!decimal) return false;
+   232→   232→  out.SetBase10(text.c_str());
+   233→   233→  return true;
+   234→   234→}
+   235→   235→
+   236→   236→bool parse_signed_int(const std::string &text, Int &out) {
+   237→   237→  if (text.empty()) return false;
+   238→   238→  if (text[0] != '-') return parse_int(text, out);
+   239→   239→  if (text.size() == 1) return false;
+   240→   240→  Int magnitude;
+   241→   241→  if (!parse_int(text.substr(1), magnitude)) return false;
+   242→   242→  out.Set(&curve.order);
+   243→   243→  out.Sub(&magnitude);
+   244→   244→  out.Mod(&curve.order);
+   245→   245→  return true;
+   246→   246→}
+   247→   247→
+   248→   248→void set_scaled_mod(Int &out, Int &factor, uint64_t value) {
+   249→   249→  out.Set(&factor);
+   250→   250→  out.Mult(value);
+   251→   251→  out.Mod(&curve.order);
+   252→   252→}
+   253→   253→
+   254→   254→void subtract_order_mod(Int &out, Int &value, Int &shift) {
+   255→   255→  out.Set(&value);
+   256→   256→  if (out.IsLower(&shift)) out.Add(&curve.order);
+   257→   257→  out.Sub(&shift);
+   258→   258→  out.Mod(&curve.order);
+   259→   259→}
+   260→   260→
+   261→   261→bool candidate_in_cover(const Int &candidate) {
+   262→   262→  if (!enforce_cover_range) return true;
+   263→   263→  Int value(candidate);
+   264→   264→  return !value.IsLower(&cover_start) && value.IsLower(&cover_end);
+   265→   265→}
+   266→   266→
+   267→   267→bool check_orbit_candidate(Int &base_scalar, uint64_t j,
+   268→   268→                           Int &segment_end, Int &candidate_out,
+   269→   269→                           uint64_t &offset_out) {
+   270→   270→  Int factors[6];
+   271→   271→  factors[0].SetInt64(j);
+   272→   272→  factors[0].Mod(&curve.order);
+   273→   273→  set_scaled_mod(factors[1], glv_lambda, j);
+   274→   274→  set_scaled_mod(factors[2], glv_lambda2, j);
+   275→   275→  for (int i = 0; i < 3; ++i) {
+   276→   276→    factors[i + 3].Set(&curve.order);
+   277→   277→    factors[i + 3].Sub(&factors[i]);
+   278→   278→  }
+   279→   279→  for (Int &factor : factors) {
+   280→   280→    orbit_factor_checks.fetch_add(1, std::memory_order_relaxed);
+   281→   281→    Int candidate;
+   282→   282→    candidate.Set(&base_scalar);
+   283→   283→    candidate.Add(&factor);
+   284→   284→    candidate.Mod(&curve.order);
+   285→   285→    bool in_interval = !candidate.IsLower(&range_start) &&
+   286→   286→                       candidate.IsLower(&segment_end);
+   287→   287→    if (!in_interval && !partner_table_mode) continue;
+   288→   288→    exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
+   289→   289→    Point check = curve.ComputePublicKey(&candidate);
+   290→   290→    if (check.equals(search_target)) {
+   291→   291→      Int shifted_candidate(&candidate);
+   292→   292→      Int recovered;
+   293→   293→      subtract_order_mod(recovered, candidate, active_shift);
+   294→   294→      Point original_check = curve.ComputePublicKey(&recovered);
+   295→   295→      if (!original_check.equals(target) ||
+   296→   296→          (!partner_table_mode && !candidate_in_cover(recovered))) {
+   297→   297→        continue;
+   298→   298→      }
+   299→   299→      if (!in_interval) {
+   300→   300→        partner_recoveries.fetch_add(1, std::memory_order_relaxed);
+   301→   301→      }
+   302→   302→      candidate_out.Set(&recovered);
+   303→   303→      Int delta(&shifted_candidate);
+   304→   304→      delta.Sub(&range_start);
+   305→   305→      // Partner candidates sit far outside the 64-bit window offset range.
+   306→   306→      offset_out = in_interval ? delta.GetInt64() : 0;
+   307→   307→      return true;
+   308→   308→    }
+   309→   309→  }
+   310→   310→  return false;
+   311→   311→}
+   312→   312→
+   313→   313→// Route a K3 bucket match with the (d01, d12) phase signature: identify the
+   314→   314→// rotation r with giant = phi^r(+-row), then check only the two factors
+   315→   315→// (+-lambda^r * j). Falls back to the full six-branch check when the row
+   316→   316→// signature is degenerate, so coverage never depends on the router.
+   317→   317→bool check_orbit_candidate_signature(Int &base_scalar, uint64_t j,
+   318→   318→                                     size_t row_index,
+   319→   319→                                     std::array<unsigned char, 64> &giant_sig,
+   320→   320→                                     Int &segment_end, Int &candidate_out,
+   321→   321→                                     uint64_t &offset_out) {
+   322→   322→  const std::array<unsigned char, 64> &row_sig =
+   323→   323→      shared_signatures[row_index];
+   324→   324→  alignas(8) unsigned char r01_bytes[32];
+   325→   325→  alignas(8) unsigned char r12_bytes[32];
+   326→   326→  std::memcpy(r01_bytes, row_sig.data(), 32);
+   327→   327→  std::memcpy(r12_bytes, row_sig.data() + 32, 32);
+   328→   328→  Int r01, r12, rsum_neg;
+   329→   329→  r01.Set32Bytes(r01_bytes);
+   330→   330→  r12.Set32Bytes(r12_bytes);
+   331→   331→  // rsum_neg = -(r01 + r12) mod P, kept canonical in [0, P): Int::ModNeg
+   332→   332→  // maps 0 to P, which would break the byte comparison in the degenerate case.
+   333→   333→  rsum_neg.Set(&r01);
+   334→   334→  rsum_neg.Add(&r12);
+   335→   335→  rsum_neg.Mod(&curve.P);
+   336→   336→  if (!rsum_neg.IsZero()) {
+   337→   337→    rsum_neg.Neg();
+   338→   338→    rsum_neg.Add(&curve.P);
+   339→   339→  }
+   340→   340→  alignas(8) unsigned char g01_bytes[32];
+   341→   341→  alignas(8) unsigned char g12_bytes[32];
+   342→   342→  std::memcpy(g01_bytes, giant_sig.data(), 32);
+   343→   343→  std::memcpy(g12_bytes, giant_sig.data() + 32, 32);
+   344→   344→  Int g01, g12;
+   345→   345→  g01.Set32Bytes(g01_bytes);
+   346→   346→  g12.Set32Bytes(g12_bytes);
+   347→   347→
+   348→   348→  int route = -1;
+   349→   349→  if (g01.IsEqual(&r01) && g12.IsEqual(&r12)) {
+   350→   350→    route = 0;
+   351→   351→  } else if (g01.IsEqual(&r12) && g12.IsEqual(&rsum_neg)) {
+   352→   352→    route = 1;
+   353→   353→  } else if (g01.IsEqual(&rsum_neg) && g12.IsEqual(&r01)) {
+   354→   354→    route = 2;
+   355→   355→  }
+   356→   356→  if (route < 0) {
+   357→   357→    signature_anomalies.fetch_add(1, std::memory_order_relaxed);
+   358→   358→    return check_orbit_candidate(base_scalar, j, segment_end, candidate_out,
+   359→   359→                                 offset_out);
+   360→   360→  }
+   361→   361→  signature_routes.fetch_add(1, std::memory_order_relaxed);
+   362→   362→
+   363→   363→  Int base_factor;
+   364→   364→  if (route == 0) base_factor.SetInt64(j);
+   365→   365→  else if (route == 1) set_scaled_mod(base_factor, glv_lambda, j);
+   366→   366→  else set_scaled_mod(base_factor, glv_lambda2, j);
+   367→   367→  Int neg_factor;
+   368→   368→  neg_factor.Set(&curve.order);
+   369→   369→  neg_factor.Sub(&base_factor);
+   370→   370→
+   371→   371→  Int factors[2] = {base_factor, neg_factor};
+   372→   372→  for (Int &factor : factors) {
+   373→   373→    orbit_factor_checks.fetch_add(1, std::memory_order_relaxed);
+   374→   374→    Int candidate;
+   375→   375→    candidate.Set(&base_scalar);
+   376→   376→    candidate.Add(&factor);
+   377→   377→    candidate.Mod(&curve.order);
+   378→   378→    bool in_interval = !candidate.IsLower(&range_start) &&
+   379→   379→                       candidate.IsLower(&segment_end);
+   380→   380→    if (!in_interval && !partner_table_mode) continue;
+   381→   381→    exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
+   382→   382→    Point check = curve.ComputePublicKey(&candidate);
+   383→   383→    if (check.equals(search_target)) {
+   384→   384→      Int shifted_candidate(&candidate);
+   385→   385→      Int recovered;
+   386→   386→      subtract_order_mod(recovered, candidate, active_shift);
+   387→   387→      Point original_check = curve.ComputePublicKey(&recovered);
+   388→   388→      if (!original_check.equals(target) ||
+   389→   389→          (!partner_table_mode && !candidate_in_cover(recovered))) {
+   390→   390→        continue;
+   391→   391→      }
+   392→   392→      if (!in_interval) {
+   393→   393→        partner_recoveries.fetch_add(1, std::memory_order_relaxed);
+   394→   394→      }
+   395→   395→      candidate_out.Set(&recovered);
+   396→   396→      Int delta(&shifted_candidate);
+   397→   397→      delta.Sub(&range_start);
+   398→   398→      // Partner candidates sit far outside the 64-bit window offset range.
+   399→   399→      offset_out = in_interval ? delta.GetInt64() : 0;
+   400→   400→      return true;
+   401→   401→    }
+   402→   402→  }
+   403→   403→  return false;
+   404→   404→}
+   405→   405→
+   406→   406→void build_shared_table(uint64_t m) {
+   407→   407→  shared_table.resize(static_cast<size_t>(m));
+   408→   408→  const bool sig_mode = glv_orbit_mode && phase_signature;
+   409→   409→  if (sig_mode) shared_signatures.resize(static_cast<size_t>(m));
+   410→   410→  std::vector<std::thread> builders;
+   411→   411→  builders.reserve(worker_count);
+   412→   412→  for (unsigned worker = 0; worker < worker_count; ++worker) {
+   413→   413→    uint64_t begin = m * worker / worker_count;
+   414→   414→    uint64_t end = m * (worker + 1) / worker_count;
+   415→   415→    if (begin == end) continue;
+   416→   416→    builders.emplace_back([begin, end, sig_mode]() {
+   417→   417→      Point current;
+   418→   418→      if (begin == 0) {
+   419→   419→        current.Clear();
+   420→   420→      } else {
+   421→   421→        Int scalar;
+   422→   422→        scalar.SetInt64(begin);
+   423→   423→        current = curve.ComputePublicKey(&scalar);
+   424→   424→      }
+   425→   425→      for (uint64_t j = begin; j < end; ++j) {
+   426→   426→        shared_table[static_cast<size_t>(j)] = {
+   427→   427→            glv_orbit_mode ? invariant_key(current) : point_key(current), j};
+   428→   428→        if (sig_mode) {
+   429→   429→          shared_signatures[static_cast<size_t>(j)] = phase_signature_of(current);
+   430→   430→        }
+   431→   431→        current = add_safe(current, curve.G);
+   432→   432→      }
+   433→   433→    });
+   434→   434→  }
+   435→   435→  for (auto &builder : builders) builder.join();
+   436→   436→  if (sig_mode) {
+   437→   437→    // Sort rows and signatures together by key.
+   438→   438→    std::vector<uint64_t> order(static_cast<size_t>(m));
+   439→   439→    for (uint64_t i = 0; i < m; ++i) order[static_cast<size_t>(i)] = i;
+   440→   440→    std::sort(order.begin(), order.end(), [](uint64_t a, uint64_t b) {
+   441→   441→      return shared_table[static_cast<size_t>(a)].key <
+   442→   442→             shared_table[static_cast<size_t>(b)].key;
+   443→   443→    });
+   444→   444→    std::vector<BabyRow> sorted_rows;
+   445→   445→    std::vector<std::array<unsigned char, 64>> sorted_sigs;
+   446→   446→    sorted_rows.reserve(static_cast<size_t>(m));
+   447→   447→    sorted_sigs.reserve(static_cast<size_t>(m));
+   448→   448→    for (uint64_t idx : order) {
+   449→   449→      sorted_rows.push_back(shared_table[static_cast<size_t>(idx)]);
+   450→   450→      sorted_sigs.push_back(shared_signatures[static_cast<size_t>(idx)]);
+   451→   451→    }
+   452→   452→    shared_table.swap(sorted_rows);
+   453→   453→    shared_signatures.swap(sorted_sigs);
+   454→   454→  } else {
+   455→   455→    std::sort(shared_table.begin(), shared_table.end(), row_less);
+   456→   456→  }
+   457→   457→  uint64_t unique = m == 0 ? 0 : 1;
+   458→   458→  for (size_t i = 1; i < shared_table.size(); ++i) {
+   459→   459→    if (!(shared_table[i].key == shared_table[i - 1].key)) ++unique;
+   460→   460→  }
+   461→   461→  raw_baby_rows.store(m, std::memory_order_relaxed);
+   462→   462→  baby_rows.store(unique, std::memory_order_relaxed);
+   463→   463→}
+   464→   464→
+   465→   465→void search_slice(uint64_t local_start, uint64_t local_size,
+   466→   466→                  uint64_t segment) {
+   467→   467→  if (local_size == 0 || local_start >= active_range_size) return;
+   468→   468→  local_size = std::min(local_size, active_range_size - local_start);
+   469→   469→  uint64_t m = shared_baby_rows;
+   470→   470→  uint64_t giant_count = (local_size - 1) / m + 1;
+   471→   471→  giant_steps_planned.fetch_add(giant_count, std::memory_order_relaxed);
+   472→   472→
+   473→   473→  Int anchor_scalar(&range_start);
+   474→   474→  anchor_scalar.Add(local_start);
+   475→   475→  Int segment_end(&anchor_scalar);
+   476→   476→  segment_end.Add(local_size);
+   477→   477→  Point anchor = curve.ComputePublicKey(&anchor_scalar);
+   478→   478→  Point neg_anchor = curve.Negation(anchor);
+   479→   479→  Point giant_zero = add_safe(search_target, neg_anchor);
+   480→   480→
+   481→   481→  Int m_int(m);
+   482→   482→  Point step = curve.ComputePublicKey(&m_int);
+   483→   483→  Point neg_step = curve.Negation(step);
+   484→   484→
+   485→   485→  std::vector<std::thread> workers;
+   486→   486→  workers.reserve(worker_count);
+   487→   487→  for (unsigned worker = 0; worker < worker_count; ++worker) {
+   488→   488→    uint64_t begin = giant_count * worker / worker_count;
+   489→   489→    uint64_t end = giant_count * (worker + 1) / worker_count;
+   490→   490→    if (begin == end) continue;
+   491→   491→    workers.emplace_back([&, begin, end, segment, local_start]() {
+   492→   492→      Point giant = giant_zero;
+   493→   493→      Int base_scalar(&anchor_scalar);
+   494→   494→      if (begin != 0) {
+   495→   495→        Int delta;
+   496→   496→        delta.SetInt64(begin);
+   497→   497→        delta.Mult(m);
+   498→   498→        delta.Mod(&curve.order);
+   499→   499→        base_scalar.Add(&delta);
+   500→   500→        base_scalar.Mod(&curve.order);
+   501→   501→        Point shift = curve.ComputePublicKey(&delta);
+   502→   502→        Point neg_shift = curve.Negation(shift);
+   503→   503→        giant = add_safe(giant, neg_shift);
+   504→   504→      }
+   505→   505→      std::array<unsigned char, 64> giant_sig{};
+   506→   506→      bool giant_sig_ready = false;
+   507→   507→
+   508→   508→      for (uint64_t i = begin; i < end &&
+   509→   509→                              !found.load(std::memory_order_relaxed); ++i) {
+   510→   510→        giant_steps_scheduled.fetch_add(1, std::memory_order_relaxed);
+   511→   511→        giant_steps.fetch_add(1, std::memory_order_relaxed);
+   512→   512→        auto query_key = glv_orbit_mode ? invariant_key(giant) : point_key(giant);
+   513→   513→        auto it = std::lower_bound(shared_table.begin(), shared_table.end(), query_key,
+   514→   514→            [](const BabyRow &row, const std::array<unsigned char, 33> &needle) {
+   515→   515→              return row.key < needle;
+   516→   516→            });
+   517→   517→        bool bucket_checked = false;
+   518→   518→        while (it != shared_table.end() && it->key == query_key &&
+   519→   519→               !found.load(std::memory_order_relaxed)) {
+   520→   520→          if (glv_orbit_mode) {
+   521→   521→            invariant_hits.fetch_add(1, std::memory_order_relaxed);
+   522→   522→            if (bucket_checked) {
+   523→   523→              // Every row of a K3=x^3 bucket lies in one C6 orbit (the roots
+   524→   524→              // of X^3-c over F_p are exactly x, beta*x, beta^2*x), so the
+   525→   525→              // routed pair -- or the six GLV branches -- is the same scalar
+   526→   526→              // set for every row of the bucket. The first row's check
+   527→   527→              // already covered them; re-checking duplicates would repeat
+   528→   528→              // identical candidates. In non-GLV mode rows give distinct
+   529→   529→              // candidates (base + j), so no dedup is applied there.
+   530→   530→              orbit_duplicate_rows.fetch_add(1, std::memory_order_relaxed);
+   531→   531→              ++it;
+   532→   532→              continue;
+   533→   533→            }
+   534→   534→          }
+   535→   535→          uint64_t j = it->j;
+   536→   536→          Int candidate;
+   537→   537→          uint64_t local_offset = 0;
+   538→   538→          bool match = false;
+   539→   539→          if (glv_orbit_mode) {
+   540→   540→            if (phase_signature) {
+   541→   541→              if (!giant_sig_ready) {
+   542→   542→                giant_sig = phase_signature_of(giant);
+   543→   543→                giant_sig_ready = true;
+   544→   544→              }
+   545→   545→              match = check_orbit_candidate_signature(
+   546→   546→                  base_scalar, j, static_cast<size_t>(it - shared_table.begin()),
+   547→   547→                  giant_sig, segment_end, candidate, local_offset);
+   548→   548→            } else {
+   549→   549→              match = check_orbit_candidate(base_scalar, j, segment_end,
+   550→   550→                                            candidate, local_offset);
+   551→   551→            }
+   552→   552→          } else {
+   553→   553→            local_offset = local_start + i * m + j;
+   554→   554→            if (local_offset < local_start + local_size) {
+   555→   555→              candidate.Set(&base_scalar);
+   556→   556→              candidate.Add(j);
+   557→   557→              exact_candidate_checks.fetch_add(1, std::memory_order_relaxed);
+   558→   558→              Point check = curve.ComputePublicKey(&candidate);
+   559→   559→              match = check.equals(search_target);
+   560→   560→              if (match) {
+   561→   561→                Int recovered;
+   562→   562→                subtract_order_mod(recovered, candidate, active_shift);
+   563→   563→                Point original_check = curve.ComputePublicKey(&recovered);
+   564→   564→                match = original_check.equals(target) && candidate_in_cover(recovered);
+   565→   565→                if (match) {
+   566→   566→                  candidate.Set(&recovered);
+   567→   567→                }
+   568→   568→              }
+   569→   569→            }
+   570→   570→          }
+   571→   571→          if (match) {
+   572→   572→            std::lock_guard<std::mutex> lock(found_mutex);
+   573→   573→            if (!found.load()) {
+   574→   574→              found_scalar.Set(&candidate);
+   575→   575→              Int shifted_candidate(&candidate);
+   576→   576→              shifted_candidate.Add(&active_shift);
+   577→   577→              shifted_candidate.Mod(&curve.order);
+   578→   578→              found_shifted_scalar.Set(&shifted_candidate);
+   579→   579→              found_shift.Set(&active_shift);
+   580→   580→              found_segment = segment;
+   581→   581→              found_local_offset = local_offset;
+   582→   582→              found.store(true);
+   583→   583→            }
+   584→   584→            break;
+   585→   585→          }
+   586→   586→          if (glv_orbit_mode) {
+   587→   587→            bucket_checked = true;
+   588→   588→          }
+   589→   589→          ++it;
+   590→   590→        }
+   591→   591→        giant = add_safe(giant, neg_step);
+   592→   592→        base_scalar.Add(&m_int);
+   593→   593→        base_scalar.Mod(&curve.order);
+   594→   594→      }
+   595→   595→    });
+   596→   596→  }
+   597→   597→  for (auto &worker : workers) worker.join();
+   598→   598→  segments_done.fetch_add(1, std::memory_order_relaxed);
+   599→   599→}
+   600→   600→
+   601→   601→void search_segment(uint64_t segment) {
+   602→   602→  uint64_t local_start = segment * segment_size;
+   603→   603→  if (local_start >= active_range_size) return;
+   604→   604→  search_slice(local_start, std::min(segment_size, active_range_size - local_start),
+   605→   605→               segment);
+   606→   606→}
+   607→   607→
+   608→   608→std::vector<uint64_t> lambda_priority_order(Point &point) {
+   609→   609→  std::vector<uint64_t> result;
+   610→   610→  if (!lambda_priority || lambda_sector_count == 0) return result;
+   611→   611→  lambda_calculations.fetch_add(3, std::memory_order_relaxed);
+   612→   612→  std::array<Int, 3> values = lambda_triangle_values(point);
+   613→   613→  for (Int &value : values) {
+   614→   614→    value.Mult(lambda_sector_count);
+   615→   615→    value.Div(&curve.P);
+   616→   616→    uint64_t sector = value.GetInt64();
+   617→   617→    if (sector >= lambda_sector_count) sector = lambda_sector_count - 1;
+   618→   618→    if (std::find(result.begin(), result.end(), sector) == result.end()) {
+   619→   619→      result.push_back(sector);
+   620→   620→    }
+   621→   621→  }
+   622→   622→  return result;
+   623→   623→}
+   624→   624→
+   625→   625→void search_current_target() {
+   626→   626→  uint64_t sector_count = lambda_priority
+   627→   627→      ? std::min(lambda_sector_count, active_range_size == 0 ? uint64_t(1) : active_range_size)
+   628→   628→      : 0;
+   629→   629→  if (!lambda_priority) {
+   630→   630→    uint64_t segment_count = active_range_size / segment_size +
+   631→   631→                             (active_range_size % segment_size != 0);
+   632→   632→    for (uint64_t segment = 0; segment < segment_count &&
+   633→   633→                                 !found.load(std::memory_order_relaxed); ++segment) {
+   634→   634→      search_segment(segment);
+   635→   635→    }
+   636→   636→    return;
+   637→   637→  }
+   638→   638→
+   639→   639→  std::vector<uint64_t> priority = lambda_priority_order(search_target);
+   640→   640→  std::vector<bool> used(static_cast<size_t>(sector_count), false);
+   641→   641→  auto search_sector = [&](uint64_t sector, bool is_priority) {
+   642→   642→    if (sector >= sector_count || used[static_cast<size_t>(sector)]) return;
+   643→   643→    used[static_cast<size_t>(sector)] = true;
+   644→   644→    uint64_t begin = (active_range_size * sector) / sector_count;
+   645→   645→    uint64_t end = (active_range_size * (sector + 1)) / sector_count;
+   646→   646→    if (end <= begin) return;
+   647→   647→    if (is_priority) priority_slices.fetch_add(1, std::memory_order_relaxed);
+   648→   648→    else fallback_slices.fetch_add(1, std::memory_order_relaxed);
+   649→   649→    for (uint64_t pos = begin; pos < end &&
+   650→   650→                               !found.load(std::memory_order_relaxed); ) {
+   651→   651→      uint64_t amount = std::min(segment_size, end - pos);
+   652→   652→      search_slice(pos, amount, pos / segment_size);
+   653→   653→      pos += amount;
+   654→   654→    }
+   655→   655→  };
+   656→   656→  for (uint64_t sector : priority) {
+   657→   657→    if (found.load(std::memory_order_relaxed)) break;
+   658→   658→    search_sector(sector, true);
+   659→   659→  }
+   660→   660→  for (uint64_t sector = 0; sector < sector_count &&
+   661→   661→                             !found.load(std::memory_order_relaxed); ++sector) {
+   662→   662→    search_sector(sector, false);
+   663→   663→  }
+   664→   664→}
+   665→   665→
+   666→   666→void usage(const char *name) {
+   667→   667→  std::fprintf(stderr,
+   668→   668→      "Usage: %s --target PUBKEY --start HEX --size N [options]\n"
+   669→   669→      "  -q, --target PUBKEY   SEC1 compressed/uncompressed public key\n"
+   670→   670→      "  -a, --start VALUE     interval start (hex 0x... or decimal)\n"
+   671→   671→      "  -w, --size N          interval width (finite bounded test)\n"
+   672→   672→      "  -s, --segment N       local segment width (default 100000)\n"
+   673→   673→      "      --baby-rows N     choose segment width as N^2\n"
+   674→   674→      "      --shift T         search Q+T*G before the original target (repeatable)\n"
+   675→   675→      "      --glv-orbit       use K3=x^3 quotient plus exact GLV branches\n"
+   676→   676→      "      --phase-signature route GLV branches by the (d01,d12) Lambda signature (requires --glv-orbit)\n"
+   677→   677→      "      --partner-table  exact-verify out-of-interval orbit branches (requires --glv-orbit)\n"
+   678→   678→      "      --lambda-priority order local slices by the Lambda triangle, then fallback\n"
+   679→   679→      "      --lambda-sectors N number of local numeric slices (default 16)\n"
+   680→   680→      "      --cover-start V   external coverage interval start (Int/hex)\n"
+   681→   681→      "      --cover-size V    external coverage interval width (Int/hex)\n"
+   682→   682→      "      --lambda-dump     print the exact three Lambda values and exit\n"
+   683→   683→      "  -t, --threads N       worker threads (default 1)\n"
+   684→   684→      "  -h, --help            show this help\n", name);
+   685→   685→}
+   686→   686→
+   687→   687→}  // namespace
+   688→   688→
+   689→   689→int main(int argc, char **argv) {
+   690→   690→  const option options[] = {
+   691→   691→      {"target", required_argument, nullptr, 'q'},
+   692→   692→      {"start", required_argument, nullptr, 'a'},
+   693→   693→      {"size", required_argument, nullptr, 'w'},
+   694→   694→      {"segment", required_argument, nullptr, 's'},
+   695→   695→      {"baby-rows", required_argument, nullptr, 'b'},
+   696→   696→      {"shift", required_argument, nullptr, 'd'},
+   697→   697→      {"glv-orbit", no_argument, nullptr, 'g'},
+   698→   698→      {"lambda-priority", no_argument, nullptr, 'l'},
+   699→   699→      {"lambda-sectors", required_argument, nullptr, 'L'},
+   700→   700→      {"phase-signature", no_argument, nullptr, 'P'},
+   701→   701→      {"partner-table", no_argument, nullptr, 'p'},
+   702→   702→      {"cover-start", required_argument, nullptr, 'c'},
+   703→   703→      {"cover-size", required_argument, nullptr, 'C'},
+   704→   704→      {"lambda-dump", no_argument, nullptr, 'D'},
+   705→   705→      {"threads", required_argument, nullptr, 't'},
+   706→   706→      {"help", no_argument, nullptr, 'h'},
+   707→   707→      {nullptr, 0, nullptr, 0}};
+   708→   708→  std::string target_hex;
+   709→   709→  std::string start_text;
+   710→   710→  std::vector<std::string> shift_texts;
+   711→   711→  std::string cover_start_text;
+   712→   712→  std::string cover_size_text;
+   713→   713→  bool lambda_dump = false;
+   714→   714→  int c;
+   715→   715→  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:Ppc:C:Dh", options, nullptr)) != -1) {
+   716→   716→    switch (c) {
+   717→   717→      case 'q': target_hex = optarg; break;
+   718→   718→      case 'a': start_text = optarg; break;
+   719→   719→      case 'w': if (!parse_u64(optarg, range_size)) { usage(argv[0]); return 2; } break;
+   720→   720→      case 's': if (!parse_u64(optarg, segment_size)) { usage(argv[0]); return 2; } break;
+   721→   721→      case 'b': if (!parse_u64(optarg, requested_baby_rows) || requested_baby_rows == 0) { usage(argv[0]); return 2; } break;
+   722→   722→      case 'd': shift_texts.emplace_back(optarg); break;
+   723→   723→      case 'g': glv_orbit_mode = true; break;
+   724→   724→      case 'l': lambda_priority = true; break;
+   725→   725→      case 'L': if (!parse_u64(optarg, lambda_sector_count) || lambda_sector_count == 0) { usage(argv[0]); return 2; } break;
+   726→   726→      case 'P': phase_signature = true; break;
+   727→   727→      case 'p': partner_table_mode = true; break;
+   728→   728→      case 'c': cover_start_text = optarg; break;
+   729→   729→      case 'C': cover_size_text = optarg; break;
+   730→   730→      case 'D': lambda_dump = true; break;
+   731→   731→      case 't': { uint64_t n; if (!parse_u64(optarg, n) || n == 0 || n > 4096) { usage(argv[0]); return 2; } worker_count = static_cast<unsigned>(n); break; }
+   732→   732→      case 'h': usage(argv[0]); return 0;
+   733→   733→      default: usage(argv[0]); return 2;
+   734→   734→    }
+   735→   735→  }
+   736→   736→  if (target_hex.empty() || start_text.empty() || range_size == 0 || segment_size == 0) {
+   737→   737→    usage(argv[0]); return 2;
+   738→   738→  }
+   739→   739→  if (phase_signature && !glv_orbit_mode) {
+   740→   740→    std::fprintf(stderr, "[E] --phase-signature requires --glv-orbit\n");
+   741→   741→    return 2;
+   742→   742→  }
+   743→   743→  if (partner_table_mode && !glv_orbit_mode) {
+   744→   744→    std::fprintf(stderr, "[E] --partner-table requires --glv-orbit\n");
+   745→   745→    return 2;
+   746→   746→  }
+   747→   747→  if (requested_baby_rows != 0) {
+   748→   748→    if (requested_baby_rows > std::numeric_limits<uint64_t>::max() / requested_baby_rows) {
+   749→   749→      std::fprintf(stderr, "[E] baby row count is too large\n");
+   750→   750→      return 2;
+   751→   751→    }
+   752→   752→    segment_size = requested_baby_rows * requested_baby_rows;
+   753→   753→  }
+   754→   754→
+   755→   755→  bool automatic_coverage = !cover_start_text.empty() || !cover_size_text.empty();
+   756→   756→  if (automatic_coverage && (cover_start_text.empty() || cover_size_text.empty())) {
+   757→   757→    std::fprintf(stderr, "[E] --cover-start and --cover-size must be supplied together\n");
+   758→   758→    return 2;
+   759→   759→  }
+   760→   760→  if (automatic_coverage && !shift_texts.empty()) {
+   761→   761→    std::fprintf(stderr, "[E] manual --shift cannot be combined with automatic coverage\n");
+   762→   762→    return 2;
+   763→   763→  }
+   764→   764→
+   765→   765→  curve.Init();
+   766→   766→  beta.SetBase16("7AE96A2B657C07106E64479EAC3434E99CF0497512F58995C1396C28719501EE");
+   767→   767→  beta_g.ModMulK1(&beta, &curve.G.x);
+   768→   768→  glv_lambda.SetBase16("5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72");
+   769→   769→  glv_lambda2.SetBase16("AC9C52B33FA3CF1F5AD9E3FD77ED9BA4A880B9FC8EC739C2E0CFC810B51283CE");
+   770→   770→  if (!parse_int(start_text, range_start)) {
+   771→   771→    std::fprintf(stderr, "[E] start must be hexadecimal (0x...) or decimal\n");
+   772→   772→    return 2;
+   773→   773→  }
+   774→   774→  Int range_end(&range_start);
+   775→   775→  range_end.Add(range_size);
+   776→   776→  if (!range_start.IsStrictPositive() || range_end.IsGreater(&curve.order)) {
+   777→   777→    std::fprintf(stderr, "[E] invalid interval: start + size must be <= group order\n");
+   778→   778→    return 2;
+   779→   779→  }
+   780→   780→  Int cover_size;
+   781→   781→  if (automatic_coverage) {
+   782→   782→    if (!parse_int(cover_start_text, cover_start) ||
+   783→   783→        !parse_int(cover_size_text, cover_size) ||
+   784→   784→        !cover_start.IsStrictPositive() || !cover_size.IsStrictPositive()) {
+   785→   785→      std::fprintf(stderr, "[E] cover interval must contain positive Int values\n");
+   786→   786→      return 2;
+   787→   787→    }
+   788→   788→    cover_end.Set(&cover_start);
+   789→   789→    cover_end.Add(&cover_size);
+   790→   790→    if (cover_end.IsGreater(&curve.order)) {
+   791→   791→      std::fprintf(stderr, "[E] cover-start + cover-size must be <= group order\n");
+   792→   792→      return 2;
+   793→   793→    }
+   794→   794→  }
+   795→   795→  std::vector<char> mutable_key(target_hex.begin(), target_hex.end());
+   796→   796→  mutable_key.push_back('\0');
+   797→   797→  bool compressed = false;
+   798→   798→  if (!curve.ParsePublicKeyHex(mutable_key.data(), target, compressed)) {
+   799→   799→    std::fprintf(stderr, "[E] invalid SEC1 public key\n");
+   800→   800→    return 2;
+   801→   801→  }
+   802→   802→  if (lambda_dump) {
+   803→   803→    std::array<Int, 3> values = lambda_triangle_values(target);
+   804→   804→    for (size_t i = 0; i < values.size(); ++i) {
+   805→   805→      char *value = values[i].GetBase16();
+   806→   806→      std::cout << "lambda" << i << ": 0x" << value << "\n";
+   807→   807→      std::free(value);
+   808→   808→    }
+   809→   809→    return 0;
+   810→   810→  }
+   811→   811→
+   812→   812→  std::vector<Int> requested_shifts;
+   813→   813→  requested_shifts.reserve(shift_texts.size());
+   814→   814→  for (const std::string &text : shift_texts) {
+   815→   815→    Int shift;
+   816→   816→    if (!parse_signed_int(text, shift)) {
+   817→   817→      std::fprintf(stderr, "[E] shift must be a signed hexadecimal or decimal scalar\n");
+   818→   818→      return 2;
+   819→   819→    }
+   820→   820→    requested_shifts.push_back(shift);
+   821→   821→  }
+   822→   822→
+   823→   823→  uint64_t segment_count = range_size / segment_size + (range_size % segment_size != 0);
+   824→   824→  uint64_t m = ceil_sqrt_u64(std::min(segment_size, range_size));
+   825→   825→  shared_baby_rows = m;
+   826→   826→  std::cout << "Experimental bounded segmented BSGS\n"
+   827→   827→            << "  interval width: " << range_size << "\n"
+   828→   828→            << "  segments: " << segment_count << "\n"
+   829→   829→            << "  segment width: " << segment_size << "\n"
+   830→   830→            << "  workers: " << worker_count << "\n"
+   831→   831→            << "  GLV orbit quotient: " << (glv_orbit_mode ? "true" : "false") << "\n"
+   832→   832→            << "  phase signature routing: " << (phase_signature ? "true" : "false") << "\n"
+   833→   833→            << "  partner table: " << (partner_table_mode ? "true" : "false") << "\n"
+   834→   834→            << "  shifted targets: " << requested_shifts.size()
+   835→   835→            << " (original target is always the fallback)\n"
+   836→   836→            << "  baby rows (shared): " << m << "\n"
+   837→   837→            << "  estimated shared table bytes: " << (m * sizeof(BabyRow)) << "\n"
+   838→   838→            << "  table copies: 1 (read-only, shared by workers)\n";
+   839→   839→  if (lambda_priority) {
+   840→   840→    std::cout << "  Lambda priority: true\n"
+   841→   841→              << "  Lambda sectors: " << lambda_sector_count << "\n";
+   842→   842→  }
+   843→   843→  if (automatic_coverage) {
+   844→   844→    char *cover_start_hex = cover_start.GetBase16();
+   845→   845→    char *cover_size_hex = cover_size.GetBase16();
+   846→   846→    std::cout << "  external cover start: 0x" << cover_start_hex << "\n"
+   847→   847→              << "  external cover size: 0x" << cover_size_hex << "\n";
+   848→   848→    std::free(cover_start_hex);
+   849→   849→    std::free(cover_size_hex);
+   850→   850→  }
+   851→   851→  if (requested_baby_rows != 0) {
+   852→   852→    std::cout << "  requested baby rows: " << requested_baby_rows << "\n";
+   853→   853→    if (m < requested_baby_rows) {
+   854→   854→      std::cout << "  effective baby rows limited by interval: " << m << "\n"
+   855→   855→                << "  requested segment width: "
+   856→   856→                << (requested_baby_rows * requested_baby_rows) << "\n";
+   857→   857→    }
+   858→   858→  }
+   859→   859→
+   860→   860→  std::cout << "  building baby table with " << worker_count
+   861→   861→            << " builder threads..." << std::endl;
+   862→   862→  auto started = std::chrono::steady_clock::now();
+   863→   863→  auto table_started = started;
+   864→   864→  build_shared_table(m);
+   865→   865→  double table_seconds = std::chrono::duration<double>(
+   866→   866→      std::chrono::steady_clock::now() - table_started).count();
+   867→   867→
+   868→   868→  auto search_started = std::chrono::steady_clock::now();
+   869→   869→  auto run_target = [&](Int &shift, uint64_t local_size, bool cover_check) {
+   870→   870→    active_shift.Set(&shift);
+   871→   871→    active_range_size = local_size;
+   872→   872→    enforce_cover_range = cover_check;
+   873→   873→    Int normalized_shift(&active_shift);
+   874→   874→    normalized_shift.Mod(&curve.order);
+   875→   875→    Point shift_point;
+   876→   876→    if (normalized_shift.IsZero()) shift_point.Clear();
+   877→   877→    else shift_point = curve.ComputePublicKey(&normalized_shift);
+   878→   878→    search_target = add_safe(target, shift_point);
+   879→   879→    search_current_target();
+   880→   880→  };
+   881→   881→
+   882→   882→  if (automatic_coverage) {
+   883→   883→    Int source_start(&cover_start);
+   884→   884→    uint64_t automatic_chunks = 0;
+   885→   885→    while (!found.load(std::memory_order_relaxed) && source_start.IsLower(&cover_end)) {
+   886→   886→      Int remaining(&cover_end);
+   887→   887→      remaining.Sub(&source_start);
+   888→   888→      Int local_capacity(range_size);
+   889→   889→      uint64_t chunk_size;
+   890→   890→      if (remaining.IsGreaterOrEqual(&local_capacity)) chunk_size = range_size;
+   891→   891→      else chunk_size = remaining.GetInt64();
+   892→   892→      if (chunk_size == 0) break;
+   893→   893→      Int shift;
+   894→   894→      subtract_order_mod(shift, range_start, source_start);
+   895→   895→      if (automatic_chunks < 8 || automatic_chunks % 1000 == 0) {
+   896→   896→        char *source_hex = source_start.GetBase16();
+   897→   897→        std::cout << "  automatic source chunk start: 0x" << source_hex
+   898→   898→                  << " size: " << chunk_size << "\n";
+   899→   899→        std::free(source_hex);
+   900→   900→      }
+   901→   901→      run_target(shift, chunk_size, true);
+   902→   902→      source_start.Add(chunk_size);
+   903→   903→      ++automatic_chunks;
+   904→   904→    }
+   905→   905→    std::cout << "  automatic chunks attempted: " << automatic_chunks << "\n";
+   906→   906→    if (!found.load(std::memory_order_relaxed)) {
+   907→   907→      Int zero_shift;
+   908→   908→      zero_shift.SetInt32(0);
+   909→   909→      run_target(zero_shift, range_size, true);
+   910→   910→    }
+   911→   911→  } else {
+   912→   912→    for (Int requested : requested_shifts) {
+   913→   913→      if (found.load(std::memory_order_relaxed)) break;
+   914→   914→      Int shift(&requested);
+   915→   915→      run_target(shift, range_size, false);
+   916→   916→    }
+   917→   917→    if (!found.load(std::memory_order_relaxed)) {
+   918→   918→      Int zero_shift;
+   919→   919→      zero_shift.SetInt32(0);
+   920→   920→      run_target(zero_shift, range_size, false);
+   921→   921→    }
+   922→   922→  }
+   923→   923→  double search_seconds = std::chrono::duration<double>(
+   924→   924→      std::chrono::steady_clock::now() - search_started).count();
+   925→   925→  double seconds = std::chrono::duration<double>(
+   926→   926→      std::chrono::steady_clock::now() - started).count();
+   927→   927→
+   928→   928→  std::cout << "  segments completed: " << segments_done.load() << "\n"
+   929→   929→            << "  raw baby rows built: " << raw_baby_rows.load() << "\n"
+   930→   930→            << "  unique baby rows built: " << baby_rows.load() << "\n"
+   931→   931→            << "  duplicate baby keys: "
+   932→   932→            << (raw_baby_rows.load() - baby_rows.load()) << "\n"
+   933→   933→            << "  giant steps: " << giant_steps.load() << "\n"
+   934→   934→            << "  giant steps scheduled: " << giant_steps_scheduled.load() << "\n"
+   935→   935→            << "  invariant hits: " << invariant_hits.load() << "\n"
+   936→   936→            << "  orbit factors scheduled: " << orbit_factor_checks.load() << "\n"
+   937→   937→            << "  exact candidate checks: " << exact_candidate_checks.load() << "\n"
+   938→   938→            << "  Lambda calculations: " << lambda_calculations.load() << "\n"
+   939→   939→            << "  Lambda priority slices: " << priority_slices.load() << "\n"
+   940→   940→            << "  Lambda fallback slices: " << fallback_slices.load() << "\n";
+   941→   941→  if (phase_signature) {
+   942→   942→    std::cout << "  signature routes: " << signature_routes.load() << "\n"
+   943→   943→              << "  signature anomalies (6-branch fallback): "
+   944→   944→              << signature_anomalies.load() << "\n";
+   945→   945→  }
+   946→   946→  if (glv_orbit_mode) {
+   947→   947→    std::cout << "  orbit duplicate rows skipped: "
+   948→   948→              << orbit_duplicate_rows.load() << "\n";
+   949→   949→    if (partner_table_mode) {
+   950→   950→      std::cout << "  partner recoveries: "
+   951→   951→                << partner_recoveries.load() << "\n";
+   952→   952→    }
+   953→   953→  }
+   954→   954→  std::cout << "  giant steps planned: " << giant_steps_planned.load() << "\n"
+   955→   955→            << "  table build seconds: " << table_seconds << "\n"
+   956→   956→            << "  giant search seconds: " << search_seconds << "\n"
+   957→   957→            << "  giant steps/second: "
+   958→   958→            << (search_seconds > 0 ? giant_steps.load() / search_seconds : 0) << "\n"
+   959→   959→            << "  total seconds: " << seconds << "\n";
+   960→   960→  if (found.load()) {
+   961→   961→    char *hex = found_scalar.GetBase16();
+   962→   962→    std::string short_hex(hex);
+   963→   963→    std::cout << "  recovered scalar: 0x" << short_hex << "\n"
+   964→   964→            << "  recovered private key: 0x"
+   965→   965→              << std::string(short_hex.size() < 64 ? 64 - short_hex.size() : 0, '0')
+   966→   966→              << short_hex << "\n"
+   967→   967→              << "  shifted target scalar: 0x";
+   968→   968→    char *shifted_hex = found_shifted_scalar.GetBase16();
+   969→   969→    std::cout << std::string(shifted_hex).append("\n")
+   970→   970→              << "  applied shift: 0x";
+   971→   971→    char *shift_hex = found_shift.GetBase16();
+   972→   972→    std::cout << std::string(shift_hex).append("\n")
+   973→   973→              << "  recovered segment: " << found_segment << "\n"
+   974→   974→              << "  recovered local offset: " << found_local_offset << "\n"
+   975→   975→              << "  recovery correct: true\n";
+   976→   976→    std::free(shifted_hex);
+   977→   977→    std::free(shift_hex);
+   978→   978→    std::free(hex);
+   979→   979→  } else {
+   980→   980→    std::cout << "  recovery correct: false (no scalar in interval)\n";
+   981→   981→  }
+   982→   982→  return found.load() ? 0 : 1;
+   983→   983→}
+   984→   984→
