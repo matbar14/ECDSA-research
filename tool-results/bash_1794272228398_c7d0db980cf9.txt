@@ -1,0 +1,1803 @@
+1046:гарантия), партнёрные восстановления считаются счётчиком
+1300:точек считаются; вывод дополнен строками `EC scalar multiplications`,
+1629:считаются от начала своего chunk; 5e11 кратен strides 4e5, но не 1.2e6.
+1848:plain-режиме (дубли-ключи остаются в таблице бакетом, удаления нет).
+1874:finalize_table (~30 MB) остаются в арене как резидентные страницы
+1961:фиксируются в репозитории; большие файлы остаются вне git и
+2569:  R_{j+1}) - при n = 256 предикат стоит 18844 провода;
+2593:18844 провода.
+2606:Отсюда снято недоразумение с квадратичным фитом (ревью 10.11: a=8.44 и
+2612:очистку). Полная фит-формула 8.44*n^2 + 1008*n - 8947 попадает с
+===
+ M PROGRESS_MEMO.md
+ M experiments/qip_predicate_kappa.py
+ M results/qip_predicate_kappa.json
+ D skills/ai-news-collectors/SKILL.md
+ D skills/ai-news-collectors/_meta.json
+ D skills/ai-news-collectors/references/sources.md
+ D skills/aminer-academic-search/SKILL.md
+ D skills/aminer-academic-search/evals/evals.json
+ D skills/aminer-academic-search/references/api-catalog.md
+ D skills/aminer-academic-search/scripts/aminer_client.py
+ D skills/aminer-daily-paper/README.md
+ D skills/aminer-daily-paper/SKILL.md
+ D skills/aminer-daily-paper/commands/aminer-dp.md
+ D skills/aminer-daily-paper/prompts/enrich.md
+ D skills/aminer-daily-paper/requirements.txt
+ D skills/aminer-daily-paper/scripts/__init__.py
+ D skills/aminer-daily-paper/scripts/common.py
+ D skills/aminer-daily-paper/scripts/constants.py
+ D skills/aminer-daily-paper/scripts/handle_trigger.py
+ D skills/aminer-daily-paper/scripts/rec5_api.py
+ D skills/aminer-daily-paper/scripts/run_pipeline.py
+ D skills/aminer-deep-search/.gitignore
+ D skills/aminer-deep-search/SKILL.md
+ D skills/aminer-deep-search/SKILL.zh.md
+ D skills/aminer-deep-search/commands/aminer-deep-search.md
+ D skills/aminer-deep-search/scripts/aminer_api.py
+ D skills/aminer-deep-search/scripts/paper_set.py
+ D skills/aminer-deep-search/tests/test_aminer_api.py
+ D skills/aminer-deep-search/tests/test_paper_set.py
+ D skills/aminer-free-academic/SKILL.md
+ D skills/aminer-free-academic/evals/evals.json
+ D skills/aminer-free-academic/references/api-catalog.md
+ D skills/anti-pua/SKILL.md
+ D skills/auto-target-tracker/SKILL.md
+ D skills/blog-writer/2024-02-17-radical-transparency-sales.md
+ D skills/blog-writer/2024-02-17-raycast-spotlight-superpowers.md
+ D skills/blog-writer/2024-02-17-short-form-content-marketing.md
+ D skills/blog-writer/2024-02-17-typing-speed-benefits.md
+ D skills/blog-writer/2024-03-14-effective-ai-prompts.md
+ D skills/blog-writer/2024-11-08-ai-revolutionizing-entry-level-sales.md
+ D skills/blog-writer/2025-11-12-why-ai-art-is-useless.md
+ D skills/blog-writer/README.md
+ D skills/blog-writer/SKILL.md
+ D skills/blog-writer/_meta.json
+ D skills/blog-writer/manage_examples.py
+ D skills/blog-writer/style-guide.md
+ D skills/cheat-sheet/SKILL.md
+ D skills/coding-agent/SKILL.md
+ D skills/coding-agent/_meta.json
+ D skills/coding-agent/criteria.md
+ D skills/coding-agent/execution.md
+ D skills/coding-agent/memory-template.md
+ D skills/coding-agent/planning.md
+ D skills/coding-agent/state.md
+ D skills/coding-agent/verification.md
+ D skills/content-strategy/SKILL.md
+ D skills/content-strategy/_meta.json
+ D skills/contentanalysis/ExtractWisdom/SKILL.md
+ D skills/contentanalysis/ExtractWisdom/Workflows/Extract.md
+ D skills/contentanalysis/SKILL.md
+ D skills/design/INDEX.md
+ D skills/design/SKILL.md
+ D skills/design/canvas-and-device.md
+ D skills/design/content-page.md
+ D skills/design/deck.md
+ D skills/design/design-system-generation.md
+ D skills/design/design-system-reference.md
+ D skills/design/design-systems/INDEX.md
+ D skills/design/design-systems/TAG-VOCABULARY.md
+ D skills/design/design-systems/brand-inspiration/airbnb/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/airbnb/README.md
+ D skills/design/design-systems/brand-inspiration/airbnb/components.html
+ D skills/design/design-systems/brand-inspiration/airbnb/tokens.css
+ D skills/design/design-systems/brand-inspiration/airtable/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/airtable/README.md
+ D skills/design/design-systems/brand-inspiration/apple/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/apple/README.md
+ D skills/design/design-systems/brand-inspiration/apple/components.html
+ D skills/design/design-systems/brand-inspiration/apple/tokens.css
+ D skills/design/design-systems/brand-inspiration/arc/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/binance/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/binance/README.md
+ D skills/design/design-systems/brand-inspiration/bmw-m/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/bmw-m/README.md
+ D skills/design/design-systems/brand-inspiration/bmw/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/bmw/README.md
+ D skills/design/design-systems/brand-inspiration/bugatti/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/bugatti/README.md
+ D skills/design/design-systems/brand-inspiration/cal/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/cal/README.md
+ D skills/design/design-systems/brand-inspiration/canva/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/cisco/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/claude/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/claude/README.md
+ D skills/design/design-systems/brand-inspiration/clay/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/clay/README.md
+ D skills/design/design-systems/brand-inspiration/clickhouse/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/clickhouse/README.md
+ D skills/design/design-systems/brand-inspiration/cohere/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/cohere/README.md
+ D skills/design/design-systems/brand-inspiration/coinbase/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/coinbase/README.md
+ D skills/design/design-systems/brand-inspiration/composio/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/composio/README.md
+ D skills/design/design-systems/brand-inspiration/cursor/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/cursor/README.md
+ D skills/design/design-systems/brand-inspiration/cursor/components.html
+ D skills/design/design-systems/brand-inspiration/cursor/tokens.css
+ D skills/design/design-systems/brand-inspiration/discord/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/discord/components.html
+ D skills/design/design-systems/brand-inspiration/discord/tokens.css
+ D skills/design/design-systems/brand-inspiration/duolingo/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/elevenlabs/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/elevenlabs/README.md
+ D skills/design/design-systems/brand-inspiration/expo/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/expo/README.md
+ D skills/design/design-systems/brand-inspiration/ferrari/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/ferrari/README.md
+ D skills/design/design-systems/brand-inspiration/figma/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/figma/README.md
+ D skills/design/design-systems/brand-inspiration/figma/components.html
+ D skills/design/design-systems/brand-inspiration/figma/tokens.css
+ D skills/design/design-systems/brand-inspiration/framer/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/framer/README.md
+ D skills/design/design-systems/brand-inspiration/github/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/github/components.html
+ D skills/design/design-systems/brand-inspiration/github/tokens.css
+ D skills/design/design-systems/brand-inspiration/hashicorp/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/hashicorp/README.md
+ D skills/design/design-systems/brand-inspiration/huggingface/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/ibm/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/ibm/README.md
+ D skills/design/design-systems/brand-inspiration/intercom/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/intercom/README.md
+ D skills/design/design-systems/brand-inspiration/kami/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/kami/components.html
+ D skills/design/design-systems/brand-inspiration/kami/tokens.css
+ D skills/design/design-systems/brand-inspiration/kraken/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/kraken/README.md
+ D skills/design/design-systems/brand-inspiration/lamborghini/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/lamborghini/README.md
+ D skills/design/design-systems/brand-inspiration/linear-app/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/linear-app/components.html
+ D skills/design/design-systems/brand-inspiration/linear-app/tokens.css
+ D skills/design/design-systems/brand-inspiration/loom/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/lovable/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/lovable/README.md
+ D skills/design/design-systems/brand-inspiration/mastercard/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/mastercard/README.md
+ D skills/design/design-systems/brand-inspiration/meta/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/meta/README.md
+ D skills/design/design-systems/brand-inspiration/minimax/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/minimax/README.md
+ D skills/design/design-systems/brand-inspiration/mintlify/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/mintlify/README.md
+ D skills/design/design-systems/brand-inspiration/miro/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/miro/README.md
+ D skills/design/design-systems/brand-inspiration/mistral-ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/mistral.ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/mistral.ai/README.md
+ D skills/design/design-systems/brand-inspiration/mongodb/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/mongodb/README.md
+ D skills/design/design-systems/brand-inspiration/nike/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/nike/README.md
+ D skills/design/design-systems/brand-inspiration/notion/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/notion/README.md
+ D skills/design/design-systems/brand-inspiration/notion/components.html
+ D skills/design/design-systems/brand-inspiration/notion/tokens.css
+ D skills/design/design-systems/brand-inspiration/nvidia/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/nvidia/README.md
+ D skills/design/design-systems/brand-inspiration/ollama/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/ollama/README.md
+ D skills/design/design-systems/brand-inspiration/openai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/openai/components.html
+ D skills/design/design-systems/brand-inspiration/openai/tokens.css
+ D skills/design/design-systems/brand-inspiration/opencode-ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/opencode.ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/opencode.ai/README.md
+ D skills/design/design-systems/brand-inspiration/perplexity/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/pinterest/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/pinterest/README.md
+ D skills/design/design-systems/brand-inspiration/playstation/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/playstation/README.md
+ D skills/design/design-systems/brand-inspiration/posthog/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/posthog/README.md
+ D skills/design/design-systems/brand-inspiration/raycast/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/raycast/README.md
+ D skills/design/design-systems/brand-inspiration/renault/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/renault/README.md
+ D skills/design/design-systems/brand-inspiration/replicate/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/replicate/README.md
+ D skills/design/design-systems/brand-inspiration/resend/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/resend/README.md
+ D skills/design/design-systems/brand-inspiration/revolut/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/revolut/README.md
+ D skills/design/design-systems/brand-inspiration/runwayml/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/runwayml/README.md
+ D skills/design/design-systems/brand-inspiration/sanity/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/sanity/README.md
+ D skills/design/design-systems/brand-inspiration/sentry/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/sentry/README.md
+ D skills/design/design-systems/brand-inspiration/shopify/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/shopify/README.md
+ D skills/design/design-systems/brand-inspiration/shopify/components.html
+ D skills/design/design-systems/brand-inspiration/shopify/tokens.css
+ D skills/design/design-systems/brand-inspiration/slack/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/slack/components.html
+ D skills/design/design-systems/brand-inspiration/slack/tokens.css
+ D skills/design/design-systems/brand-inspiration/spacex/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/spacex/README.md
+ D skills/design/design-systems/brand-inspiration/spotify/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/spotify/README.md
+ D skills/design/design-systems/brand-inspiration/spotify/components.html
+ D skills/design/design-systems/brand-inspiration/spotify/tokens.css
+ D skills/design/design-systems/brand-inspiration/starbucks/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/starbucks/README.md
+ D skills/design/design-systems/brand-inspiration/stripe/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/stripe/README.md
+ D skills/design/design-systems/brand-inspiration/stripe/components.html
+ D skills/design/design-systems/brand-inspiration/stripe/tokens.css
+ D skills/design/design-systems/brand-inspiration/supabase/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/supabase/README.md
+ D skills/design/design-systems/brand-inspiration/superhuman/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/superhuman/README.md
+ D skills/design/design-systems/brand-inspiration/tesla/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/tesla/README.md
+ D skills/design/design-systems/brand-inspiration/theverge/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/theverge/README.md
+ D skills/design/design-systems/brand-inspiration/together-ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/together.ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/together.ai/README.md
+ D skills/design/design-systems/brand-inspiration/uber/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/uber/README.md
+ D skills/design/design-systems/brand-inspiration/uber/components.html
+ D skills/design/design-systems/brand-inspiration/uber/tokens.css
+ D skills/design/design-systems/brand-inspiration/vercel/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/vercel/README.md
+ D skills/design/design-systems/brand-inspiration/vercel/components.html
+ D skills/design/design-systems/brand-inspiration/vercel/tokens.css
+ D skills/design/design-systems/brand-inspiration/vodafone/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/vodafone/README.md
+ D skills/design/design-systems/brand-inspiration/voltagent/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/voltagent/README.md
+ D skills/design/design-systems/brand-inspiration/warp/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/warp/README.md
+ D skills/design/design-systems/brand-inspiration/webex/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/webflow/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/webflow/README.md
+ D skills/design/design-systems/brand-inspiration/wechat/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/wired/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/wired/README.md
+ D skills/design/design-systems/brand-inspiration/wise/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/wise/README.md
+ D skills/design/design-systems/brand-inspiration/x-ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/x.ai/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/x.ai/README.md
+ D skills/design/design-systems/brand-inspiration/xiaohongshu/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/zapier/DESIGN.md
+ D skills/design/design-systems/brand-inspiration/zapier/README.md
+ D skills/design/design-systems/index.json
+ D skills/design/design-systems/style-skills/agentic/DESIGN.md
+ D skills/design/design-systems/style-skills/agentic/SKILL.md
+ D skills/design/design-systems/style-skills/ant/DESIGN.md
+ D skills/design/design-systems/style-skills/ant/SKILL.md
+ D skills/design/design-systems/style-skills/application/DESIGN.md
+ D skills/design/design-systems/style-skills/application/SKILL.md
+ D skills/design/design-systems/style-skills/artistic/DESIGN.md
+ D skills/design/design-systems/style-skills/artistic/SKILL.md
+ D skills/design/design-systems/style-skills/atelier-zero/DESIGN.md
+ D skills/design/design-systems/style-skills/atelier-zero/SKILL.md
+ D skills/design/design-systems/style-skills/bento/DESIGN.md
+ D skills/design/design-systems/style-skills/bento/SKILL.md
+ D skills/design/design-systems/style-skills/bold/DESIGN.md
+ D skills/design/design-systems/style-skills/bold/SKILL.md
+ D skills/design/design-systems/style-skills/brutalism/DESIGN.md
+ D skills/design/design-systems/style-skills/brutalism/SKILL.md
+ D skills/design/design-systems/style-skills/cafe/DESIGN.md
+ D skills/design/design-systems/style-skills/cafe/SKILL.md
+ D skills/design/design-systems/style-skills/claude/DESIGN.md
+ D skills/design/design-systems/style-skills/claude/SKILL.md
+ D skills/design/design-systems/style-skills/claymorphism/DESIGN.md
+ D skills/design/design-systems/style-skills/claymorphism/SKILL.md
+ D skills/design/design-systems/style-skills/clean/DESIGN.md
+ D skills/design/design-systems/style-skills/clean/SKILL.md
+ D skills/design/design-systems/style-skills/codex/DESIGN.md
+ D skills/design/design-systems/style-skills/codex/SKILL.md
+ D skills/design/design-systems/style-skills/colorful/DESIGN.md
+ D skills/design/design-systems/style-skills/colorful/SKILL.md
+ D skills/design/design-systems/style-skills/contemporary/DESIGN.md
+ D skills/design/design-systems/style-skills/contemporary/SKILL.md
+ D skills/design/design-systems/style-skills/corporate/DESIGN.md
+ D skills/design/design-systems/style-skills/corporate/SKILL.md
+ D skills/design/design-systems/style-skills/cosmic/DESIGN.md
+ D skills/design/design-systems/style-skills/cosmic/SKILL.md
+ D skills/design/design-systems/style-skills/creative/DESIGN.md
+ D skills/design/design-systems/style-skills/creative/SKILL.md
+ D skills/design/design-systems/style-skills/dashboard/DESIGN.md
+ D skills/design/design-systems/style-skills/dashboard/SKILL.md
+ D skills/design/design-systems/style-skills/default/DESIGN.md
+ D skills/design/design-systems/style-skills/default/SKILL.md
+ D skills/design/design-systems/style-skills/default/components.html
+ D skills/design/design-systems/style-skills/default/tokens.css
+ D skills/design/design-systems/style-skills/dithered/DESIGN.md
+ D skills/design/design-systems/style-skills/dithered/SKILL.md
+ D skills/design/design-systems/style-skills/doodle/DESIGN.md
+ D skills/design/design-systems/style-skills/doodle/SKILL.md
+ D skills/design/design-systems/style-skills/dramatic/DESIGN.md
+ D skills/design/design-systems/style-skills/dramatic/SKILL.md
+ D skills/design/design-systems/style-skills/editorial/DESIGN.md
+ D skills/design/design-systems/style-skills/editorial/SKILL.md
+ D skills/design/design-systems/style-skills/elegant/DESIGN.md
+ D skills/design/design-systems/style-skills/elegant/SKILL.md
+ D skills/design/design-systems/style-skills/energetic/DESIGN.md
+ D skills/design/design-systems/style-skills/energetic/SKILL.md
+ D skills/design/design-systems/style-skills/enterprise/DESIGN.md
+ D skills/design/design-systems/style-skills/enterprise/SKILL.md
+ D skills/design/design-systems/style-skills/expressive/DESIGN.md
+ D skills/design/design-systems/style-skills/expressive/SKILL.md
+ D skills/design/design-systems/style-skills/fantasy/DESIGN.md
+ D skills/design/design-systems/style-skills/fantasy/SKILL.md
+ D skills/design/design-systems/style-skills/fiction/DESIGN.md
+ D skills/design/design-systems/style-skills/fiction/SKILL.md
+ D skills/design/design-systems/style-skills/flat/DESIGN.md
+ D skills/design/design-systems/style-skills/flat/SKILL.md
+ D skills/design/design-systems/style-skills/friendly/DESIGN.md
+ D skills/design/design-systems/style-skills/friendly/SKILL.md
+ D skills/design/design-systems/style-skills/futuristic/DESIGN.md
+ D skills/design/design-systems/style-skills/futuristic/SKILL.md
+ D skills/design/design-systems/style-skills/glassmorphism/DESIGN.md
+ D skills/design/design-systems/style-skills/glassmorphism/SKILL.md
+ D skills/design/design-systems/style-skills/gradient/DESIGN.md
+ D skills/design/design-systems/style-skills/gradient/SKILL.md
+ D skills/design/design-systems/style-skills/hud/DESIGN.md
+ D skills/design/design-systems/style-skills/hud/SKILL.md
+ D skills/design/design-systems/style-skills/immersive/DESIGN.md
+ D skills/design/design-systems/style-skills/immersive/SKILL.md
+ D skills/design/design-systems/style-skills/impeccable/DESIGN.md
+ D skills/design/design-systems/style-skills/impeccable/SKILL.md
+ D skills/design/design-systems/style-skills/index.json
+ D skills/design/design-systems/style-skills/levels/DESIGN.md
+ D skills/design/design-systems/style-skills/levels/SKILL.md
+ D skills/design/design-systems/style-skills/lingo/DESIGN.md
+ D skills/design/design-systems/style-skills/lingo/SKILL.md
+ D skills/design/design-systems/style-skills/luxury/DESIGN.md
+ D skills/design/design-systems/style-skills/luxury/SKILL.md
+ D skills/design/design-systems/style-skills/material/DESIGN.md
+ D skills/design/design-systems/style-skills/material/SKILL.md
+ D skills/design/design-systems/style-skills/matrix/DESIGN.md
+ D skills/design/design-systems/style-skills/matrix/SKILL.md
+ D skills/design/design-systems/style-skills/minimal/DESIGN.md
+ D skills/design/design-systems/style-skills/minimal/SKILL.md
+ D skills/design/design-systems/style-skills/mission-control/DESIGN.md
+ D skills/design/design-systems/style-skills/mission-control/SKILL.md
+ D skills/design/design-systems/style-skills/modern/DESIGN.md
+ D skills/design/design-systems/style-skills/modern/SKILL.md
+ D skills/design/design-systems/style-skills/mono/DESIGN.md
+ D skills/design/design-systems/style-skills/mono/SKILL.md
+ D skills/design/design-systems/style-skills/neobrutalism/DESIGN.md
+ D skills/design/design-systems/style-skills/neobrutalism/SKILL.md
+ D skills/design/design-systems/style-skills/neon/DESIGN.md
+ D skills/design/design-systems/style-skills/neon/SKILL.md
+ D skills/design/design-systems/style-skills/neumorphism/DESIGN.md
+ D skills/design/design-systems/style-skills/neumorphism/SKILL.md
+ D skills/design/design-systems/style-skills/pacman/DESIGN.md
+ D skills/design/design-systems/style-skills/pacman/SKILL.md
+ D skills/design/design-systems/style-skills/paper/DESIGN.md
+ D skills/design/design-systems/style-skills/paper/SKILL.md
+ D skills/design/design-systems/style-skills/parchment/DESIGN.md
+ D skills/design/design-systems/style-skills/parchment/SKILL.md
+ D skills/design/design-systems/style-skills/perspective/DESIGN.md
+ D skills/design/design-systems/style-skills/perspective/SKILL.md
+ D skills/design/design-systems/style-skills/premium/DESIGN.md
+ D skills/design/design-systems/style-skills/premium/SKILL.md
+ D skills/design/design-systems/style-skills/professional/DESIGN.md
+ D skills/design/design-systems/style-skills/professional/SKILL.md
+ D skills/design/design-systems/style-skills/publication/DESIGN.md
+ D skills/design/design-systems/style-skills/publication/SKILL.md
+ D skills/design/design-systems/style-skills/refined/DESIGN.md
+ D skills/design/design-systems/style-skills/refined/SKILL.md
+ D skills/design/design-systems/style-skills/retro/DESIGN.md
+ D skills/design/design-systems/style-skills/retro/SKILL.md
+ D skills/design/design-systems/style-skills/riso/DESIGN.md
+ D skills/design/design-systems/style-skills/riso/SKILL.md
+ D skills/design/design-systems/style-skills/sega/DESIGN.md
+ D skills/design/design-systems/style-skills/sega/SKILL.md
+ D skills/design/design-systems/style-skills/shadcn/DESIGN.md
+ D skills/design/design-systems/style-skills/shadcn/SKILL.md
+ D skills/design/design-systems/style-skills/simple/DESIGN.md
+ D skills/design/design-systems/style-skills/simple/SKILL.md
+ D skills/design/design-systems/style-skills/sketch/DESIGN.md
+ D skills/design/design-systems/style-skills/sketch/SKILL.md
+ D skills/design/design-systems/style-skills/skeumorphism/DESIGN.md
+ D skills/design/design-systems/style-skills/skeumorphism/SKILL.md
+ D skills/design/design-systems/style-skills/sleek/DESIGN.md
+ D skills/design/design-systems/style-skills/sleek/SKILL.md
+ D skills/design/design-systems/style-skills/spacious/DESIGN.md
+ D skills/design/design-systems/style-skills/spacious/SKILL.md
+ D skills/design/design-systems/style-skills/storytelling/DESIGN.md
+ D skills/design/design-systems/style-skills/storytelling/SKILL.md
+ D skills/design/design-systems/style-skills/terracotta/DESIGN.md
+ D skills/design/design-systems/style-skills/terracotta/SKILL.md
+ D skills/design/design-systems/style-skills/tetris/DESIGN.md
+ D skills/design/design-systems/style-skills/tetris/SKILL.md
+ D skills/design/design-systems/style-skills/totality-festival/DESIGN.md
+ D skills/design/design-systems/style-skills/totality-festival/SKILL.md
+ D skills/design/design-systems/style-skills/trading-terminal/DESIGN.md
+ D skills/design/design-systems/style-skills/trading-terminal/SKILL.md
+ D skills/design/design-systems/style-skills/urdu/DESIGN.md
+ D skills/design/design-systems/style-skills/urdu/SKILL.md
+ D skills/design/design-systems/style-skills/vibrant/DESIGN.md
+ D skills/design/design-systems/style-skills/vibrant/SKILL.md
+ D skills/design/design-systems/style-skills/vintage/DESIGN.md
+ D skills/design/design-systems/style-skills/vintage/SKILL.md
+ D skills/design/design-systems/style-skills/warm-editorial/DESIGN.md
+ D skills/design/design-systems/style-skills/warm-editorial/SKILL.md
+ D skills/design/design-templates/INDEX.md
+ D skills/design/design-templates/ascii-cosmos/SKILL.md
+ D skills/design/design-templates/ascii-cosmos/reference.html
+ D skills/design/design-templates/ascii-cosmos/styles.md
+ D skills/design/design-templates/ascii-cosmos/template.html
+ D skills/design/design-templates/audio-jingle/SKILL.md
+ D skills/design/design-templates/audio-jingle/music-player.html
+ D skills/design/design-templates/blog-post/SKILL.md
+ D skills/design/design-templates/blog-post/qiye-wildstay.html
+ D "skills/design/design-templates/blog-post/\350\202\214\350\202\244\344\270\223\351\242\230\357\275\234\345\205\263\344\272\216\345\261\217\351\232\234\347\232\204\344\270\200\346\254\241\351\207\215\350\257\273.html"
+ D skills/design/design-templates/dashboard/SKILL.md
+ D skills/design/design-templates/dashboard/stack-dashboard-zh.html
+ D skills/design/design-templates/digital-eguide/SKILL.md
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-01-color-macro.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-02-typography.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-03-packaging.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-04-paint-stroke.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-05-brand-flatlay.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-06-studio-portrait.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-07-gradient.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-08-editorial.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-09-ceramic.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-10-urban.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-11-ink-paper.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-12-botanical.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-13-risograph.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-14-gallery-wall.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-15-light-motion.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-16-interior.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-17-color-block.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/images/p-18-magazine.jpg"
+ D "skills/design/design-templates/digital-eguide/case\357\274\210\346\227\240\351\231\220\347\224\273\345\270\203\357\274\232\344\275\234\345\223\201\351\233\206\357\274\211/case/index.html"
+ D skills/design/design-templates/digital-eguide/social-carousel.html
+ D skills/design/design-templates/dot-matrix-xhs/SKILL.md
+ D "skills/design/design-templates/dot-matrix-xhs/\347\202\271\351\230\265.html"
+ D skills/design/design-templates/html-ppt-xhs-post/SKILL.md
+ D skills/design/design-templates/html-ppt-xhs-post/xhs-cover-spring.html
+ D skills/design/design-templates/html-ppt-xhs-post/xhs-cover-typography.html
+ D skills/design/design-templates/industrial-archive/SKILL.md
+ D skills/design/design-templates/industrial-archive/reference.html
+ D skills/design/design-templates/industrial-archive/styles.md
+ D skills/design/design-templates/industrial-archive/template.html
+ D skills/design/design-templates/portfolio-detail/SKILL.md
+ D skills/design/design-templates/portfolio-detail/reference.html
+ D skills/design/design-templates/portfolio-detail/template.html
+ D skills/design/design-templates/ppt/AGENTS.md
+ D skills/design/design-templates/ppt/INDEX.md
+ D skills/design/design-templates/ppt/guizang-ppt/LICENSE
+ D skills/design/design-templates/ppt/guizang-ppt/README.en.md
+ D skills/design/design-templates/ppt/guizang-ppt/README.md
+ D skills/design/design-templates/ppt/guizang-ppt/README.pt-BR.md
+ D skills/design/design-templates/ppt/guizang-ppt/SKILL.md
+ D skills/design/design-templates/ppt/guizang-ppt/assets/pattern-slides.html
+ D skills/design/design-templates/ppt/guizang-ppt/assets/template.html
+ D skills/design/design-templates/ppt/guizang-ppt/references/checklist.md
+ D skills/design/design-templates/ppt/guizang-ppt/references/components.md
+ D skills/design/design-templates/ppt/guizang-ppt/references/layouts.md
+ D skills/design/design-templates/ppt/guizang-ppt/references/styles.md
+ D skills/design/design-templates/ppt/guizang-ppt/references/themes.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-8-bit-orbit/LICENSE
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-8-bit-orbit/SKILL.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-8-bit-orbit/pattern.html
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-8-bit-orbit/template.json
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-biennale-yellow/LICENSE
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-biennale-yellow/SKILL.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-biennale-yellow/pattern.html
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-biennale-yellow/template.json
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-grove/LICENSE
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-grove/SKILL.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-grove/pattern.html
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-grove/template.json
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-pin-and-paper/LICENSE
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-pin-and-paper/SKILL.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-pin-and-paper/assets/deck-stage.js
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-pin-and-paper/assets/styles.css
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-pin-and-paper/pattern.html
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-pin-and-paper/template.json
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-windows/LICENSE
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-windows/SKILL.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-windows/pattern.html
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-windows/template.json
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-zine/LICENSE
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-zine/SKILL.md
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-zine/pattern.html
+ D skills/design/design-templates/ppt/html-ppt-zhangzara-retro-zine/template.json
+ D skills/design/design-templates/ppt/ib-pitch-book/SKILL.md
+ D skills/design/design-templates/ppt/ib-pitch-book/assets/template.html
+ D skills/design/design-templates/ppt/ib-pitch-book/pattern.html
+ D skills/design/design-templates/ppt/ib-pitch-book/references/attribution.md
+ D skills/design/design-templates/ppt/ib-pitch-book/references/checklist.md
+ D skills/design/design-templates/ppt/ib-pitch-book/references/compliance.md
+ D skills/design/design-templates/ppt/ib-pitch-book/references/conventions.md
+ D skills/design/design-templates/pricing-page/SKILL.md
+ D skills/design/design-templates/pricing-page/pricing-cn.html
+ D skills/design/design-templates/project-brief/SKILL.md
+ D "skills/design/design-templates/project-brief/\346\270\205\350\250\200\345\221\250\346\212\245-VOL18-notebook.html"
+ D skills/design/design-templates/riso-product/SKILL.md
+ D skills/design/design-templates/riso-product/reference.html
+ D skills/design/design-templates/saas-landing/SKILL.md
+ D skills/design/design-templates/saas-landing/reference.html
+ D skills/design/design-templates/social-card-data-kpi/SKILL.md
+ D skills/design/design-templates/social-card-data-kpi/pattern.html
+ D skills/design/design-templates/social-card-editorial/SKILL.md
+ D skills/design/design-templates/social-card-editorial/assets/magazine-bg-webgl.js
+ D skills/design/design-templates/social-card-editorial/assets/screenshot-backgrounds/style-a/dune.webp
+ D skills/design/design-templates/social-card-editorial/assets/screenshot-backgrounds/style-a/forest-ink.webp
+ D skills/design/design-templates/social-card-editorial/assets/screenshot-backgrounds/style-a/indigo-porcelain.webp
+ D skills/design/design-templates/social-card-editorial/assets/screenshot-backgrounds/style-a/kraft-paper.webp
+ D skills/design/design-templates/social-card-editorial/assets/screenshot-backgrounds/style-a/monocle-classic.webp
+ D skills/design/design-templates/social-card-editorial/pattern.html
+ D skills/design/design-templates/social-card-editorial/references/image-overlay.md
+ D skills/design/design-templates/social-card-editorial/references/layout-recipes.md
+ D skills/design/design-templates/social-card-editorial/references/map-component.md
+ D skills/design/design-templates/social-card-editorial/references/platform-specs.md
+ D skills/design/design-templates/social-card-editorial/references/portrait-fill.md
+ D skills/design/design-templates/social-card-editorial/references/screenshot-treatment.md
+ D skills/design/design-templates/social-card-editorial/references/style-system.md
+ D skills/design/design-templates/social-card-editorial/references/theme-presets.md
+ D skills/design/design-templates/social-card-editorial/references/title-shortener.md
+ D skills/design/design-templates/social-card-image-led/SKILL.md
+ D skills/design/design-templates/social-card-image-led/pattern.html
+ D skills/design/design-templates/social-card-map/SKILL.md
+ D skills/design/design-templates/social-card-map/pattern.html
+ D skills/design/design-templates/social-card-quote/SKILL.md
+ D skills/design/design-templates/social-card-quote/pattern.html
+ D skills/design/design-templates/social-card-screenshot-explainer/SKILL.md
+ D skills/design/design-templates/social-card-screenshot-explainer/pattern.html
+ D skills/design/design-templates/social-card-swiss/SKILL.md
+ D skills/design/design-templates/social-card-swiss/assets/magazine-bg-webgl.js
+ D skills/design/design-templates/social-card-swiss/assets/screenshot-backgrounds/style-b/ikb-dot-gradient.webp
+ D skills/design/design-templates/social-card-swiss/assets/screenshot-backgrounds/style-b/lemon-green-dot-shadow.webp
+ D skills/design/design-templates/social-card-swiss/assets/screenshot-backgrounds/style-b/lemon-grid.webp
+ D skills/design/design-templates/social-card-swiss/assets/screenshot-backgrounds/style-b/safety-orange-halftone.webp
+ D skills/design/design-templates/social-card-swiss/pattern.html
+ D skills/design/design-templates/social-card-swiss/references/image-overlay.md
+ D skills/design/design-templates/social-card-swiss/references/layout-recipes.md
+ D skills/design/design-templates/social-card-swiss/references/map-component.md
+ D skills/design/design-templates/social-card-swiss/references/platform-specs.md
+ D skills/design/design-templates/social-card-swiss/references/portrait-fill.md
+ D skills/design/design-templates/social-card-swiss/references/screenshot-treatment.md
+ D skills/design/design-templates/social-card-swiss/references/style-system.md
+ D skills/design/design-templates/social-card-swiss/references/theme-presets.md
+ D skills/design/design-templates/social-card-swiss/references/title-shortener.md
+ D skills/design/design-templates/social-carousel/SKILL.md
+ D skills/design/design-templates/social-carousel/scroll-gallery.html
+ D skills/design/design-templates/team-okrs/SKILL.md
+ D skills/design/design-templates/team-okrs/activity-stream.html
+ D skills/design/design-templates/video-shortform/SKILL.md
+ D skills/design/design-templates/video-shortform/video-shortform.html
+ D skills/design/design-templates/vr-canvas/SKILL.md
+ D skills/design/design-templates/vr-canvas/images/p-01-color-macro.jpg
+ D skills/design/design-templates/vr-canvas/images/p-02-typography.jpg
+ D skills/design/design-templates/vr-canvas/images/p-03-packaging.jpg
+ D skills/design/design-templates/vr-canvas/images/p-04-paint-stroke.jpg
+ D skills/design/design-templates/vr-canvas/images/p-05-brand-flatlay.jpg
+ D skills/design/design-templates/vr-canvas/images/p-06-studio-portrait.jpg
+ D skills/design/design-templates/vr-canvas/images/p-07-gradient.jpg
+ D skills/design/design-templates/vr-canvas/images/p-08-editorial.jpg
+ D skills/design/design-templates/vr-canvas/images/p-09-ceramic.jpg
+ D skills/design/design-templates/vr-canvas/images/p-10-urban.jpg
+ D skills/design/design-templates/vr-canvas/images/p-11-ink-paper.jpg
+ D skills/design/design-templates/vr-canvas/images/p-12-botanical.jpg
+ D skills/design/design-templates/vr-canvas/images/p-13-risograph.jpg
+ D skills/design/design-templates/vr-canvas/images/p-14-gallery-wall.jpg
+ D skills/design/design-templates/vr-canvas/images/p-15-light-motion.jpg
+ D skills/design/design-templates/vr-canvas/images/p-16-interior.jpg
+ D skills/design/design-templates/vr-canvas/images/p-17-color-block.jpg
+ D skills/design/design-templates/vr-canvas/images/p-18-magazine.jpg
+ D skills/design/design-templates/vr-canvas/reference.html
+ D skills/design/design-templates/vr-canvas/template.html
+ D skills/design/design-templates/waitlist-page/SKILL.md
+ D "skills/design/design-templates/waitlist-page/\345\261\202\344\272\221-waitlist.html"
+ D skills/design/design-templates/wechat-cover-pair/SKILL.md
+ D skills/design/design-templates/wechat-cover-pair/pattern.html
+ D skills/design/design-templates/wireframe-sketch/SKILL.md
+ D skills/design/design-templates/wireframe-sketch/foolscap-wireframe.html
+ D skills/design/design-templates/xianying-tool/SKILL.md
+ D skills/design/design-templates/xianying-tool/index.standalone.html
+ D skills/design/export.md
+ D skills/design/horizontal-craft/README.md
+ D skills/design/horizontal-craft/accessibility.md
+ D skills/design/horizontal-craft/animation-discipline.md
+ D skills/design/horizontal-craft/anti-ai-slop.md
+ D skills/design/horizontal-craft/chinese-typography.md
+ D skills/design/horizontal-craft/color.md
+ D skills/design/horizontal-craft/data-integrity.md
+ D skills/design/horizontal-craft/form-validation.md
+ D skills/design/horizontal-craft/icon-system.md
+ D skills/design/horizontal-craft/laws-of-ux.md
+ D skills/design/horizontal-craft/link-and-proof.md
+ D skills/design/horizontal-craft/reference/directions.md
+ D skills/design/horizontal-craft/reference/fonts.md
+ D skills/design/horizontal-craft/reference/grid-system.md
+ D skills/design/horizontal-craft/reference/punctuation.md
+ D skills/design/horizontal-craft/reference/text-detail.md
+ D skills/design/horizontal-craft/reference/title-and-breaking.md
+ D skills/design/horizontal-craft/state-coverage.md
+ D skills/design/horizontal-craft/technique-library.md
+ D skills/design/horizontal-craft/visual-explanation.md
+ D skills/design/info-interactive.md
+ D skills/design/landing-page.md
+ D skills/design/portfolio.md
+ D skills/design/prototype.md
+ D skills/design/quality-gate.md
+ D skills/design/social-card.md
+ D skills/design/web-tool.md
+ D skills/dream-interpreter/SKILL.md
+ D skills/dream-interpreter/assets/example_asset.txt
+ D skills/dream-interpreter/references/api_reference.md
+ D skills/dream-interpreter/references/interpretation-guide.md
+ D skills/dream-interpreter/references/output-schema.md
+ D skills/dream-interpreter/references/questioning-strategy.md
+ D skills/dream-interpreter/references/visual-mapping.md
+ D skills/dream-interpreter/scripts/example.py
+ D skills/dream-interpreter/skill.json
+ D skills/experiment-suite/SKILL.md
+ D skills/experiment-suite/figure_examples/FIGURE_CONTRACT_TEMPLATE.md
+ D skills/experiment-suite/figure_examples/README.md
+ D skills/experiment-suite/figure_examples/make_fig_02_horizon_sweep.py
+ D skills/experiment-suite/figure_examples/make_fig_03_heatmap.py
+ D skills/experiment-suite/figure_examples/make_fig_04_ablation.py
+ D skills/experiment-suite/figure_examples/requirements.txt
+ D skills/experiment-suite/figure_examples/style_kit.py
+ D skills/experiment-suite/references/00-incremental-execution.md
+ D skills/experiment-suite/references/01-design-depth.md
+ D skills/experiment-suite/references/01a-data-contract.md
+ D skills/experiment-suite/references/02-code-quality.md
+ D skills/experiment-suite/references/03-results-protocol.md
+ D skills/experiment-suite/references/04-publication-figures.md
+ D skills/experiment-suite/references/04a-figure-contract.md
+ D skills/experiment-suite/references/04b-figure-qa.md
+ D skills/experiment-suite/references/05-report-structure.md
+ D skills/experiment-suite/references/06-quality-gate.md
+ D skills/finance/Finance_API_Doc.md
+ D skills/finance/SKILL.md
+ D skills/gaokao-collect-student-info/SKILL.md
+ D skills/gaokao-collect-student-info/examples/student_shandong.json
+ D skills/gaokao-collect-student-info/examples/student_template.json
+ D skills/gaokao-collect-student-info/reference.md
+ D skills/gaokao-fetch-volunteers/SKILL.md
+ D skills/gaokao-fetch-volunteers/examples/api_request_shandong.json
+ D skills/gaokao-fetch-volunteers/examples/api_request_template.json
+ D skills/gaokao-fetch-volunteers/preference_mapping.md
+ D skills/gaokao-fetch-volunteers/reference.md
+ D skills/gaokao-fetch-volunteers/requirements.txt
+ D skills/gaokao-fetch-volunteers/scripts/build_api_request.py
+ D skills/gaokao-fetch-volunteers/scripts/fetch_volunteers.py
+ D skills/gaokao-fetch-volunteers/scripts/province_config.py
+ D skills/gaokao-fetch-volunteers/scripts/test_batch_api.py
+ D skills/gaokao-generate-report/SKILL.md
+ D skills/gaokao-generate-report/examples/analysis_merged_example.json
+ D skills/gaokao-generate-report/requirements.txt
+ D skills/gaokao-generate-report/scripts/generate_html.py
+ D skills/gaokao-generate-report/scripts/merge_analysis.py
+ D skills/gaokao-generate-report/templates/volunteer_report.html
+ D skills/gaokao-recommend-majors/SKILL.md
+ D skills/gaokao-recommend-majors/career_reference.md
+ D skills/gaokao-recommend-majors/examples/major_recommendation_template.json
+ D skills/gaokao-recommend-schools/SKILL.md
+ D skills/gaokao-recommend-schools/career_reference.md
+ D skills/gaokao-recommend-schools/examples/school_recommendation_template.json
+ D skills/get-fortune-analysis/SKILL.md
+ D skills/get-fortune-analysis/lunar_python.py
+ D skills/gift-evaluator/SKILL.md
+ D skills/gift-evaluator/html_tools.py
+ D skills/image-understand/LICENSE.txt
+ D skills/image-understand/SKILL.md
+ D skills/image-understand/scripts/image-understand.ts
+ D skills/interview-designer/README.md
+ D skills/interview-designer/SKILL.md
+ D skills/interview-designer/_meta.json
+ D skills/interview-designer/references/design_rationale.md
+ D skills/interview-designer/templates/interview_guide_template.md
+ D skills/interview-prep/SKILL.md
+ D skills/interview-prep/references/answer_frameworks.md
+ D skills/interview-prep/references/behavioral.md
+ D skills/interview-prep/references/case.md
+ D skills/interview-prep/references/hr_round.md
+ D skills/interview-prep/references/role_finance.md
+ D skills/interview-prep/references/role_internet.md
+ D skills/interview-prep/references/role_tech.md
+ D skills/interview-prep/references/salary_negotiation.md
+ D skills/interview-prep/references/technical.md
+ D skills/interview-prep/scripts/star_story_builder.py
+ D skills/jd-resume-tailor/SKILL.md
+ D skills/jd-resume-tailor/references/jd_parsing_signals.md
+ D skills/jd-resume-tailor/references/rewrite_principles.md
+ D skills/jd-resume-tailor/scripts/jd_gap.py
+ D skills/jd-resume-tailor/scripts/parse_jd.py
+ D skills/job-intent-tracker/SKILL.md
+ D skills/job-intent-tracker/references/keywords_finance.md
+ D skills/job-intent-tracker/references/keywords_general.md
+ D skills/job-intent-tracker/references/keywords_internet.md
+ D skills/job-intent-tracker/references/keywords_tech.md
+ D skills/job-intent-tracker/references/target_profile_template.md
+ D skills/job-intent-tracker/scripts/init_tracker.py
+ D skills/job-intent-tracker/scripts/profile_match.py
+ D skills/literature-survey/SKILL.md
+ D skills/literature-survey/references/00-incremental-execution.md
+ D skills/literature-survey/references/01-bibliography-expansion.md
+ D skills/literature-survey/references/02-survey-figures.md
+ D skills/literature-survey/references/03-survey-section-playbook.md
+ D skills/literature-survey/references/04-layout-discipline.md
+ D skills/literature-survey/references/05-quality-gate.md
+ D skills/literature-survey/templates/survey/compile.sh
+ D skills/literature-survey/templates/survey/figures/.gitkeep
+ D skills/literature-survey/templates/survey/main.tex
+ D skills/literature-survey/templates/survey/sections/.gitkeep
+ D skills/market-research-reports/SKILL.md
+ D skills/market-research-reports/assets/FORMATTING_GUIDE.md
+ D skills/market-research-reports/assets/market_report_template.tex
+ D skills/market-research-reports/assets/market_research.sty
+ D skills/market-research-reports/references/data_analysis_patterns.md
+ D skills/market-research-reports/references/report_structure_guide.md
+ D skills/market-research-reports/references/visual_generation_guide.md
+ D skills/market-research-reports/scripts/generate_market_visuals.py
+ D skills/marketing-mode/README.md
+ D skills/marketing-mode/SKILL.md
+ D skills/marketing-mode/_meta.json
+ D skills/marketing-mode/mode-prompt.md
+ D skills/marketing-mode/skill.json
+ D skills/mindfulness-meditation/SKILL.md
+ D skills/mindfulness-meditation/_meta.json
+ D skills/multi-search-engine/CHANGELOG.md
+ D skills/multi-search-engine/CHANNELLOG.md
+ D skills/multi-search-engine/SKILL.md
+ D skills/multi-search-engine/_meta.json
+ D skills/multi-search-engine/config.json
+ D skills/multi-search-engine/metadata.json
+ D skills/multi-search-engine/references/international-search.md
+ D skills/podcast-generate/LICENSE.txt
+ D skills/podcast-generate/SKILL.md
+ D skills/podcast-generate/generate.ts
+ D skills/podcast-generate/package.json
+ D skills/podcast-generate/readme.md
+ D skills/podcast-generate/test_data/segments.jsonl
+ D skills/podcast-generate/tsconfig.json
+ D skills/qingyan-research/SKILL.md
+ D skills/qingyan-research/generate_html.py
+ D skills/quiz-html/README.md
+ D skills/quiz-html/SKILL.md
+ D skills/quiz-html/examples/demo.html
+ D skills/quiz-html/scripts/build_quiz_html.py
+ D skills/quiz-html/skill.yaml
+ D skills/quiz-html/templates/quiz_template.html
+ D skills/quiz-mastery/.claude/settings.json
+ D skills/quiz-mastery/README.md
+ D skills/quiz-mastery/SKILL.md
+ D skills/quiz-mastery/scripts/generate_from_material.py
+ D skills/quiz-mastery/scripts/import_quiz.py
+ D skills/quiz-mastery/scripts/run_quiz.py
+ D skills/quiz-mastery/scripts/submit_answers.py
+ D skills/quiz-mastery/skill.yaml
+ D skills/quiz-mastery/src/quiz_mastery/__init__.py
+ D skills/quiz-mastery/src/quiz_mastery/evaluator.py
+ D skills/quiz-mastery/src/quiz_mastery/file_parser.py
+ D skills/quiz-mastery/src/quiz_mastery/mastery_engine.py
+ D skills/quiz-mastery/src/quiz_mastery/models.py
+ D skills/quiz-mastery/src/quiz_mastery/planner.py
+ D skills/quiz-mastery/src/quiz_mastery/quiz_extractor.py
+ D skills/quiz-mastery/src/quiz_mastery/quiz_generator.py
+ D skills/quiz-mastery/src/quiz_mastery/repository.py
+ D skills/quiz-mastery/src/quiz_mastery/service.py
+ D skills/quiz-mastery/src/quiz_mastery/utils.py
+ D skills/research-explorer/SKILL.md
+ D skills/resume-builder/SKILL.md
+ D skills/resume-builder/references/export_guide.md
+ D skills/resume-builder/references/intake_questions.md
+ D skills/resume-builder/references/keywords/finance.txt
+ D skills/resume-builder/references/keywords/general.txt
+ D skills/resume-builder/references/keywords/internet.txt
+ D skills/resume-builder/references/keywords/tech.txt
+ D skills/resume-builder/references/star_rewrite_guide.md
+ D skills/resume-builder/references/templates/finance.md
+ D skills/resume-builder/references/templates/general.md
+ D skills/resume-builder/references/templates/internet.md
+ D skills/resume-builder/references/templates/tech.md
+ D skills/resume-builder/scripts/ats_check.py
+ D skills/seo-content-writer/SKILL.md
+ D skills/seo-content-writer/_meta.json
+ D skills/seo-content-writer/references/content-structure-templates.md
+ D skills/seo-content-writer/references/title-formulas.md
+ D skills/stock-analysis-skill/SKILL.md
+ D skills/stock-analysis-skill/package.json
+ D skills/stock-analysis-skill/src/analyzer.ts
+ D skills/stock-analysis-skill/src/dataFetcher.ts
+ D skills/stock-analysis-skill/src/dividend.ts
+ D skills/stock-analysis-skill/src/index.ts
+ D skills/stock-analysis-skill/src/rumorScanner.ts
+ D skills/stock-analysis-skill/src/types.ts
+ D skills/stock-analysis-skill/src/watchlist.ts
+ D skills/stock-analysis-skill/tsconfig.json
+ D skills/storyboard-manager/SKILL.md
+ D skills/storyboard-manager/index.js
+ D skills/storyboard-manager/package.json
+ D skills/storyboard-manager/references/character_development.md
+ D skills/storyboard-manager/references/story_structures.md
+ D skills/storyboard-manager/scripts/consistency_checker.py
+ D skills/storyboard-manager/scripts/timeline_tracker.py
+ D skills/study-buddy/SKILL.md
+ D skills/ui-ux-pro-max/SKILL.md
+ D skills/ui-ux-pro-max/_meta.json
+ D skills/ui-ux-pro-max/assets/data/charts.csv
+ D skills/ui-ux-pro-max/assets/data/colors.csv
+ D skills/ui-ux-pro-max/assets/data/icons.csv
+ D skills/ui-ux-pro-max/assets/data/landing.csv
+ D skills/ui-ux-pro-max/assets/data/products.csv
+ D skills/ui-ux-pro-max/assets/data/react-performance.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/astro.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/flutter.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/html-tailwind.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/jetpack-compose.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/nextjs.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/nuxt-ui.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/nuxtjs.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/react-native.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/react.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/shadcn.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/svelte.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/swiftui.csv
+ D skills/ui-ux-pro-max/assets/data/stacks/vue.csv
+ D skills/ui-ux-pro-max/assets/data/styles.csv
+ D skills/ui-ux-pro-max/assets/data/typography.csv
+ D skills/ui-ux-pro-max/assets/data/ui-reasoning.csv
+ D skills/ui-ux-pro-max/assets/data/ux-guidelines.csv
+ D skills/ui-ux-pro-max/assets/data/web-interface.csv
+ D skills/ui-ux-pro-max/data/charts.csv
+ D skills/ui-ux-pro-max/data/colors.csv
+ D skills/ui-ux-pro-max/data/icons.csv
+ D skills/ui-ux-pro-max/data/landing.csv
+ D skills/ui-ux-pro-max/data/products.csv
+ D skills/ui-ux-pro-max/data/react-performance.csv
+ D skills/ui-ux-pro-max/data/stacks/astro.csv
+ D skills/ui-ux-pro-max/data/stacks/flutter.csv
+ D skills/ui-ux-pro-max/data/stacks/html-tailwind.csv
+ D skills/ui-ux-pro-max/data/stacks/jetpack-compose.csv
+ D skills/ui-ux-pro-max/data/stacks/nextjs.csv
+ D skills/ui-ux-pro-max/data/stacks/nuxt-ui.csv
+ D skills/ui-ux-pro-max/data/stacks/nuxtjs.csv
+ D skills/ui-ux-pro-max/data/stacks/react-native.csv
+ D skills/ui-ux-pro-max/data/stacks/react.csv
+ D skills/ui-ux-pro-max/data/stacks/shadcn.csv
+ D skills/ui-ux-pro-max/data/stacks/svelte.csv
+ D skills/ui-ux-pro-max/data/stacks/swiftui.csv
+ D skills/ui-ux-pro-max/data/stacks/vue.csv
+ D skills/ui-ux-pro-max/data/styles.csv
+ D skills/ui-ux-pro-max/data/typography.csv
+ D skills/ui-ux-pro-max/data/ui-reasoning.csv
+ D skills/ui-ux-pro-max/data/ux-guidelines.csv
+ D skills/ui-ux-pro-max/data/web-interface.csv
+ D skills/ui-ux-pro-max/references/upstream-README.md
+ D skills/ui-ux-pro-max/references/upstream-skill-content.md
+ D skills/ui-ux-pro-max/scripts/__init__.py
+ D skills/ui-ux-pro-max/scripts/core.py
+ D skills/ui-ux-pro-max/scripts/design_system.py
+ D skills/ui-ux-pro-max/scripts/search.py
+ D skills/version-management/SKILL.md
+ D skills/video-generation/LICENSE.txt
+ D skills/video-generation/SKILL.md
+ D skills/video-generation/scripts/video.ts
+ D skills/visual-design-foundations/SKILL.md
+ D skills/visual-design-foundations/references/color-systems.md
+ D skills/visual-design-foundations/references/spacing-iconography.md
+ D skills/visual-design-foundations/references/typography-systems.md
+ D skills/web-shader-extractor/SKILL.md
+ D skills/web-shader-extractor/references/config-extraction.md
+ D skills/web-shader-extractor/references/encoded-definitions.md
+ D skills/web-shader-extractor/references/extraction-workflow.md
+ D skills/web-shader-extractor/references/porting-strategy.md
+ D skills/web-shader-extractor/references/shader-injection.md
+ D skills/web-shader-extractor/references/shaders-com.md
+ D skills/web-shader-extractor/references/tech-signatures.md
+ D skills/web-shader-extractor/references/tsl-extraction.md
+ D skills/web-shader-extractor/references/unicorn-studio.md
+ D skills/web-shader-extractor/scripts/fetch-rendered-dom.mjs
+ D skills/web-shader-extractor/scripts/scan-bundle.sh
+ D skills/writing-plans/SKILL.md
+ D skills/writing-plans/_meta.json
+ m upload/ECDSA_extracted/ECDSA/keyhunt
+?? scripts/
+?? tool-results/
+===
+ PROGRESS_MEMO.md                                   |   54 +-
+ experiments/qip_predicate_kappa.py                 |  210 +-
+ results/qip_predicate_kappa.json                   |  264 +-
+ skills/ai-news-collectors/SKILL.md                 |  157 -
+ skills/ai-news-collectors/_meta.json               |    6 -
+ skills/ai-news-collectors/references/sources.md    |  128 -
+ skills/aminer-academic-search/SKILL.md             |  267 --
+ skills/aminer-academic-search/evals/evals.json     |  166 -
+ .../references/api-catalog.md                      | 1175 ------
+ .../scripts/aminer_client.py                       | 1154 ------
+ skills/aminer-daily-paper/README.md                |   42 -
+ skills/aminer-daily-paper/SKILL.md                 |  212 -
+ skills/aminer-daily-paper/commands/aminer-dp.md    |   52 -
+ skills/aminer-daily-paper/prompts/enrich.md        |   40 -
+ skills/aminer-daily-paper/requirements.txt         |    1 -
+ skills/aminer-daily-paper/scripts/__init__.py      |    1 -
+ skills/aminer-daily-paper/scripts/common.py        |   28 -
+ skills/aminer-daily-paper/scripts/constants.py     |    7 -
+ .../aminer-daily-paper/scripts/handle_trigger.py   |  527 ---
+ skills/aminer-daily-paper/scripts/rec5_api.py      |  210 -
+ skills/aminer-daily-paper/scripts/run_pipeline.py  |  231 --
+ skills/aminer-deep-search/.gitignore               |    3 -
+ skills/aminer-deep-search/SKILL.md                 |  111 -
+ skills/aminer-deep-search/SKILL.zh.md              |  111 -
+ .../commands/aminer-deep-search.md                 |   51 -
+ skills/aminer-deep-search/scripts/aminer_api.py    |  410 --
+ skills/aminer-deep-search/scripts/paper_set.py     |  176 -
+ skills/aminer-deep-search/tests/test_aminer_api.py |  235 --
+ skills/aminer-deep-search/tests/test_paper_set.py  |  109 -
+ skills/aminer-free-academic/SKILL.md               |  363 --
+ skills/aminer-free-academic/evals/evals.json       |   93 -
+ .../aminer-free-academic/references/api-catalog.md |  286 --
+ skills/anti-pua/SKILL.md                           |  245 --
+ skills/auto-target-tracker/SKILL.md                |  317 --
+ .../2024-02-17-radical-transparency-sales.md       |   35 -
+ .../2024-02-17-raycast-spotlight-superpowers.md    |   33 -
+ .../2024-02-17-short-form-content-marketing.md     |   47 -
+ .../2024-02-17-typing-speed-benefits.md            |   33 -
+ .../blog-writer/2024-03-14-effective-ai-prompts.md |   55 -
+ ...4-11-08-ai-revolutionizing-entry-level-sales.md |   43 -
+ .../2025-11-12-why-ai-art-is-useless.md            |   49 -
+ skills/blog-writer/README.md                       |    2 -
+ skills/blog-writer/SKILL.md                        |  158 -
+ skills/blog-writer/_meta.json                      |    6 -
+ skills/blog-writer/manage_examples.py              |   90 -
+ skills/blog-writer/style-guide.md                  |  160 -
+ skills/cheat-sheet/SKILL.md                        |  210 -
+ skills/coding-agent/SKILL.md                       |  120 -
+ skills/coding-agent/_meta.json                     |    6 -
+ skills/coding-agent/criteria.md                    |   48 -
+ skills/coding-agent/execution.md                   |   42 -
+ skills/coding-agent/memory-template.md             |   38 -
+ skills/coding-agent/planning.md                    |   31 -
+ skills/coding-agent/state.md                       |   60 -
+ skills/coding-agent/verification.md                |   39 -
+ skills/content-strategy/SKILL.md                   |  181 -
+ skills/content-strategy/_meta.json                 |    6 -
+ skills/contentanalysis/ExtractWisdom/SKILL.md      |  229 --
+ .../ExtractWisdom/Workflows/Extract.md             |   60 -
+ skills/contentanalysis/SKILL.md                    |   14 -
+ skills/design/INDEX.md                             |   92 -
+ skills/design/SKILL.md                             |  477 ---
+ skills/design/canvas-and-device.md                 |  327 --
+ skills/design/content-page.md                      |  388 --
+ skills/design/deck.md                              |  105 -
+ skills/design/design-system-generation.md          |  162 -
+ skills/design/design-system-reference.md           |  600 ---
+ skills/design/design-systems/INDEX.md              |  281 --
+ skills/design/design-systems/TAG-VOCABULARY.md     |   41 -
+ .../brand-inspiration/airbnb/DESIGN.md             |  545 ---
+ .../brand-inspiration/airbnb/README.md             |    5 -
+ .../brand-inspiration/airbnb/components.html       | 1373 -------
+ .../brand-inspiration/airbnb/tokens.css            |  261 --
+ .../brand-inspiration/airtable/DESIGN.md           |  554 ---
+ .../brand-inspiration/airtable/README.md           |    5 -
+ .../brand-inspiration/apple/DESIGN.md              |  562 ---
+ .../brand-inspiration/apple/README.md              |    5 -
+ .../brand-inspiration/apple/components.html        |  749 ----
+ .../brand-inspiration/apple/tokens.css             |  286 --
+ .../design-systems/brand-inspiration/arc/DESIGN.md |  163 -
+ .../brand-inspiration/binance/DESIGN.md            |  634 ---
+ .../brand-inspiration/binance/README.md            |    5 -
+ .../brand-inspiration/bmw-m/DESIGN.md              |  503 ---
+ .../brand-inspiration/bmw-m/README.md              |    5 -
+ .../design-systems/brand-inspiration/bmw/DESIGN.md |  544 ---
+ .../design-systems/brand-inspiration/bmw/README.md |    5 -
+ .../brand-inspiration/bugatti/DESIGN.md            |  454 ---
+ .../brand-inspiration/bugatti/README.md            |    5 -
+ .../design-systems/brand-inspiration/cal/DESIGN.md |  542 ---
+ .../design-systems/brand-inspiration/cal/README.md |    5 -
+ .../brand-inspiration/canva/DESIGN.md              |  168 -
+ .../brand-inspiration/cisco/DESIGN.md              |  212 -
+ .../brand-inspiration/claude/DESIGN.md             |  589 ---
+ .../brand-inspiration/claude/README.md             |    5 -
+ .../brand-inspiration/clay/DESIGN.md               |  541 ---
+ .../brand-inspiration/clay/README.md               |    5 -
+ .../brand-inspiration/clickhouse/DESIGN.md         |  544 ---
+ .../brand-inspiration/clickhouse/README.md         |    5 -
+ .../brand-inspiration/cohere/DESIGN.md             |  451 ---
+ .../brand-inspiration/cohere/README.md             |    5 -
+ .../brand-inspiration/coinbase/DESIGN.md           |  570 ---
+ .../brand-inspiration/coinbase/README.md           |    5 -
+ .../brand-inspiration/composio/DESIGN.md           |  506 ---
+ .../brand-inspiration/composio/README.md           |    5 -
+ .../brand-inspiration/cursor/DESIGN.md             |  537 ---
+ .../brand-inspiration/cursor/README.md             |    5 -
+ .../brand-inspiration/cursor/components.html       |  654 ----
+ .../brand-inspiration/cursor/tokens.css            |  218 --
+ .../brand-inspiration/discord/DESIGN.md            |  173 -
+ .../brand-inspiration/discord/components.html      |  359 --
+ .../brand-inspiration/discord/tokens.css           |  125 -
+ .../brand-inspiration/duolingo/DESIGN.md           |  165 -
+ .../brand-inspiration/elevenlabs/DESIGN.md         |  504 ---
+ .../brand-inspiration/elevenlabs/README.md         |    5 -
+ .../brand-inspiration/expo/DESIGN.md               |  526 ---
+ .../brand-inspiration/expo/README.md               |    5 -
+ .../brand-inspiration/ferrari/DESIGN.md            |  531 ---
+ .../brand-inspiration/ferrari/README.md            |    5 -
+ .../brand-inspiration/figma/DESIGN.md              |  578 ---
+ .../brand-inspiration/figma/README.md              |    5 -
+ .../brand-inspiration/figma/components.html        |  344 --
+ .../brand-inspiration/figma/tokens.css             |  126 -
+ .../brand-inspiration/framer/DESIGN.md             |  544 ---
+ .../brand-inspiration/framer/README.md             |    5 -
+ .../brand-inspiration/github/DESIGN.md             |  166 -
+ .../brand-inspiration/github/components.html       |  383 --
+ .../brand-inspiration/github/tokens.css            |  125 -
+ .../brand-inspiration/hashicorp/DESIGN.md          |  575 ---
+ .../brand-inspiration/hashicorp/README.md          |    5 -
+ .../brand-inspiration/huggingface/DESIGN.md        |  160 -
+ .../design-systems/brand-inspiration/ibm/DESIGN.md |  550 ---
+ .../design-systems/brand-inspiration/ibm/README.md |    5 -
+ .../brand-inspiration/intercom/DESIGN.md           |  546 ---
+ .../brand-inspiration/intercom/README.md           |    5 -
+ .../brand-inspiration/kami/DESIGN.md               |  421 --
+ .../brand-inspiration/kami/components.html         |  601 ---
+ .../brand-inspiration/kami/tokens.css              |  272 --
+ .../brand-inspiration/kraken/DESIGN.md             |  135 -
+ .../brand-inspiration/kraken/README.md             |    5 -
+ .../brand-inspiration/lamborghini/DESIGN.md        |  298 --
+ .../brand-inspiration/lamborghini/README.md        |    5 -
+ .../brand-inspiration/linear-app/DESIGN.md         |  381 --
+ .../brand-inspiration/linear-app/components.html   |  370 --
+ .../brand-inspiration/linear-app/tokens.css        |  130 -
+ .../brand-inspiration/loom/DESIGN.md               |  219 --
+ .../brand-inspiration/lovable/DESIGN.md            |  306 --
+ .../brand-inspiration/lovable/README.md            |    5 -
+ .../brand-inspiration/mastercard/DESIGN.md         |  375 --
+ .../brand-inspiration/mastercard/README.md         |    5 -
+ .../brand-inspiration/meta/DESIGN.md               |  683 ----
+ .../brand-inspiration/meta/README.md               |    5 -
+ .../brand-inspiration/minimax/DESIGN.md            |  746 ----
+ .../brand-inspiration/minimax/README.md            |    5 -
+ .../brand-inspiration/mintlify/DESIGN.md           |  852 ----
+ .../brand-inspiration/mintlify/README.md           |    5 -
+ .../brand-inspiration/miro/DESIGN.md               |  825 ----
+ .../brand-inspiration/miro/README.md               |    5 -
+ .../brand-inspiration/mistral-ai/DESIGN.md         |  273 --
+ .../brand-inspiration/mistral.ai/DESIGN.md         |  773 ----
+ .../brand-inspiration/mistral.ai/README.md         |    5 -
+ .../brand-inspiration/mongodb/DESIGN.md            |  767 ----
+ .../brand-inspiration/mongodb/README.md            |    5 -
+ .../brand-inspiration/nike/DESIGN.md               |  575 ---
+ .../brand-inspiration/nike/README.md               |    5 -
+ .../brand-inspiration/notion/DESIGN.md             |  821 ----
+ .../brand-inspiration/notion/README.md             |    5 -
+ .../brand-inspiration/notion/components.html       |  413 --
+ .../brand-inspiration/notion/tokens.css            |  130 -
+ .../brand-inspiration/nvidia/DESIGN.md             |  640 ---
+ .../brand-inspiration/nvidia/README.md             |    5 -
+ .../brand-inspiration/ollama/DESIGN.md             |  539 ---
+ .../brand-inspiration/ollama/README.md             |    5 -
+ .../brand-inspiration/openai/DESIGN.md             |  151 -
+ .../brand-inspiration/openai/components.html       |  382 --
+ .../brand-inspiration/openai/tokens.css            |  133 -
+ .../brand-inspiration/opencode-ai/DESIGN.md        |  295 --
+ .../brand-inspiration/opencode.ai/DESIGN.md        |  521 ---
+ .../brand-inspiration/opencode.ai/README.md        |    5 -
+ .../brand-inspiration/perplexity/DESIGN.md         |  297 --
+ .../brand-inspiration/pinterest/DESIGN.md          |  597 ---
+ .../brand-inspiration/pinterest/README.md          |    5 -
+ .../brand-inspiration/playstation/DESIGN.md        |  661 ----
+ .../brand-inspiration/playstation/README.md        |    5 -
+ .../brand-inspiration/posthog/DESIGN.md            |  690 ----
+ .../brand-inspiration/posthog/README.md            |    5 -
+ .../brand-inspiration/raycast/DESIGN.md            |  668 ----
+ .../brand-inspiration/raycast/README.md            |    5 -
+ .../brand-inspiration/renault/DESIGN.md            |  589 ---
+ .../brand-inspiration/renault/README.md            |    5 -
+ .../brand-inspiration/replicate/DESIGN.md          |  616 ---
+ .../brand-inspiration/replicate/README.md          |    5 -
+ .../brand-inspiration/resend/DESIGN.md             |  585 ---
+ .../brand-inspiration/resend/README.md             |    5 -
+ .../brand-inspiration/revolut/DESIGN.md            |  636 ---
+ .../brand-inspiration/revolut/README.md            |    5 -
+ .../brand-inspiration/runwayml/DESIGN.md           |  254 --
+ .../brand-inspiration/runwayml/README.md           |    5 -
+ .../brand-inspiration/sanity/DESIGN.md             |  367 --
+ .../brand-inspiration/sanity/README.md             |    5 -
+ .../brand-inspiration/sentry/DESIGN.md             |  551 ---
+ .../brand-inspiration/sentry/README.md             |    5 -
+ .../brand-inspiration/shopify/DESIGN.md            |  516 ---
+ .../brand-inspiration/shopify/README.md            |    5 -
+ .../brand-inspiration/shopify/components.html      |  342 --
+ .../brand-inspiration/shopify/tokens.css           |  141 -
+ .../brand-inspiration/slack/DESIGN.md              |  482 ---
+ .../brand-inspiration/slack/components.html        |  387 --
+ .../brand-inspiration/slack/tokens.css             |  127 -
+ .../brand-inspiration/spacex/DESIGN.md             |  363 --
+ .../brand-inspiration/spacex/README.md             |    5 -
+ .../brand-inspiration/spotify/DESIGN.md            |  256 --
+ .../brand-inspiration/spotify/README.md            |    5 -
+ .../brand-inspiration/spotify/components.html      |  365 --
+ .../brand-inspiration/spotify/tokens.css           |  127 -
+ .../brand-inspiration/starbucks/DESIGN.md          |  590 ---
+ .../brand-inspiration/starbucks/README.md          |    5 -
+ .../brand-inspiration/stripe/DESIGN.md             |  487 ---
+ .../brand-inspiration/stripe/README.md             |    5 -
+ .../brand-inspiration/stripe/components.html       | 1018 -----
+ .../brand-inspiration/stripe/tokens.css            |  295 --
+ .../brand-inspiration/supabase/DESIGN.md           |  462 ---
+ .../brand-inspiration/supabase/README.md           |    5 -
+ .../brand-inspiration/superhuman/DESIGN.md         |  448 ---
+ .../brand-inspiration/superhuman/README.md         |    5 -
+ .../brand-inspiration/tesla/DESIGN.md              |  296 --
+ .../brand-inspiration/tesla/README.md              |    5 -
+ .../brand-inspiration/theverge/DESIGN.md           |  349 --
+ .../brand-inspiration/theverge/README.md           |    5 -
+ .../brand-inspiration/together-ai/DESIGN.md        |  277 --
+ .../brand-inspiration/together.ai/DESIGN.md        |  633 ---
+ .../brand-inspiration/together.ai/README.md        |    5 -
+ .../brand-inspiration/uber/DESIGN.md               |  636 ---
+ .../brand-inspiration/uber/README.md               |    5 -
+ .../brand-inspiration/uber/components.html         |  347 --
+ .../brand-inspiration/uber/tokens.css              |  131 -
+ .../brand-inspiration/vercel/DESIGN.md             |  736 ----
+ .../brand-inspiration/vercel/README.md             |    5 -
+ .../brand-inspiration/vercel/components.html       |  839 ----
+ .../brand-inspiration/vercel/tokens.css            |  270 --
+ .../brand-inspiration/vodafone/DESIGN.md           |  538 ---
+ .../brand-inspiration/vodafone/README.md           |    5 -
+ .../brand-inspiration/voltagent/DESIGN.md          |  521 ---
+ .../brand-inspiration/voltagent/README.md          |    5 -
+ .../brand-inspiration/warp/DESIGN.md               |  526 ---
+ .../brand-inspiration/warp/README.md               |    5 -
+ .../brand-inspiration/webex/DESIGN.md              |  218 --
+ .../brand-inspiration/webflow/DESIGN.md            |  588 ---
+ .../brand-inspiration/webflow/README.md            |    5 -
+ .../brand-inspiration/wechat/DESIGN.md             |  313 --
+ .../brand-inspiration/wired/DESIGN.md              |  497 ---
+ .../brand-inspiration/wired/README.md              |    5 -
+ .../brand-inspiration/wise/DESIGN.md               |  544 ---
+ .../brand-inspiration/wise/README.md               |    5 -
+ .../brand-inspiration/x-ai/DESIGN.md               |  271 --
+ .../brand-inspiration/x.ai/DESIGN.md               |  465 ---
+ .../brand-inspiration/x.ai/README.md               |    5 -
+ .../brand-inspiration/xiaohongshu/DESIGN.md        |  413 --
+ .../brand-inspiration/zapier/DESIGN.md             |  537 ---
+ .../brand-inspiration/zapier/README.md             |    5 -
+ skills/design/design-systems/index.json            | 4088 --------------------
+ .../design-systems/style-skills/agentic/DESIGN.md  |   55 -
+ .../design-systems/style-skills/agentic/SKILL.md   |   89 -
+ .../design-systems/style-skills/ant/DESIGN.md      |   55 -
+ .../design-systems/style-skills/ant/SKILL.md       |   89 -
+ .../style-skills/application/DESIGN.md             |   55 -
+ .../style-skills/application/SKILL.md              |   84 -
+ .../design-systems/style-skills/artistic/DESIGN.md |   55 -
+ .../design-systems/style-skills/artistic/SKILL.md  |   89 -
+ .../style-skills/atelier-zero/DESIGN.md            |  315 --
+ .../style-skills/atelier-zero/SKILL.md             |   85 -
+ .../design-systems/style-skills/bento/DESIGN.md    |   55 -
+ .../design-systems/style-skills/bento/SKILL.md     |   83 -
+ .../design-systems/style-skills/bold/DESIGN.md     |   55 -
+ .../design-systems/style-skills/bold/SKILL.md      |   83 -
+ .../style-skills/brutalism/DESIGN.md               |   55 -
+ .../design-systems/style-skills/brutalism/SKILL.md |   97 -
+ .../design-systems/style-skills/cafe/DESIGN.md     |   55 -
+ .../design-systems/style-skills/cafe/SKILL.md      |   83 -
+ .../design-systems/style-skills/claude/DESIGN.md   |   55 -
+ .../design-systems/style-skills/claude/SKILL.md    |   81 -
+ .../style-skills/claymorphism/DESIGN.md            |   55 -
+ .../style-skills/claymorphism/SKILL.md             |   84 -
+ .../design-systems/style-skills/clean/DESIGN.md    |   55 -
+ .../design-systems/style-skills/clean/SKILL.md     |   84 -
+ .../design-systems/style-skills/codex/DESIGN.md    |   55 -
+ .../design-systems/style-skills/codex/SKILL.md     |   81 -
+ .../design-systems/style-skills/colorful/DESIGN.md |   55 -
+ .../design-systems/style-skills/colorful/SKILL.md  |   82 -
+ .../style-skills/contemporary/DESIGN.md            |   55 -
+ .../style-skills/contemporary/SKILL.md             |   83 -
+ .../style-skills/corporate/DESIGN.md               |   55 -
+ .../design-systems/style-skills/corporate/SKILL.md |   89 -
+ .../design-systems/style-skills/cosmic/DESIGN.md   |   55 -
+ .../design-systems/style-skills/cosmic/SKILL.md    |   83 -
+ .../design-systems/style-skills/creative/DESIGN.md |   55 -
+ .../design-systems/style-skills/creative/SKILL.md  |   83 -
+ .../style-skills/dashboard/DESIGN.md               |   55 -
+ .../design-systems/style-skills/dashboard/SKILL.md |   89 -
+ .../design-systems/style-skills/default/DESIGN.md  |   62 -
+ .../design-systems/style-skills/default/SKILL.md   |   85 -
+ .../style-skills/default/components.html           |  523 ---
+ .../design-systems/style-skills/default/tokens.css |  200 -
+ .../design-systems/style-skills/dithered/DESIGN.md |   55 -
+ .../design-systems/style-skills/dithered/SKILL.md  |   87 -
+ .../design-systems/style-skills/doodle/DESIGN.md   |   55 -
+ .../design-systems/style-skills/doodle/SKILL.md    |   97 -
+ .../design-systems/style-skills/dramatic/DESIGN.md |   55 -
+ .../design-systems/style-skills/dramatic/SKILL.md  |   83 -
+ .../style-skills/editorial/DESIGN.md               |   55 -
+ .../design-systems/style-skills/editorial/SKILL.md |   86 -
+ .../design-systems/style-skills/elegant/DESIGN.md  |   55 -
+ .../design-systems/style-skills/elegant/SKILL.md   |   83 -
+ .../style-skills/energetic/DESIGN.md               |   51 -
+ .../design-systems/style-skills/energetic/SKILL.md |   86 -
+ .../style-skills/enterprise/DESIGN.md              |   55 -
+ .../style-skills/enterprise/SKILL.md               |   88 -
+ .../style-skills/expressive/DESIGN.md              |   55 -
+ .../style-skills/expressive/SKILL.md               |   83 -
+ .../design-systems/style-skills/fantasy/DESIGN.md  |   55 -
+ .../design-systems/style-skills/fantasy/SKILL.md   |   83 -
+ .../design-systems/style-skills/fiction/DESIGN.md  |   55 -
+ .../design-systems/style-skills/fiction/SKILL.md   |   81 -
+ .../design-systems/style-skills/flat/DESIGN.md     |   55 -
+ .../design-systems/style-skills/flat/SKILL.md      |  101 -
+ .../design-systems/style-skills/friendly/DESIGN.md |   55 -
+ .../design-systems/style-skills/friendly/SKILL.md  |   83 -
+ .../style-skills/futuristic/DESIGN.md              |   55 -
+ .../style-skills/futuristic/SKILL.md               |   83 -
+ .../style-skills/glassmorphism/DESIGN.md           |   55 -
+ .../style-skills/glassmorphism/SKILL.md            |   86 -
+ .../design-systems/style-skills/gradient/DESIGN.md |   55 -
+ .../design-systems/style-skills/gradient/SKILL.md  |   83 -
+ .../design-systems/style-skills/hud/DESIGN.md      |  173 -
+ .../design-systems/style-skills/hud/SKILL.md       |   85 -
+ .../style-skills/immersive/DESIGN.md               |   55 -
+ .../design-systems/style-skills/immersive/SKILL.md |   81 -
+ .../style-skills/impeccable/DESIGN.md              |   55 -
+ .../style-skills/impeccable/SKILL.md               |   81 -
+ .../design/design-systems/style-skills/index.json  | 1151 ------
+ .../design-systems/style-skills/levels/DESIGN.md   |   55 -
+ .../design-systems/style-skills/levels/SKILL.md    |   83 -
+ .../design-systems/style-skills/lingo/DESIGN.md    |   55 -
+ .../design-systems/style-skills/lingo/SKILL.md     |   87 -
+ .../design-systems/style-skills/luxury/DESIGN.md   |   55 -
+ .../design-systems/style-skills/luxury/SKILL.md    |   83 -
+ .../design-systems/style-skills/material/DESIGN.md |   55 -
+ .../design-systems/style-skills/material/SKILL.md  |   97 -
+ .../design-systems/style-skills/matrix/DESIGN.md   |   55 -
+ .../design-systems/style-skills/matrix/SKILL.md    |   82 -
+ .../design-systems/style-skills/minimal/DESIGN.md  |   55 -
+ .../design-systems/style-skills/minimal/SKILL.md   |   83 -
+ .../style-skills/mission-control/DESIGN.md         |  474 ---
+ .../style-skills/mission-control/SKILL.md          |   85 -
+ .../design-systems/style-skills/modern/DESIGN.md   |   55 -
+ .../design-systems/style-skills/modern/SKILL.md    |   83 -
+ .../design-systems/style-skills/mono/DESIGN.md     |   55 -
+ .../design-systems/style-skills/mono/SKILL.md      |   88 -
+ .../style-skills/neobrutalism/DESIGN.md            |   55 -
+ .../style-skills/neobrutalism/SKILL.md             |   83 -
+ .../design-systems/style-skills/neon/DESIGN.md     |   55 -
+ .../design-systems/style-skills/neon/SKILL.md      |   83 -
+ .../style-skills/neumorphism/DESIGN.md             |   55 -
+ .../style-skills/neumorphism/SKILL.md              |   88 -
+ .../design-systems/style-skills/pacman/DESIGN.md   |   55 -
+ .../design-systems/style-skills/pacman/SKILL.md    |   84 -
+ .../design-systems/style-skills/paper/DESIGN.md    |   55 -
+ .../design-systems/style-skills/paper/SKILL.md     |   83 -
+ .../style-skills/parchment/DESIGN.md               |   70 -
+ .../design-systems/style-skills/parchment/SKILL.md |   66 -
+ .../style-skills/perspective/DESIGN.md             |   55 -
+ .../style-skills/perspective/SKILL.md              |   83 -
+ .../design-systems/style-skills/premium/DESIGN.md  |   55 -
+ .../design-systems/style-skills/premium/SKILL.md   |   83 -
+ .../style-skills/professional/DESIGN.md            |   55 -
+ .../style-skills/professional/SKILL.md             |   83 -
+ .../style-skills/publication/DESIGN.md             |   55 -
+ .../style-skills/publication/SKILL.md              |   89 -
+ .../design-systems/style-skills/refined/DESIGN.md  |   55 -
+ .../design-systems/style-skills/refined/SKILL.md   |   83 -
+ .../design-systems/style-skills/retro/DESIGN.md    |   55 -
+ .../design-systems/style-skills/retro/SKILL.md     |   83 -
+ .../design-systems/style-skills/riso/DESIGN.md     |   55 -
+ .../design-systems/style-skills/riso/SKILL.md      |   81 -
+ .../design-systems/style-skills/sega/DESIGN.md     |   55 -
+ .../design-systems/style-skills/sega/SKILL.md      |   81 -
+ .../design-systems/style-skills/shadcn/DESIGN.md   |   55 -
+ .../design-systems/style-skills/shadcn/SKILL.md    |   83 -
+ .../design-systems/style-skills/simple/DESIGN.md   |   55 -
+ .../design-systems/style-skills/simple/SKILL.md    |   83 -
+ .../design-systems/style-skills/sketch/DESIGN.md   |   55 -
+ .../design-systems/style-skills/sketch/SKILL.md    |   81 -
+ .../style-skills/skeumorphism/DESIGN.md            |   55 -
+ .../style-skills/skeumorphism/SKILL.md             |   97 -
+ .../design-systems/style-skills/sleek/DESIGN.md    |   55 -
+ .../design-systems/style-skills/sleek/SKILL.md     |   83 -
+ .../design-systems/style-skills/spacious/DESIGN.md |   55 -
+ .../design-systems/style-skills/spacious/SKILL.md  |   89 -
+ .../style-skills/storytelling/DESIGN.md            |   55 -
+ .../style-skills/storytelling/SKILL.md             |   83 -
+ .../style-skills/terracotta/DESIGN.md              |   55 -
+ .../style-skills/terracotta/SKILL.md               |   81 -
+ .../design-systems/style-skills/tetris/DESIGN.md   |   55 -
+ .../design-systems/style-skills/tetris/SKILL.md    |   83 -
+ .../style-skills/totality-festival/DESIGN.md       |  206 -
+ .../style-skills/totality-festival/SKILL.md        |   85 -
+ .../style-skills/trading-terminal/DESIGN.md        |  178 -
+ .../style-skills/trading-terminal/SKILL.md         |   85 -
+ .../design-systems/style-skills/urdu/DESIGN.md     | 1002 -----
+ .../design-systems/style-skills/urdu/SKILL.md      |   85 -
+ .../design-systems/style-skills/vibrant/DESIGN.md  |   55 -
+ .../design-systems/style-skills/vibrant/SKILL.md   |   83 -
+ .../design-systems/style-skills/vintage/DESIGN.md  |   55 -
+ .../design-systems/style-skills/vintage/SKILL.md   |   83 -
+ .../style-skills/warm-editorial/DESIGN.md          |   65 -
+ .../style-skills/warm-editorial/SKILL.md           |   85 -
+ skills/design/design-templates/INDEX.md            |  281 --
+ .../design/design-templates/ascii-cosmos/SKILL.md  |  293 --
+ .../design-templates/ascii-cosmos/reference.html   |  958 -----
+ .../design/design-templates/ascii-cosmos/styles.md |  188 -
+ .../design-templates/ascii-cosmos/template.html    |  967 -----
+ .../design/design-templates/audio-jingle/SKILL.md  |   72 -
+ .../audio-jingle/music-player.html                 |  625 ---
+ skills/design/design-templates/blog-post/SKILL.md  |   89 -
+ .../design-templates/blog-post/qiye-wildstay.html  |  435 ---
+ ...0\200\346\254\241\351\207\215\350\257\273.html" |  421 --
+ skills/design/design-templates/dashboard/SKILL.md  |   90 -
+ .../dashboard/stack-dashboard-zh.html              | 1545 --------
+ .../design-templates/digital-eguide/SKILL.md       |   85 -
+ .../case/images/p-01-color-macro.jpg"              |  Bin 172145 -> 0 bytes
+ .../case/images/p-02-typography.jpg"               |  Bin 114254 -> 0 bytes
+ .../case/images/p-03-packaging.jpg"                |  Bin 152063 -> 0 bytes
+ .../case/images/p-04-paint-stroke.jpg"             |  Bin 135183 -> 0 bytes
+ .../case/images/p-05-brand-flatlay.jpg"            |  Bin 158788 -> 0 bytes
+ .../case/images/p-06-studio-portrait.jpg"          |  Bin 72101 -> 0 bytes
+ .../case/images/p-07-gradient.jpg"                 |  Bin 31769 -> 0 bytes
+ .../case/images/p-08-editorial.jpg"                |  Bin 188493 -> 0 bytes
+ .../case/images/p-09-ceramic.jpg"                  |  Bin 41250 -> 0 bytes
+ .../case/images/p-10-urban.jpg"                    |  Bin 187214 -> 0 bytes
+ .../case/images/p-11-ink-paper.jpg"                |  Bin 45743 -> 0 bytes
+ .../case/images/p-12-botanical.jpg"                |  Bin 288598 -> 0 bytes
+ .../case/images/p-13-risograph.jpg"                |  Bin 45089 -> 0 bytes
+ .../case/images/p-14-gallery-wall.jpg"             |  Bin 129059 -> 0 bytes
+ .../case/images/p-15-light-motion.jpg"             |  Bin 30693 -> 0 bytes
+ .../case/images/p-16-interior.jpg"                 |  Bin 55594 -> 0 bytes
+ .../case/images/p-17-color-block.jpg"              |  Bin 174431 -> 0 bytes
+ .../case/images/p-18-magazine.jpg"                 |  Bin 255772 -> 0 bytes
+ .../case/index.html"                               | 1644 --------
+ .../digital-eguide/social-carousel.html            |  909 -----
+ .../design-templates/dot-matrix-xhs/SKILL.md       |  318 --
+ .../dot-matrix-xhs/\347\202\271\351\230\265.html"  |  250 --
+ .../design-templates/html-ppt-xhs-post/SKILL.md    |   85 -
+ .../html-ppt-xhs-post/xhs-cover-spring.html        |  440 ---
+ .../html-ppt-xhs-post/xhs-cover-typography.html    |  411 --
+ .../design-templates/industrial-archive/SKILL.md   |  245 --
+ .../industrial-archive/reference.html              | 1563 --------
+ .../design-templates/industrial-archive/styles.md  |  165 -
+ .../industrial-archive/template.html               | 1232 ------
+ .../design-templates/portfolio-detail/SKILL.md     |  248 --
+ .../portfolio-detail/reference.html                | 1097 ------
+ .../portfolio-detail/template.html                 |  717 ----
+ skills/design/design-templates/ppt/AGENTS.md       |    9 -
+ skills/design/design-templates/ppt/INDEX.md        |   19 -
+ .../design-templates/ppt/guizang-ppt/LICENSE       |   21 -
+ .../design-templates/ppt/guizang-ppt/README.en.md  |  119 -
+ .../design-templates/ppt/guizang-ppt/README.md     |  120 -
+ .../ppt/guizang-ppt/README.pt-BR.md                |  121 -
+ .../design-templates/ppt/guizang-ppt/SKILL.md      |  317 --
+ .../ppt/guizang-ppt/assets/pattern-slides.html     |  318 --
+ .../ppt/guizang-ppt/assets/template.html           |  647 ----
+ .../ppt/guizang-ppt/references/checklist.md        |  265 --
+ .../ppt/guizang-ppt/references/components.md       |  363 --
+ .../ppt/guizang-ppt/references/layouts.md          |  630 ---
+ .../ppt/guizang-ppt/references/styles.md           |  195 -
+ .../ppt/guizang-ppt/references/themes.md           |  122 -
+ .../ppt/html-ppt-zhangzara-8-bit-orbit/LICENSE     |   21 -
+ .../ppt/html-ppt-zhangzara-8-bit-orbit/SKILL.md    |   96 -
+ .../html-ppt-zhangzara-8-bit-orbit/pattern.html    | 1640 --------
+ .../html-ppt-zhangzara-8-bit-orbit/template.json   |   48 -
+ .../ppt/html-ppt-zhangzara-biennale-yellow/LICENSE |   21 -
+ .../html-ppt-zhangzara-biennale-yellow/SKILL.md    |   97 -
+ .../pattern.html                                   |  833 ----
+ .../template.json                                  |   49 -
+ .../ppt/html-ppt-zhangzara-grove/LICENSE           |   21 -
+ .../ppt/html-ppt-zhangzara-grove/SKILL.md          |   97 -
+ .../ppt/html-ppt-zhangzara-grove/pattern.html      | 1676 --------
+ .../ppt/html-ppt-zhangzara-grove/template.json     |   51 -
+ .../ppt/html-ppt-zhangzara-pin-and-paper/LICENSE   |   21 -
+ .../ppt/html-ppt-zhangzara-pin-and-paper/SKILL.md  |  104 -
+ .../assets/deck-stage.js                           |  619 ---
+ .../assets/styles.css                              |  668 ----
+ .../html-ppt-zhangzara-pin-and-paper/pattern.html  |  443 ---
+ .../html-ppt-zhangzara-pin-and-paper/template.json |   46 -
+ .../ppt/html-ppt-zhangzara-retro-windows/LICENSE   |   21 -
+ .../ppt/html-ppt-zhangzara-retro-windows/SKILL.md  |   96 -
+ .../html-ppt-zhangzara-retro-windows/pattern.html  | 1287 ------
+ .../html-ppt-zhangzara-retro-windows/template.json |   47 -
+ .../ppt/html-ppt-zhangzara-retro-zine/LICENSE      |   21 -
+ .../ppt/html-ppt-zhangzara-retro-zine/SKILL.md     |   97 -
+ .../ppt/html-ppt-zhangzara-retro-zine/pattern.html | 1058 -----
+ .../html-ppt-zhangzara-retro-zine/template.json    |   47 -
+ .../design-templates/ppt/ib-pitch-book/SKILL.md    |  160 -
+ .../ppt/ib-pitch-book/assets/template.html         |  436 ---
+ .../ppt/ib-pitch-book/pattern.html                 | 1181 ------
+ .../ppt/ib-pitch-book/references/attribution.md    |   35 -
+ .../ppt/ib-pitch-book/references/checklist.md      |   39 -
+ .../ppt/ib-pitch-book/references/compliance.md     |   60 -
+ .../ppt/ib-pitch-book/references/conventions.md    |   36 -
+ .../design/design-templates/pricing-page/SKILL.md  |   73 -
+ .../design-templates/pricing-page/pricing-cn.html  | 1010 -----
+ .../design/design-templates/project-brief/SKILL.md |   74 -
+ ...00\345\221\250\346\212\245-VOL18-notebook.html" |  945 -----
+ .../design/design-templates/riso-product/SKILL.md  |  307 --
+ .../design-templates/riso-product/reference.html   | 1893 ---------
+ .../design/design-templates/saas-landing/SKILL.md  |   77 -
+ .../design-templates/saas-landing/reference.html   | 1674 --------
+ .../design-templates/social-card-data-kpi/SKILL.md |   56 -
+ .../social-card-data-kpi/pattern.html              |   42 -
+ .../social-card-editorial/SKILL.md                 |   78 -
+ .../assets/magazine-bg-webgl.js                    |  160 -
+ .../screenshot-backgrounds/style-a/dune.webp       |  Bin 160742 -> 0 bytes
+ .../screenshot-backgrounds/style-a/forest-ink.webp |  Bin 237774 -> 0 bytes
+ .../style-a/indigo-porcelain.webp                  |  Bin 130840 -> 0 bytes
+ .../style-a/kraft-paper.webp                       |  Bin 256352 -> 0 bytes
+ .../style-a/monocle-classic.webp                   |  Bin 184520 -> 0 bytes
+ .../social-card-editorial/pattern.html             |  838 ----
+ .../references/image-overlay.md                    |  152 -
+ .../references/layout-recipes.md                   |  831 ----
+ .../references/map-component.md                    |  148 -
+ .../references/platform-specs.md                   |  122 -
+ .../references/portrait-fill.md                    |   85 -
+ .../references/screenshot-treatment.md             |  196 -
+ .../references/style-system.md                     |  188 -
+ .../references/theme-presets.md                    |  208 -
+ .../references/title-shortener.md                  |  128 -
+ .../social-card-image-led/SKILL.md                 |   59 -
+ .../social-card-image-led/pattern.html             |   27 -
+ .../design-templates/social-card-map/SKILL.md      |   53 -
+ .../design-templates/social-card-map/pattern.html  |   24 -
+ .../design-templates/social-card-quote/SKILL.md    |   59 -
+ .../social-card-quote/pattern.html                 |   30 -
+ .../social-card-screenshot-explainer/SKILL.md      |   59 -
+ .../social-card-screenshot-explainer/pattern.html  |   65 -
+ .../design-templates/social-card-swiss/SKILL.md    |   75 -
+ .../social-card-swiss/assets/magazine-bg-webgl.js  |  160 -
+ .../style-b/ikb-dot-gradient.webp                  |  Bin 385692 -> 0 bytes
+ .../style-b/lemon-green-dot-shadow.webp            |  Bin 145062 -> 0 bytes
+ .../screenshot-backgrounds/style-b/lemon-grid.webp |  Bin 65512 -> 0 bytes
+ .../style-b/safety-orange-halftone.webp            |  Bin 255056 -> 0 bytes
+ .../social-card-swiss/pattern.html                 |  943 -----
+ .../social-card-swiss/references/image-overlay.md  |  152 -
+ .../social-card-swiss/references/layout-recipes.md |  831 ----
+ .../social-card-swiss/references/map-component.md  |  148 -
+ .../social-card-swiss/references/platform-specs.md |  122 -
+ .../social-card-swiss/references/portrait-fill.md  |   85 -
+ .../references/screenshot-treatment.md             |  196 -
+ .../social-card-swiss/references/style-system.md   |  188 -
+ .../social-card-swiss/references/theme-presets.md  |  208 -
+ .../references/title-shortener.md                  |  128 -
+ .../design-templates/social-carousel/SKILL.md      |   77 -
+ .../social-carousel/scroll-gallery.html            |  431 ---
+ skills/design/design-templates/team-okrs/SKILL.md  |   91 -
+ .../team-okrs/activity-stream.html                 | 1292 -------
+ .../design-templates/video-shortform/SKILL.md      |  197 -
+ .../video-shortform/video-shortform.html           |  743 ----
+ skills/design/design-templates/vr-canvas/SKILL.md  |  194 -
+ .../vr-canvas/images/p-01-color-macro.jpg          |  Bin 172145 -> 0 bytes
+ .../vr-canvas/images/p-02-typography.jpg           |  Bin 114254 -> 0 bytes
+ .../vr-canvas/images/p-03-packaging.jpg            |  Bin 152063 -> 0 bytes
+ .../vr-canvas/images/p-04-paint-stroke.jpg         |  Bin 135183 -> 0 bytes
+ .../vr-canvas/images/p-05-brand-flatlay.jpg        |  Bin 158788 -> 0 bytes
+ .../vr-canvas/images/p-06-studio-portrait.jpg      |  Bin 72101 -> 0 bytes
+ .../vr-canvas/images/p-07-gradient.jpg             |  Bin 31769 -> 0 bytes
+ .../vr-canvas/images/p-08-editorial.jpg            |  Bin 188493 -> 0 bytes
+ .../vr-canvas/images/p-09-ceramic.jpg              |  Bin 41250 -> 0 bytes
+ .../vr-canvas/images/p-10-urban.jpg                |  Bin 187214 -> 0 bytes
+ .../vr-canvas/images/p-11-ink-paper.jpg            |  Bin 45743 -> 0 bytes
+ .../vr-canvas/images/p-12-botanical.jpg            |  Bin 288598 -> 0 bytes
+ .../vr-canvas/images/p-13-risograph.jpg            |  Bin 45089 -> 0 bytes
+ .../vr-canvas/images/p-14-gallery-wall.jpg         |  Bin 129059 -> 0 bytes
+ .../vr-canvas/images/p-15-light-motion.jpg         |  Bin 30693 -> 0 bytes
+ .../vr-canvas/images/p-16-interior.jpg             |  Bin 55594 -> 0 bytes
+ .../vr-canvas/images/p-17-color-block.jpg          |  Bin 174431 -> 0 bytes
+ .../vr-canvas/images/p-18-magazine.jpg             |  Bin 255772 -> 0 bytes
+ .../design-templates/vr-canvas/reference.html      | 1406 -------
+ .../design-templates/vr-canvas/template.html       | 1443 -------
+ .../design/design-templates/waitlist-page/SKILL.md |   83 -
+ .../\345\261\202\344\272\221-waitlist.html"        |  809 ----
+ .../design-templates/wechat-cover-pair/SKILL.md    |   52 -
+ .../wechat-cover-pair/pattern.html                 |  560 ---
+ .../design-templates/wireframe-sketch/SKILL.md     |  209 -
+ .../wireframe-sketch/foolscap-wireframe.html       | 1238 ------
+ .../design/design-templates/xianying-tool/SKILL.md |   80 -
+ .../xianying-tool/index.standalone.html            | 1065 -----
+ skills/design/export.md                            |  495 ---
+ skills/design/horizontal-craft/README.md           |   92 -
+ skills/design/horizontal-craft/accessibility.md    |  134 -
+ .../horizontal-craft/animation-discipline.md       |  200 -
+ skills/design/horizontal-craft/anti-ai-slop.md     |  299 --
+ .../design/horizontal-craft/chinese-typography.md  |  226 --
+ skills/design/horizontal-craft/color.md            |   88 -
+ skills/design/horizontal-craft/data-integrity.md   |  158 -
+ skills/design/horizontal-craft/form-validation.md  |  221 --
+ skills/design/horizontal-craft/icon-system.md      |  343 --
+ skills/design/horizontal-craft/laws-of-ux.md       |  296 --
+ skills/design/horizontal-craft/link-and-proof.md   |  164 -
+ .../horizontal-craft/reference/directions.md       |  277 --
+ skills/design/horizontal-craft/reference/fonts.md  |  627 ---
+ .../horizontal-craft/reference/grid-system.md      |  290 --
+ .../horizontal-craft/reference/punctuation.md      |  413 --
+ .../horizontal-craft/reference/text-detail.md      |  344 --
+ .../reference/title-and-breaking.md                |  349 --
+ skills/design/horizontal-craft/state-coverage.md   |  172 -
+ .../design/horizontal-craft/technique-library.md   |  218 --
+ .../design/horizontal-craft/visual-explanation.md  |  300 --
+ skills/design/info-interactive.md                  |  249 --
+ skills/design/landing-page.md                      |  187 -
+ skills/design/portfolio.md                         |  191 -
+ skills/design/prototype.md                         |  524 ---
+ skills/design/quality-gate.md                      |  182 -
+ skills/design/social-card.md                       |  563 ---
+ skills/design/web-tool.md                          |  160 -
+ skills/dream-interpreter/SKILL.md                  |   88 -
+ skills/dream-interpreter/assets/example_asset.txt  |   24 -
+ .../dream-interpreter/references/api_reference.md  |   34 -
+ .../references/interpretation-guide.md             |   83 -
+ .../dream-interpreter/references/output-schema.md  |   65 -
+ .../references/questioning-strategy.md             |   62 -
+ .../dream-interpreter/references/visual-mapping.md |   81 -
+ skills/dream-interpreter/scripts/example.py        |   19 -
+ skills/dream-interpreter/skill.json                |    7 -
+ skills/experiment-suite/SKILL.md                   |  200 -
+ .../figure_examples/FIGURE_CONTRACT_TEMPLATE.md    |   20 -
+ skills/experiment-suite/figure_examples/README.md  |   33 -
+ .../figure_examples/make_fig_02_horizon_sweep.py   |   41 -
+ .../figure_examples/make_fig_03_heatmap.py         |   43 -
+ .../figure_examples/make_fig_04_ablation.py        |   59 -
+ .../figure_examples/requirements.txt               |    5 -
+ .../experiment-suite/figure_examples/style_kit.py  |  102 -
+ .../references/00-incremental-execution.md         |  106 -
+ .../experiment-suite/references/01-design-depth.md |  124 -
+ .../references/01a-data-contract.md                |   90 -
+ .../experiment-suite/references/02-code-quality.md |  234 --
+ .../references/03-results-protocol.md              |  206 -
+ .../references/04-publication-figures.md           |  198 -
+ .../references/04a-figure-contract.md              |   54 -
+ .../experiment-suite/references/04b-figure-qa.md   |   54 -
+ .../references/05-report-structure.md              |  156 -
+ .../experiment-suite/references/06-quality-gate.md |  202 -
+ skills/finance/Finance_API_Doc.md                  |  445 ---
+ skills/finance/SKILL.md                            |   53 -
+ skills/gaokao-collect-student-info/SKILL.md        |  123 -
+ .../examples/student_shandong.json                 |   26 -
+ .../examples/student_template.json                 |   23 -
+ skills/gaokao-collect-student-info/reference.md    |   88 -
+ skills/gaokao-fetch-volunteers/SKILL.md            |  144 -
+ .../examples/api_request_shandong.json             |   19 -
+ .../examples/api_request_template.json             |   19 -
+ .../gaokao-fetch-volunteers/preference_mapping.md  |   95 -
+ skills/gaokao-fetch-volunteers/reference.md        |  168 -
+ skills/gaokao-fetch-volunteers/requirements.txt    |    2 -
+ .../scripts/build_api_request.py                   |  182 -
+ .../scripts/fetch_volunteers.py                    |  569 ---
+ .../scripts/province_config.py                     |  221 --
+ .../scripts/test_batch_api.py                      |  166 -
+ skills/gaokao-generate-report/SKILL.md             |   69 -
+ .../examples/analysis_merged_example.json          |   25 -
+ skills/gaokao-generate-report/requirements.txt     |    2 -
+ .../scripts/generate_html.py                       |  402 --
+ .../scripts/merge_analysis.py                      |   58 -
+ .../templates/volunteer_report.html                | 1189 ------
+ skills/gaokao-recommend-majors/SKILL.md            |   66 -
+ skills/gaokao-recommend-majors/career_reference.md |  121 -
+ .../examples/major_recommendation_template.json    |   33 -
+ skills/gaokao-recommend-schools/SKILL.md           |   68 -
+ .../gaokao-recommend-schools/career_reference.md   |  121 -
+ .../examples/school_recommendation_template.json   |   13 -
+ skills/get-fortune-analysis/SKILL.md               |  370 --
+ skills/get-fortune-analysis/lunar_python.py        |   91 -
+ skills/gift-evaluator/SKILL.md                     |   83 -
+ skills/gift-evaluator/html_tools.py                |  268 --
+ skills/image-understand/LICENSE.txt                |   21 -
+ skills/image-understand/SKILL.md                   |  855 ----
+ .../image-understand/scripts/image-understand.ts   |   41 -
+ skills/interview-designer/README.md                |   70 -
+ skills/interview-designer/SKILL.md                 |   53 -
+ skills/interview-designer/_meta.json               |    6 -
+ .../references/design_rationale.md                 |   43 -
+ .../templates/interview_guide_template.md          |   62 -
+ skills/interview-prep/SKILL.md                     |  131 -
+ .../interview-prep/references/answer_frameworks.md |   97 -
+ skills/interview-prep/references/behavioral.md     |   94 -
+ skills/interview-prep/references/case.md           |   93 -
+ skills/interview-prep/references/hr_round.md       |  103 -
+ skills/interview-prep/references/role_finance.md   |  103 -
+ skills/interview-prep/references/role_internet.md  |   80 -
+ skills/interview-prep/references/role_tech.md      |   83 -
+ .../references/salary_negotiation.md               |   99 -
+ skills/interview-prep/references/technical.md      |  100 -
+ .../interview-prep/scripts/star_story_builder.py   |  178 -
+ skills/jd-resume-tailor/SKILL.md                   |  127 -
+ .../references/jd_parsing_signals.md               |   79 -
+ .../references/rewrite_principles.md               |   75 -
+ skills/jd-resume-tailor/scripts/jd_gap.py          |  177 -
+ skills/jd-resume-tailor/scripts/parse_jd.py        |  189 -
+ skills/job-intent-tracker/SKILL.md                 |  136 -
+ .../references/keywords_finance.md                 |   78 -
+ .../references/keywords_general.md                 |   45 -
+ .../references/keywords_internet.md                |   54 -
+ .../job-intent-tracker/references/keywords_tech.md |   87 -
+ .../references/target_profile_template.md          |   74 -
+ skills/job-intent-tracker/scripts/init_tracker.py  |  194 -
+ skills/job-intent-tracker/scripts/profile_match.py |  128 -
+ skills/literature-survey/SKILL.md                  |  156 -
+ .../references/00-incremental-execution.md         |  153 -
+ .../references/01-bibliography-expansion.md        |  173 -
+ .../references/02-survey-figures.md                |  320 --
+ .../references/03-survey-section-playbook.md       |  172 -
+ .../references/04-layout-discipline.md             |  160 -
+ .../references/05-quality-gate.md                  |  303 --
+ .../literature-survey/templates/survey/compile.sh  |   32 -
+ .../templates/survey/figures/.gitkeep              |    0
+ skills/literature-survey/templates/survey/main.tex |   61 -
+ .../templates/survey/sections/.gitkeep             |    0
+ skills/market-research-reports/SKILL.md            |  901 -----
+ .../assets/FORMATTING_GUIDE.md                     |  428 --
+ .../assets/market_report_template.tex              | 1380 -------
+ .../assets/market_research.sty                     |  564 ---
+ .../references/data_analysis_patterns.md           |  548 ---
+ .../references/report_structure_guide.md           |  999 -----
+ .../references/visual_generation_guide.md          | 1077 ------
+ .../scripts/generate_market_visuals.py             |  529 ---
+ skills/marketing-mode/README.md                    |   49 -
+ skills/marketing-mode/SKILL.md                     |  693 ----
+ skills/marketing-mode/_meta.json                   |    6 -
+ skills/marketing-mode/mode-prompt.md               |   39 -
+ skills/marketing-mode/skill.json                   |   51 -
+ skills/mindfulness-meditation/SKILL.md             |   65 -
+ skills/mindfulness-meditation/_meta.json           |    6 -
+ skills/multi-search-engine/CHANGELOG.md            |   15 -
+ skills/multi-search-engine/CHANNELLOG.md           |   48 -
+ skills/multi-search-engine/SKILL.md                |   78 -
+ skills/multi-search-engine/_meta.json              |    6 -
+ skills/multi-search-engine/config.json             |   14 -
+ skills/multi-search-engine/metadata.json           |    7 -
+ .../references/international-search.md             |  651 ----
+ skills/podcast-generate/LICENSE.txt                |   21 -
+ skills/podcast-generate/SKILL.md                   |  198 -
+ skills/podcast-generate/generate.ts                |  661 ----
+ skills/podcast-generate/package.json               |   30 -
+ skills/podcast-generate/readme.md                  |  177 -
+ skills/podcast-generate/test_data/segments.jsonl   |    3 -
+ skills/podcast-generate/tsconfig.json              |   26 -
+ skills/qingyan-research/SKILL.md                   |  294 --
+ skills/qingyan-research/generate_html.py           |   33 -
+ skills/quiz-html/README.md                         |  117 -
+ skills/quiz-html/SKILL.md                          |  191 -
+ skills/quiz-html/examples/demo.html                | 1349 -------
+ skills/quiz-html/scripts/build_quiz_html.py        |  220 --
+ skills/quiz-html/skill.yaml                        |   57 -
+ skills/quiz-html/templates/quiz_template.html      | 1418 -------
+ skills/quiz-mastery/.claude/settings.json          |    7 -
+ skills/quiz-mastery/README.md                      |   93 -
+ skills/quiz-mastery/SKILL.md                       |  212 -
+ .../quiz-mastery/scripts/generate_from_material.py |   47 -
+ skills/quiz-mastery/scripts/import_quiz.py         |   51 -
+ skills/quiz-mastery/scripts/run_quiz.py            |   63 -
+ skills/quiz-mastery/scripts/submit_answers.py      |   48 -
+ skills/quiz-mastery/skill.yaml                     |   21 -
+ skills/quiz-mastery/src/quiz_mastery/__init__.py   |    3 -
+ skills/quiz-mastery/src/quiz_mastery/evaluator.py  |   78 -
+ .../quiz-mastery/src/quiz_mastery/file_parser.py   |  274 --
+ .../src/quiz_mastery/mastery_engine.py             |  149 -
+ skills/quiz-mastery/src/quiz_mastery/models.py     |   82 -
+ skills/quiz-mastery/src/quiz_mastery/planner.py    |   62 -
+ .../src/quiz_mastery/quiz_extractor.py             |  115 -
+ .../src/quiz_mastery/quiz_generator.py             |  128 -
+ skills/quiz-mastery/src/quiz_mastery/repository.py |   36 -
+ skills/quiz-mastery/src/quiz_mastery/service.py    |  304 --
+ skills/quiz-mastery/src/quiz_mastery/utils.py      |    7 -
+ skills/research-explorer/SKILL.md                  |  136 -
+ skills/resume-builder/SKILL.md                     |  133 -
+ skills/resume-builder/references/export_guide.md   |   55 -
+ .../resume-builder/references/intake_questions.md  |   44 -
+ .../resume-builder/references/keywords/finance.txt |   50 -
+ .../resume-builder/references/keywords/general.txt |   25 -
+ .../references/keywords/internet.txt               |   45 -
+ skills/resume-builder/references/keywords/tech.txt |   69 -
+ .../references/star_rewrite_guide.md               |   83 -
+ .../resume-builder/references/templates/finance.md |   63 -
+ .../resume-builder/references/templates/general.md |   55 -
+ .../references/templates/internet.md               |   50 -
+ skills/resume-builder/references/templates/tech.md |   53 -
+ skills/resume-builder/scripts/ats_check.py         |  269 --
+ skills/seo-content-writer/SKILL.md                 |  661 ----
+ skills/seo-content-writer/_meta.json               |    6 -
+ .../references/content-structure-templates.md      |  875 -----
+ .../references/title-formulas.md                   |  339 --
+ skills/stock-analysis-skill/SKILL.md               |  156 -
+ skills/stock-analysis-skill/package.json           |   21 -
+ skills/stock-analysis-skill/src/analyzer.ts        |  264 --
+ skills/stock-analysis-skill/src/dataFetcher.ts     |  130 -
+ skills/stock-analysis-skill/src/dividend.ts        |  226 --
+ skills/stock-analysis-skill/src/index.ts           |  327 --
+ skills/stock-analysis-skill/src/rumorScanner.ts    |  200 -
+ skills/stock-analysis-skill/src/types.ts           |  167 -
+ skills/stock-analysis-skill/src/watchlist.ts       |  292 --
+ skills/stock-analysis-skill/tsconfig.json          |   15 -
+ skills/storyboard-manager/SKILL.md                 |  532 ---
+ skills/storyboard-manager/index.js                 |    9 -
+ skills/storyboard-manager/package.json             |   11 -
+ .../references/character_development.md            |  232 --
+ .../references/story_structures.md                 |  148 -
+ .../scripts/consistency_checker.py                 |  391 --
+ .../storyboard-manager/scripts/timeline_tracker.py |  352 --
+ skills/study-buddy/SKILL.md                        |  525 ---
+ skills/ui-ux-pro-max/SKILL.md                      |   43 -
+ skills/ui-ux-pro-max/_meta.json                    |    6 -
+ skills/ui-ux-pro-max/assets/data/charts.csv        |   26 -
+ skills/ui-ux-pro-max/assets/data/colors.csv        |   97 -
+ skills/ui-ux-pro-max/assets/data/icons.csv         |  101 -
+ skills/ui-ux-pro-max/assets/data/landing.csv       |   31 -
+ skills/ui-ux-pro-max/assets/data/products.csv      |   97 -
+ .../assets/data/react-performance.csv              |   45 -
+ skills/ui-ux-pro-max/assets/data/stacks/astro.csv  |   54 -
+ .../ui-ux-pro-max/assets/data/stacks/flutter.csv   |   53 -
+ .../assets/data/stacks/html-tailwind.csv           |   56 -
+ .../assets/data/stacks/jetpack-compose.csv         |   53 -
+ skills/ui-ux-pro-max/assets/data/stacks/nextjs.csv |   53 -
+ .../ui-ux-pro-max/assets/data/stacks/nuxt-ui.csv   |   51 -
+ skills/ui-ux-pro-max/assets/data/stacks/nuxtjs.csv |   59 -
+ .../assets/data/stacks/react-native.csv            |   52 -
+ skills/ui-ux-pro-max/assets/data/stacks/react.csv  |   54 -
+ skills/ui-ux-pro-max/assets/data/stacks/shadcn.csv |   61 -
+ skills/ui-ux-pro-max/assets/data/stacks/svelte.csv |   54 -
+ .../ui-ux-pro-max/assets/data/stacks/swiftui.csv   |   51 -
+ skills/ui-ux-pro-max/assets/data/stacks/vue.csv    |   50 -
+ skills/ui-ux-pro-max/assets/data/styles.csv        |   68 -
+ skills/ui-ux-pro-max/assets/data/typography.csv    |   58 -
+ skills/ui-ux-pro-max/assets/data/ui-reasoning.csv  |  101 -
+ skills/ui-ux-pro-max/assets/data/ux-guidelines.csv |  100 -
+ skills/ui-ux-pro-max/assets/data/web-interface.csv |   31 -
+ skills/ui-ux-pro-max/data/charts.csv               |   26 -
+ skills/ui-ux-pro-max/data/colors.csv               |   97 -
+ skills/ui-ux-pro-max/data/icons.csv                |  101 -
+ skills/ui-ux-pro-max/data/landing.csv              |   31 -
+ skills/ui-ux-pro-max/data/products.csv             |   97 -
+ skills/ui-ux-pro-max/data/react-performance.csv    |   45 -
+ skills/ui-ux-pro-max/data/stacks/astro.csv         |   54 -
+ skills/ui-ux-pro-max/data/stacks/flutter.csv       |   53 -
+ skills/ui-ux-pro-max/data/stacks/html-tailwind.csv |   56 -
+ .../ui-ux-pro-max/data/stacks/jetpack-compose.csv  |   53 -
+ skills/ui-ux-pro-max/data/stacks/nextjs.csv        |   53 -
+ skills/ui-ux-pro-max/data/stacks/nuxt-ui.csv       |   51 -
+ skills/ui-ux-pro-max/data/stacks/nuxtjs.csv        |   59 -
+ skills/ui-ux-pro-max/data/stacks/react-native.csv  |   52 -
+ skills/ui-ux-pro-max/data/stacks/react.csv         |   54 -
+ skills/ui-ux-pro-max/data/stacks/shadcn.csv        |   61 -
+ skills/ui-ux-pro-max/data/stacks/svelte.csv        |   54 -
+ skills/ui-ux-pro-max/data/stacks/swiftui.csv       |   51 -
+ skills/ui-ux-pro-max/data/stacks/vue.csv           |   50 -
+ skills/ui-ux-pro-max/data/styles.csv               |   68 -
+ skills/ui-ux-pro-max/data/typography.csv           |   58 -
+ skills/ui-ux-pro-max/data/ui-reasoning.csv         |  101 -
+ skills/ui-ux-pro-max/data/ux-guidelines.csv        |  100 -
+ skills/ui-ux-pro-max/data/web-interface.csv        |   31 -
+ skills/ui-ux-pro-max/references/upstream-README.md |  488 ---
+ .../references/upstream-skill-content.md           |  288 --
+ skills/ui-ux-pro-max/scripts/__init__.py           |    0
+ skills/ui-ux-pro-max/scripts/core.py               |  253 --
+ skills/ui-ux-pro-max/scripts/design_system.py      | 1071 -----
+ skills/ui-ux-pro-max/scripts/search.py             |  111 -
+ skills/version-management/SKILL.md                 |  582 ---
+ skills/video-generation/LICENSE.txt                |   21 -
+ skills/video-generation/SKILL.md                   | 1082 ------
+ skills/video-generation/scripts/video.ts           |  168 -
+ skills/visual-design-foundations/SKILL.md          |  318 --
+ .../references/color-systems.md                    |  417 --
+ .../references/spacing-iconography.md              |  425 --
+ .../references/typography-systems.md               |  432 ---
+ skills/web-shader-extractor/SKILL.md               |  145 -
+ .../references/config-extraction.md                |   50 -
+ .../references/encoded-definitions.md              |   53 -
+ .../references/extraction-workflow.md              |   61 -
+ .../references/porting-strategy.md                 |  164 -
+ .../references/shader-injection.md                 |  126 -
+ .../web-shader-extractor/references/shaders-com.md |  190 -
+ .../references/tech-signatures.md                  |   54 -
+ .../references/tsl-extraction.md                   |   41 -
+ .../references/unicorn-studio.md                   |  353 --
+ .../scripts/fetch-rendered-dom.mjs                 |  153 -
+ skills/web-shader-extractor/scripts/scan-bundle.sh |   76 -
+ skills/writing-plans/SKILL.md                      |  116 -
+ skills/writing-plans/_meta.json                    |    6 -
+ upload/ECDSA_extracted/ECDSA/keyhunt               |    0
+ 894 files changed, 507 insertions(+), 190084 deletions(-)

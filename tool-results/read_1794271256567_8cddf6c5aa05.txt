@@ -1,0 +1,906 @@
+     1→#!/usr/bin/env python3
+     2→"""kappa-модель предиката «k in S»: реверсивная схема, Тоффоли/глубина, масштабирование.
+     3→
+     4→S routed-economy - не таблица (QRAM-модель снята, см. memo 10.11), а предикат:
+     5→    f(k) = 1  <=>  k - канонический представитель своей Lambda-орбиты
+     6→                   (орбита {k, lambda*k, lambda^2*k} mod N, lambda^3 = 1)
+     7→                   и сигнатура k (старшие b бит) попадает в интервал [lo, hi).
+     8→Предикат вычисляется арифметикой, а не ищется: 2 модульных умножения на
+     9→константу, 2 сравнения (канонизация - ровно 2 сравнения, порядок lambda = 3),
+    10→интервальная логика на b битах.
+    11→
+    12→Схема (гейт-уровень, все ancilla очищаются, кроме K и выхода m):
+    13→- Cuccaro-рипл-аддер: 2 Toffoli + 4 CNOT на бит, 1 ancilla (cin). Выведен
+    14→  здесь и бит-верифицирован исчерпывающе; опубликованный счёт Cuccaro et al.
+    15→  2004 - 2n+1 Toffoli, совпадает;
+    16→- компаратор [X < Y] заёмной цепочкой: 5 Toffoli на бит;
+    17→- умножение на константу mod p: широкий аккумулятор (n + ceil(log2 n) бит),
+    18→  n inplace-сложений (аддер сам чистит tmp и cin), затем бинарное сокращение
+    19→  mod p за m = ceil(log2 n) шагов compare-and-conditional-subtract; каскад
+    20→  промежуточных регистров сокращения очищается внутри (rev шагов 1..m-1),
+    21→  широкий аккумулятор остаётся грязным и убирается реверсом у вызывающего;
+    22→- предикат: умножение lambda, умножение lambda^2, 2 компаратора [A < K],
+    23→  интервальные сравнения, AND; очистка - реверс под-схем в обратном
+    24→  хронологическом порядке (каждый sub - биекция, реверс восстанавливает).
+    25→
+    26→Верификация:
+    27→- бит-уровень: все 2^n входов при n = 4..8 - K сохранён, m совпадает с
+    28→  классическим референсом на каждом входе, прочие провода нулеvые, обратный
+    29→  прогон возвращает исходное состояние (перестановка);
+    30→- движок qip_engine: таблицы истинности аддера и компаратора при n = 4 на
+    31→  базисных состояниях. Полный предикат и reduce на движке не прогоняются:
+    32→  >45 проводов (2^45 амплитуд) - их корректность покрывается бит-уровнем.
+    33→
+    34→Замер: Toffoli/глубина/провода при n = 4..256. n - ширина арифметики
+    35→(log2 N): для secp256k1 берутся реальный порядок N и лямбды из
+    36→phase_signature_135bit.json; ширина окна W входит только в число итераций
+    37→Гровера, не в стоимость оракула. Фит T(n) = a*n^2 + b*n + c.
+    38→kappa = глубина * логический такт, tau из {10 ns, 100 ns, 1 mks}.
+    39→Префикс-вариант - механический пересчёт от замера: глубина аддера 5n
+    40→заменяется на Brent-Kung 2*log2(n)-1. Древесный параллелизм - оценка,
+    41→не замер (см. json). W* = ((pi/4)*rate*M*kappa)^2, rate/M - замеры из
+    42→h_curve_summary.json (canonical H rows, H = 400k).
+    43→
+    44→Фальсификатор (пре-регистрирован в memo 10.11 «Дальше», коммит edd802d,
+    45→до кода): ветка O(N) - канонизация сравнением со всеми элементами орбиты
+    46→вместо двух соседей. В схеме канонизация - ровно 2 сравнения, ветка
+    47→не сработала; проверяется структурой схемы и бит-верификацией.
+    48→
+    49→Запуск из корня репо: python3 experiments/qip_predicate_kappa.py
+    50→Выход: results/qip_predicate_kappa.json
+    51→"""
+    52→import json
+    53→import math
+    54→import random
+    55→import sys
+    56→import time
+    57→from pathlib import Path
+    58→
+    59→sys.path.insert(0, str(Path(__file__).resolve().parent))
+    60→from qip_engine import Statevector  # noqa: E402
+    61→
+    62→# реальный secp256k1: порядок N и лямбды (phase_signature_135bit.json)
+    63→N_SECP = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+    64→LAM_SECP = 0x5363ad4cc05c30e0a5261c028812645a122e22ea20816678df02967c1b23bd72
+    65→LAM2_SECP = 0xac9c52b33fa3cf1f5ad9e3fd77ed9ba4a880b9fc8ec739c2e0cfc810b51283ce
+    66→
+    67→B_SIG = 2          # бит сигнатуры (маршрутизация rho=3 укладывается в 2 бита)
+    68→LO, HI = 0, 2      # принятый интервал сигнатуры
+    69→TAUS = [(1e-8, "10 ns"), (1e-7, "100 ns"), (1e-6, "1 mks")]
+    70→
+    71→
+    72→# --------------------------------------------------------------------------
+    73→# гейт-IR: x / cx / ccx, бит-симуляция, счёт, глубина (ASAP), реверс
+    74→# --------------------------------------------------------------------------
+    75→
+    76→class Circuit:
+    77→    def __init__(self):
+    78→        self.gates = []
+    79→
+    80→    def x(self, q):
+    81→        self.gates.append(("x", q))
+    82→
+    83→    def cx(self, c, t):
+    84→        self.gates.append(("cx", c, t))
+    85→
+    86→    def ccx(self, c1, c2, t):
+    87→        self.gates.append(("ccx", c1, c2, t))
+    88→
+    89→    def extend(self, other):
+    90→        self.gates.extend(other.gates)
+    91→
+    92→    def reversed(self):
+    93→        r = Circuit()
+    94→        r.gates = list(reversed(self.gates))
+    95→        return r
+    96→
+    97→    def counts(self):
+    98→        d = {"x": 0, "cx": 0, "ccx": 0}
+    99→        for g in self.gates:
+   100→            d[g[0]] += 1
+   101→        return d
+   102→
+   103→    def toffoli(self):
+   104→        return sum(1 for g in self.gates if g[0] == "ccx")
+   105→
+   106→    def depth(self):
+   107→        last = {}
+   108→        mx = 0
+   109→        for g in self.gates:
+   110→            t = max(last.get(q, 0) for q in g[1:]) + 1
+   111→            for q in g[1:]:
+   112→                last[q] = t
+   113→            if t > mx:
+   114→                mx = t
+   115→        return mx
+   116→
+   117→    def run_bits(self, bits):
+   118→        for g in self.gates:
+   119→            if g[0] == "x":
+   120→                bits[g[1]] ^= 1
+   121→            elif g[0] == "cx":
+   122→                bits[g[2]] ^= bits[g[1]]
+   123→            else:
+   124→                bits[g[3]] ^= bits[g[1]] & bits[g[2]]
+   125→
+   126→    def wires(self):
+   127→        return 1 + max((q for g in self.gates for q in g[1:]), default=-1)
+   128→
+   129→
+   130→class Wires:
+   131→    """Аллокатор виртуальных проводов (каждый alloc - свежие, нулевые)."""
+   132→
+   133→    def __init__(self):
+   134→        self.next = 0
+   135→
+   136→    def alloc(self, k):
+   137→        ws = list(range(self.next, self.next + k))
+   138→        self.next += k
+   139→        return ws
+   140→
+   141→    def one(self):
+   142→        return self.alloc(1)[0]
+   143→
+   144→
+   145→# --------------------------------------------------------------------------
+   146→# примитивы
+   147→# --------------------------------------------------------------------------
+   148→
+   149→def ripple_add(circ, A, B, cin):
+   150→    """B <- A + B (mod 2^len(B)); A сохранён, cin восстановлен.
+   151→
+   152→    Cuccaro-структура: forward MAJ' (cx, cx, ccx) - перенос живёт на A[i]
+   153→    и модифицирует carry-провод; backward UMA (ccx, cx, cx) восстанавливает
+   154→    A[i] и carry-провод и дописывает бит суммы в B[i]. 2 Toffoli + 4 CNOT
+   155→    на бит, 1 ancilla. Верифицирован исчерпывающе (см. check_*).
+   156→    """
+   157→    n = len(B)
+   158→    for i in range(n):
+   159→        w = cin if i == 0 else A[i - 1]
+   160→        circ.cx(A[i], w)
+   161→        circ.cx(A[i], B[i])
+   162→        circ.ccx(B[i], w, A[i])
+   163→    for i in range(n - 1, -1, -1):
+   164→        w = cin if i == 0 else A[i - 1]
+   165→        circ.ccx(B[i], w, A[i])
+   166→        circ.cx(A[i], w)
+   167→        circ.cx(w, B[i])
+   168→
+   169→
+   170→def cmp_lt(X, Y, al):
+   171→    """(sub, flag): flag = [X < Y]; X, Y не изменяются.
+   172→
+   173→    Заёмная цепочка b_{i+1} = maj(!X[i], Y[i], b_i); инверсия X[i] - X-гейтами
+   174→    вокруг Toffoli. 5 Toffoli + 2 CNOT + 4 X на бит. u, v очищаются в каждом
+   175→    бите; цепочка очищается реверсом sub (X, Y нетронуты).
+   176→    """
+   177→    n = len(X)
+   178→    s = Circuit()
+   179→    chain = al.alloc(n + 1)          # chain[0] = b_0 = 0; chain[n] = [X < Y]
+   180→    u, v = al.alloc(2)
+   181→    for i in range(n):
+   182→        s.x(X[i])
+   183→        s.ccx(X[i], Y[i], u)         # u = !X*Y
+   184→        s.ccx(X[i], chain[i], v)     # v = !X*b
+   185→        s.x(X[i])
+   186→        s.cx(u, chain[i + 1])
+   187→        s.cx(v, chain[i + 1])
+   188→        s.ccx(Y[i], chain[i], chain[i + 1])   # + Y*b -> maj(!X, Y, b)
+   189→        s.x(X[i])
+   190→        s.ccx(X[i], Y[i], u)         # uncompute u
+   191→        s.ccx(X[i], chain[i], v)     # uncompute v
+   192→        s.x(X[i])
+   193→    return s, chain[n]
+   194→
+   195→
+   196→def cond_sub(W, c, al):
+   197→    """(sub, R): R = W - c*[W >= c]; W не изменяется.
+   198→
+   199→    1) компаратор f = [W < c] (цепочка читает W, W нетронут);
+   200→    2) g = [W >= c] = !f;
+   201→    3) D = W - c: копия W, затем D += !c + 1 (дополнение до двух);
+   202→    4) мультиплексор R = !g*W + g*D;
+   203→    5) очистка: g, h, реверс компаратора, реверс D-части.
+   204→    """
+   205→    nw = len(W)
+   206→    s = Circuit()
+   207→    ct = al.alloc(nw)                # |c>
+   208→    D = al.alloc(nw)
+   209→    R = al.alloc(nw)
+   210→    cin2 = al.one()
+   211→    for k in range(nw):
+   212→        if (c >> k) & 1:
+   213→            s.x(ct[k])
+   214→    cmp_s, f = cmp_lt(W, ct, al)
+   215→    s.extend(cmp_s)
+   216→    g = al.one()
+   217→    s.x(g)
+   218→    s.cx(f, g)                       # g = [W >= c]
+   219→
+   220→    dpart = Circuit()
+   221→    for i in range(nw):
+   222→        dpart.cx(W[i], D[i])         # D = W
+   223→    for k in range(nw):
+   224→        dpart.x(ct[k])               # ct = !c
+   225→    dpart.x(cin2)
+   226→    ripple_add(dpart, ct, D, cin2)   # D = W + !c + 1 = W - c (mod 2^nw)
+   227→    dpart.x(cin2)
+   228→    for k in range(nw):
+   229→        dpart.x(ct[k])               # ct = c
+   230→    s.extend(dpart)
+   231→
+   232→    h = al.one()
+   233→    s.x(h)
+   234→    s.cx(g, h)                       # h = !g
+   235→    for i in range(nw):
+   236→        s.ccx(h, W[i], R[i])
+   237→        s.ccx(g, D[i], R[i])         # R = !g*W + g*D
+   238→
+   239→    s.cx(g, h)
+   240→    s.x(h)                           # h = 0
+   241→    s.cx(f, g)
+   242→    s.x(g)                           # g = 0
+   243→    s.extend(cmp_s.reversed())       # f, chain = 0 (W, ct нетронуты)
+   244→    s.extend(dpart.reversed())       # D = 0
+   245→    for k in range(nw):              # снять материализацию константы ct -> 0
+   246→        if (c >> k) & 1:
+   247→            s.x(ct[k])
+   248→    return s, R
+   249→
+   250→
+   251→def build_reduce(ACC, p, al, m):
+   252→    """(sub, out): out = ACC mod p; ACC не изменяется.
+   253→
+   254→    Бинарное сокращение: шаги j = m-1..0, R_j = R_{j+1} - p*2^j*[R_{j+1} >= p*2^j],
+   255→    R_m := ACC. Каскад R_1..R_{m-1} неизбежно жив до конца (реверс шага j
+   256→    требует R_{j+1}); очищается реверсом шагов 1..m-1 в хронологическом
+   257→    порядке. ACC остаётся грязным (широкое произведение).
+   258→    """
+   259→    red = Circuit()
+   260→    steps = []
+   261→    inp = ACC
+   262→    for j in range(m - 1, -1, -1):
+   263→        s, Rj = cond_sub(inp, p << j, al)
+   264→        red.extend(s)
+   265→        steps.append((j, s))
+   266→        inp = Rj
+   267→    out = inp
+   268→    for j, s in reversed(steps):     # j = 0, 1, ..., m-1
+   269→        if j >= 1:
+   270→            red.extend(s.reversed())  # R_j -> 0; вход R_{j+1} ещё жив
+   271→    return red, out
+   272→
+   273→
+   274→def build_mult(K, coeffs, p, al):
+   275→    """(sub, out, ACC): out = (sum_i K[i]*coeffs[i]) mod p; K не изменяется.
+   276→
+   277→    Фаза 1: широкий аккумулятор ACC (n + m бит, m = ceil(log2 n)),
+   278→    n inplace-сложений tmp_i = K[i]*c_i (аддер сам восстанавливает tmp, cin).
+   279→    Фаза 2: reduce_mod. ACC остаётся грязным - очистка реверсом sub у
+   280→    вызывающего (sub - биекция).
+   281→    """
+   282→    n = len(K)
+   283→    m = max(1, (n - 1).bit_length())
+   284→    nw = n + m
+   285→    s = Circuit()
+   286→    ACC = al.alloc(nw)
+   287→    tmp = al.alloc(nw)               # старшие m бит всегда 0 (паддинг аддера)
+   288→    cin = al.one()
+   289→    for i in range(n):
+   290→        ci = coeffs[i]
+   291→        for j in range(n):
+   292→            if (ci >> j) & 1:
+   293→                s.cx(K[i], tmp[j])
+   294→        ripple_add(s, tmp, ACC, cin)
+   295→        for j in range(n):
+   296→            if (ci >> j) & 1:
+   297→                s.cx(K[i], tmp[j])
+   298→    red, out = build_reduce(ACC, p, al, m)
+   299→    s.extend(red)
+   300→    return s, out, ACC
+   301→
+   302→
+   303→def build_predicate(n, p, lam, lam2, b_sig=B_SIG, lo=LO, hi=HI):
+   304→    """(C, m_wire, K): m = f(k); все прочие провода очищены.
+   305→
+   306→    f(k) = [k - канонический представитель орбиты] AND [sig(k) in [lo, hi)],
+   307→    канонизация: k <= lambda*k и k <= lambda^2*k - ровно 2 сравнения.
+   308→    """
+   309→    C = Circuit()
+   310→    al = Wires()
+   311→    K = al.alloc(n)
+   312→    coeffs1 = [lam * pow(2, i, p) % p for i in range(n)]
+   313→    coeffs2 = [lam2 * pow(2, i, p) % p for i in range(n)]
+   314→
+   315→    m1, A1, _ = build_mult(K, coeffs1, p, al)
+   316→    C.extend(m1)
+   317→    m2, A2, _ = build_mult(K, coeffs2, p, al)
+   318→    C.extend(m2)
+   319→
+   320→    c1s, f1 = cmp_lt(A1[:n], K, al)  # f1 = [A1 < K]; A1 < p < 2^n - старшие m бит 0
+   321→    C.extend(c1s)
+   322→    c2s, f2 = cmp_lt(A2[:n], K, al)
+   323→    C.extend(c2s)
+   324→
+   325→    sig = K[n - b_sig:]
+   326→    lo_w = al.alloc(b_sig)
+   327→    hi_w = al.alloc(b_sig)
+   328→    xset = Circuit()
+   329→    for k in range(b_sig):
+   330→        if (lo >> k) & 1:
+   331→            xset.x(lo_w[k])
+   332→        if (hi >> k) & 1:
+   333→            xset.x(hi_w[k])
+   334→    los, flo = cmp_lt(sig, lo_w, al)   # flo = [sig < lo]
+   335→    his, fhi = cmp_lt(sig, hi_w, al)   # fhi = [sig < hi]
+   336→    xset.extend(los)
+   337→    xset.extend(his)
+   338→    C.extend(xset)
+   339→
+   340→    # AND: c1 = !f1 = [K <= A1], c2 = !f2, ta = !flo, tb = ta&fhi,
+   341→    #      t1 = c1&c2, m = t1&tb
+   342→    c1 = al.one()
+   343→    c2 = al.one()
+   344→    ta = al.one()
+   345→    tb = al.one()
+   346→    t1 = al.one()
+   347→    mm = al.one()
+   348→    C.x(c1)
+   349→    C.cx(f1, c1)
+   350→    C.x(c2)
+   351→    C.cx(f2, c2)
+   352→    C.x(ta)
+   353→    C.cx(flo, ta)
+   354→    C.ccx(ta, fhi, tb)
+   355→    C.ccx(c1, c2, t1)
+   356→    C.ccx(t1, tb, mm)
+   357→
+   358→    # очистка в обратном хронологическом порядке
+   359→    C.ccx(c1, c2, t1)                # t1 = 0 (c1, c2 ещё живы)
+   360→    C.cx(f1, c1)
+   361→    C.x(c1)                          # c1 = 0
+   362→    C.cx(f2, c2)
+   363→    C.x(c2)                          # c2 = 0
+   364→    C.ccx(ta, fhi, tb)               # tb = 0 (ta ещё жив)
+   365→    C.cx(flo, ta)
+   366→    C.x(ta)                          # ta = 0
+   367→    C.extend(xset.reversed())        # rev his + rev los + снятие X-set lo_w/hi_w
+   368→    C.extend(c2s.reversed())         # f2, цепочка, A2 нетронуты
+   369→    C.extend(c1s.reversed())
+   370→    C.extend(m2.reversed())          # A2, ACC2, каскад -> 0
+   371→    C.extend(m1.reversed())
+   372→    return C, mm, K
+   373→
+   374→
+   375→def f_classical(x, n, p, lam, lam2, b_sig=B_SIG, lo=LO, hi=HI):
+   376→    """Классический референс предиката."""
+   377→    y = lam * x % p
+   378→    z = lam2 * x % p
+   379→    canonical = (x <= y) and (x <= z)
+   380→    sig = x >> (n - b_sig)
+   381→    return 1 if (canonical and lo <= sig < hi) else 0
+   382→
+   383→
+   384→# --------------------------------------------------------------------------
+   385→# параметры: игрушечные кривые и реальный secp256k1
+   386→# --------------------------------------------------------------------------
+   387→
+   388→def is_prime_mr(v, rounds=24):
+   389→    """Миллер-Рабин с детерминированным seedом на кандидата (воспроизводимость)."""
+   390→    if v < 2:
+   391→        return False
+   392→    for sp in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37):
+   393→        if v % sp == 0:
+   394→            return v == sp
+   395→    rng = random.Random(20261110 + v)
+   396→    d = v - 1
+   397→    r = 0
+   398→    while d % 2 == 0:
+   399→        d //= 2
+   400→        r += 1
+   401→    for _ in range(rounds):
+   402→        a = rng.randrange(2, v - 1)
+   403→        x = pow(a, d, v)
+   404→        if x == 1 or x == v - 1:
+   405→            continue
+   406→        for _ in range(r - 1):
+   407→            x = x * x % v
+   408→            if x == v - 1:
+   409→                break
+   410→        else:
+   411→            return False
+   412→    return True
+   413→
+   414→
+   415→def toy_params(n):
+   416→    """(p, lambda): простое p ~ 2^n, p = 1 (mod 3), lambda порядка 3 mod p.
+   417→
+   418→    Случайный поиск кандидатов + Миллер-Рабин; lambda = a^((p-1)/3) mod p
+   419→    для случайного a (если != 1, порядок ровно 3). Перебор lambda подряд
+   420→    и пробное деление невозможны при n >= 48 (корни куба разрежены,
+   421→    sqrt(p) делений - часы/дни).
+   422→    """
+   423→    rng = random.Random(20261110)
+   424→    while True:
+   425→        p = rng.randrange(2 ** (n - 1) + 1, 2 ** n) | 1
+   426→        if p % 3 != 1 or not is_prime_mr(p):
+   427→            continue
+   428→        for _ in range(100):
+   429→            a = rng.randrange(2, p - 1)
+   430→            lam = pow(a, (p - 1) // 3, p)
+   431→            if lam != 1:
+   432→                assert pow(lam, 3, p) == 1
+   433→                return p, lam
+   434→        raise RuntimeError("lambda не найдена за 100 попыток")
+   435→
+   436→
+   437→def params_for(n):
+   438→    if n == 256:
+   439→        assert (N_SECP - 1) % 3 == 0
+   440→        assert pow(LAM_SECP, 3, N_SECP) == 1 and LAM_SECP != 1
+   441→        assert LAM2_SECP == LAM_SECP * LAM_SECP % N_SECP
+   442→        return N_SECP, LAM_SECP, LAM2_SECP
+   443→    p, lam = toy_params(n)
+   444→    return p, lam, lam * lam % p
+   445→
+   446→
+   447→# --------------------------------------------------------------------------
+   448→# верификация
+   449→# --------------------------------------------------------------------------
+   450→
+   451→def init_bits(C, K, x):
+   452→    bits = {q: 0 for q in range(C.wires())}
+   453→    for j in range(len(K)):
+   454→        bits[K[j]] = (x >> j) & 1
+   455→    return bits
+   456→
+   457→
+   458→def check_reduce_bits(n, p, lam):
+   459→    """Все значения ACC из области определения (ACC < n*p, вне её частное
+   460→    q >= 2^m и m шагов сокращения не хватает - контракт аккумулятора)."""
+   461→    m = max(1, (n - 1).bit_length())
+   462→    nw = n + m
+   463→    fails = 0
+   464→    total = 0
+   465→    for v in range(n * p):
+   466→        al = Wires()
+   467→        ACC = al.alloc(nw)
+   468→        red, out = build_reduce(ACC, p, al, m)
+   469→        rev = red.reversed()
+   470→        bits = init_bits(red, ACC, v)
+   471→        red.run_bits(bits)
+   472→        got = sum(bits[out[j]] << j for j in range(nw))
+   473→        if got != v % p:
+   474→            fails += 1
+   475→        total += 1
+   476→        rev.run_bits(bits)
+   477→        # после реверса все провода, кроме ACC (вход reduce, по дизайну
+   478→        # не очищается - чистится реверсом у вызывающего), должны быть нулевыми
+   479→        if any(bits[q] for q in range(red.wires()) if q not in ACC):
+   480→            fails += 1
+   481→    return fails, total
+   482→
+   483→
+   484→def check_predicate_bits(n, p, lam, lam2, exhaustive_rev=True):
+   485→    """Все 2^n входов: m == f_cl(x), K сохранён, прочие провода нулевые,
+   486→    обратный прогон возвращает исходное состояние."""
+   487→    C, mm, K = build_predicate(n, p, lam, lam2)
+   488→    rev = C.reversed()
+   489→    wires = C.wires()
+   490→    fails = []
+   491→    for x in range(2 ** n):
+   492→        bits = init_bits(C, K, x)
+   493→        C.run_bits(bits)
+   494→        got = bits[mm]
+   495→        exp = f_classical(x, n, p, lam, lam2)
+   496→        k_back = sum(bits[K[j]] << j for j in range(n))
+   497→        dirty = [q for q in range(wires) if bits[q] and q not in K and q != mm]
+   498→        if got != exp or k_back != x or dirty:
+   499→            fails.append((x, got, exp, k_back, dirty[:5]))
+   500→        rev.run_bits(bits)
+   501→        # после реверса остались только биты K (значение x)
+   502→        clean = sum(bits[q] for q in range(wires))
+   503→        if clean != bin(x).count("1"):
+   504→            fails.append((x, "reverse", clean))
+   505→    return fails, 2 ** n, wires, C.toffoli(), C.depth()
+   506→
+   507→
+   508→def check_engine_primitives(n=4):
+   509→    """Таблицы истинности аддера и компаратора на движке (базисные состояния)."""
+   510→    p, lam = toy_params(n)
+   511→    res = {"n": n, "p": p, "lambda": lam}
+   512→
+   513→    # аддер: все (a, b) - бит-уровень и движок
+   514→    fails_bit = 0
+   515→    add_gates = None
+   516→    add_wires = None
+   517→    for a in range(2 ** n):
+   518→        for b in range(2 ** n):
+   519→            al = Wires()
+   520→            C = Circuit()
+   521→            A = al.alloc(n)
+   522→            B = al.alloc(n)
+   523→            cin = al.one()
+   524→            ripple_add(C, A, B, cin)
+   525→            add_gates = C
+   526→            add_wires = C.wires()
+   527→            bits = {q: 0 for q in range(add_wires)}
+   528→            for j in range(n):
+   529→                bits[A[j]] = (a >> j) & 1
+   530→                bits[B[j]] = (b >> j) & 1
+   531→            C.run_bits(bits)
+   532→            got = sum(bits[B[j]] << j for j in range(n))
+   533→            a_back = sum(bits[A[j]] << j for j in range(n))
+   534→            if got != (a + b) % 2 ** n or a_back != a or bits[cin] != 0:
+   535→                fails_bit += 1
+   536→    res["adder bit-level pairs"] = 2 ** (2 * n)
+   537→    res["adder bit-level fails"] = fails_bit
+   538→
+   539→    # движок: каждый (a, b) - базисное состояние, результат - базисное
+   540→    fails_eng = 0
+   541→    for a in range(2 ** n):
+   542→        for b in range(2 ** n):
+   543→            al = Wires()
+   544→            C = Circuit()
+   545→            A = al.alloc(n)
+   546→            B = al.alloc(n)
+   547→            cin = al.one()
+   548→            ripple_add(C, A, B, cin)
+   549→            w = C.wires()
+   550→            sv = Statevector(w)
+   551→            start = 0
+   552→            target = 0
+   553→            bits = {}
+   554→            for j in range(n):
+   555→                bits[A[j]] = (a >> j) & 1
+   556→                bits[B[j]] = (b >> j) & 1
+   557→            bits[cin] = 0
+   558→            for q, v in bits.items():
+   559→                start |= v << (w - 1 - q)
+   560→            exp_bits = dict(bits)
+   561→            for j in range(n):
+   562→                exp_bits[B[j]] = ((a + b) >> j) & 1
+   563→            for q, v in exp_bits.items():
+   564→                target |= v << (w - 1 - q)
+   565→            sv.psi[:] = 0
+   566→            sv.psi[start] = 1.0
+   567→            for g in C.gates:
+   568→                if g[0] == "x":
+   569→                    sv.x(g[1])
+   570→                elif g[0] == "cx":
+   571→                    sv.cx(g[1], g[2])
+   572→                else:
+   573→                    sv.ccx(g[1], g[2], g[3])
+   574→            dev = abs(abs(sv.psi[target]) - 1.0)
+   575→            rest = abs(sv.psi) ** 2
+   576→            rest[target] = 0.0
+   577→            if dev > 1e-9 or rest.max() > 1e-9:
+   578→                fails_eng += 1
+   579→    res["adder engine fails"] = fails_eng
+   580→
+   581→    # компаратор: все (x, y) - бит-уровень; движок - выборка
+   582→    fails_cmp = 0
+   583→    cmp_gates = None
+   584→    cmp_wires = None
+   585→    for x in range(2 ** n):
+   586→        for y in range(2 ** n):
+   587→            al = Wires()
+   588→            C = Circuit()
+   589→            X = al.alloc(n)
+   590→            Y = al.alloc(n)
+   591→            cmp_s, f = cmp_lt(X, Y, al)
+   592→            C.extend(cmp_s)
+   593→            cmp_gates = C
+   594→            cmp_wires = C.wires()
+   595→            bits = {q: 0 for q in range(cmp_wires)}
+   596→            for j in range(n):
+   597→                bits[X[j]] = (x >> j) & 1
+   598→                bits[Y[j]] = (y >> j) & 1
+   599→            C.run_bits(bits)
+   600→            got = bits[f]
+   601→            exp = 1 if x < y else 0
+   602→            cmp_bad = got != exp
+   603→            # промежуточные провода цепочки очищаются реверсом sub - это часть
+   604→            # дизайна (значение флага уже снято); проверяем что реверс чистит
+   605→            C.reversed().run_bits(bits)
+   606→            if any(bits[q] for q in range(cmp_wires) if q not in X and q not in Y):
+   607→                cmp_bad = True
+   608→            x_back = sum(bits[X[j]] << j for j in range(n))
+   609→            y_back = sum(bits[Y[j]] << j for j in range(n))
+   610→            if x_back != x or y_back != y:
+   611→                cmp_bad = True
+   612→            if cmp_bad:
+   613→                fails_cmp += 1
+   614→    res["comparator bit-level pairs"] = 2 ** (2 * n)
+   615→    res["comparator bit-level fails"] = fails_cmp
+   616→
+   617→    fails_eng_cmp = 0
+   618→    for x in range(2 ** n):
+   619→        for y in range(2 ** n):
+   620→            al = Wires()
+   621→            C = Circuit()
+   622→            X = al.alloc(n)
+   623→            Y = al.alloc(n)
+   624→            cmp_s, f = cmp_lt(X, Y, al)
+   625→            C.extend(cmp_s)
+   626→            w = C.wires()
+   627→            sv = Statevector(w)
+   628→            bits = {q: 0 for q in range(w)}
+   629→            for j in range(n):
+   630→                bits[X[j]] = (x >> j) & 1
+   631→                bits[Y[j]] = (y >> j) & 1
+   632→            start = sum(v << (w - 1 - q) for q, v in bits.items())
+   633→            exp_bits = dict(bits)
+   634→            exp_bits[f] = 1 if x < y else 0
+   635→            target = sum(v << (w - 1 - q) for q, v in exp_bits.items())
+   636→            sv.psi[:] = 0
+   637→            sv.psi[start] = 1.0
+   638→            for g in C.gates:
+   639→                if g[0] == "x":
+   640→                    sv.x(g[1])
+   641→                elif g[0] == "cx":
+   642→                    sv.cx(g[1], g[2])
+   643→                else:
+   644→                    sv.ccx(g[1], g[2], g[3])
+   645→            # промежуточные провода цепочки очищаются реверсом - гоняем реверс
+   646→            # и требуем возврат в исходное базисное состояние
+   647→            for g in reversed(C.gates):
+   648→                if g[0] == "x":
+   649→                    sv.x(g[1])
+   650→                elif g[0] == "cx":
+   651→                    sv.cx(g[1], g[2])
+   652→                else:
+   653→                    sv.ccx(g[1], g[2], g[3])
+   654→            dev = abs(abs(sv.psi[start]) - 1.0)
+   655→            rest = abs(sv.psi) ** 2
+   656→            rest[start] = 0.0
+   657→            if dev > 1e-9 or rest.max() > 1e-9:
+   658→                fails_eng_cmp += 1
+   659→    res["comparator engine fails"] = fails_eng_cmp
+   660→    return res
+   661→
+   662→
+   663→# --------------------------------------------------------------------------
+   664→# замер и масштабирование
+   665→# --------------------------------------------------------------------------
+   666→
+   667→N_GRID = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 24, 32, 48, 64, 96, 128, 192, 256]
+   668→
+   669→
+   670→def measure_all():
+   671→    rows = []
+   672→    for n in N_GRID:
+   673→        p, lam, lam2 = params_for(n)
+   674→        t0 = time.perf_counter()
+   675→        C, mm, K = build_predicate(n, p, lam, lam2)
+   676→        cnt = C.counts()
+   677→        row = {
+   678→            "n": n,
+   679→            "modulus bits": n,
+   680→            "toffoli": cnt["ccx"],
+   681→            "cnot": cnt["cx"],
+   682→            "x gates": cnt["x"],
+   683→            "gates total": len(C.gates),
+   684→            "depth": C.depth(),
+   685→            "wires": C.wires(),
+   686→            "toffoli / n^2": round(cnt["ccx"] / n / n, 2),
+   687→            "build seconds": round(time.perf_counter() - t0, 2),
+   688→        }
+   689→        rows.append(row)
+   690→        print(f"[n={n:3d}] Toffoli {cnt['ccx']:9d} | CNOT {cnt['cx']:9d} | "
+   691→              f"глубина {C.depth():9d} | провода {C.wires():6d} | "
+   692→              f"билд {row['build seconds']:5.2f} с")
+   693→    return rows
+   694→
+   695→
+   696→def fit_quadratic(rows):
+   697→    """T(n) = a*n^2 + b*n + c (МНК) на n >= 24: на малых n скачки
+   698→    m = ceil(log2 n) (2 -> 3 -> 4 ...) и константные накладки маскируют
+   699→    квадратичный член (на 4..13 фит даёт отрицательный a - мусор).
+   700→    Строение схемы: 8*n^2 Toffoli + O(n log n)."""
+   701→    pts = [r for r in rows if r["n"] >= 24]
+   702→    ns = [float(r["n"]) for r in pts]
+   703→    ts = [float(r["toffoli"]) for r in pts]
+   704→    # базис [1, n, n^2], beta = (c, b, a)
+   705→    A = [[float(len(ns)), sum(ns), sum(v * v for v in ns)],
+   706→         [sum(ns), sum(v * v for v in ns), sum(v ** 3 for v in ns)],
+   707→         [sum(v * v for v in ns), sum(v ** 3 for v in ns), sum(v ** 4 for v in ns)]]
+   708→    y = [sum(ts),
+   709→         sum(t * v for t, v in zip(ts, ns)),
+   710→         sum(t * v * v for t, v in zip(ts, ns))]
+   711→    # Гаусс
+   712→    Mm = [row[:] + [y[i]] for i, row in enumerate(A)]
+   713→    for col in range(3):
+   714→        piv = max(range(col, 3), key=lambda r: abs(Mm[r][col]))
+   715→        Mm[col], Mm[piv] = Mm[piv], Mm[col]
+   716→        for r in range(3):
+   717→            if r == col:
+   718→                continue
+   719→            factor = Mm[r][col] / Mm[col][col]
+   720→            for k in range(col, 4):
+   721→                Mm[r][k] -= factor * Mm[col][k]
+   722→    c_, b_, a_ = (Mm[0][3] / Mm[0][0], Mm[1][3] / Mm[1][1], Mm[2][3] / Mm[2][2])
+   723→    residuals = []
+   724→    for r in pts:
+   725→        pred = a_ * r["n"] ** 2 + b_ * r["n"] + c_
+   726→        residuals.append(abs(pred - r["toffoli"]) / r["toffoli"])
+   727→    return {"a": round(a_, 4), "b": round(b_, 3), "c": round(c_, 2),
+   728→            "max rel residual": round(max(residuals), 5),
+   729→            "points": "n = 24..256 (малые n исключены: скачки m маскируют n^2)"}
+   730→
+   731→
+   732→# --------------------------------------------------------------------------
+   733→# main
+   734→# --------------------------------------------------------------------------
+   735→
+   736→def load_rate_m():
+   737→    hs = json.loads(Path("results/h_curve_summary.json").read_text())
+   738→    for pt in hs["points"]:
+   739→        if pt["heads"] == 400000:
+   740→            ch = pt["throughput"]["canonical H rows"]
+   741→            return ch["giant steps/second"], ch["table rows stored"]
+   742→    raise RuntimeError("canonical H rows @400k не найдены")
+   743→
+   744→
+   745→def main():
+   746→    print("== Верификация примитивов (движок + бит-уровень) ==")
+   747→    eng = check_engine_primitives(4)
+   748→    print(f"аддер: бит-уровень {eng['adder bit-level pairs']} пар, "
+   749→          f"фейлов {eng['adder bit-level fails']}; движок фейлов "
+   750→          f"{eng['adder engine fails']}")
+   751→    print(f"компаратор: бит-уровень {eng['comparator bit-level pairs']} пар, "
+   752→          f"фейлов {eng['comparator bit-level fails']}; движок фейлов "
+   753→          f"{eng['comparator engine fails']}")
+   754→
+   755→    print("== Верификация reduce (бит-уровень, все значения ACC) ==")
+   756→    red_checks = {}
+   757→    for n in (4, 5, 6):
+   758→        p, lam, _ = params_for(n)
+   759→        fails, total = check_reduce_bits(n, p, lam)
+   760→        red_checks[str(n)] = {"values": total, "fails": fails}
+   761→        print(f"n={n}: {total} значений ACC, фейлов {fails}")
+   762→
+   763→    print("== Верификация полного предиката (бит-уровень, все 2^n входов) ==")
+   764→    pred_checks = {}
+   765→    for n in (4, 5, 6, 7, 8):
+   766→        p, lam, lam2 = params_for(n)
+   767→        fails, total, wires, toff, depth = check_predicate_bits(n, p, lam, lam2)
+   768→        pred_checks[str(n)] = {
+   769→            "inputs": total, "fails": len(fails),
+   770→            "wires": wires, "toffoli": toff, "depth": depth,
+   771→        }
+   772→        print(f"n={n}: {total} входов, фейлов {len(fails)} | "
+   773→              f"провода {wires} | Toffoli {toff} | глубина {depth}")
+   774→        if fails:
+   775→            for f in fails[:5]:
+   776→                print("  FAIL:", f)
+   777→
+   778→    print("== Замер Toffoli/глубина/провода, n = 4..256 ==")
+   779→    rows = measure_all()
+   780→
+   781→    fit = fit_quadratic(rows)
+   782→    print(f"фит T(n) = {fit['a']}*n^2 + {fit['b']}*n + {fit['c']} "
+   783→          f"({fit['points']}), макс. относительный остаток "
+   784→          f"{fit['max rel residual']}")
+   785→
+   786→    # глубина аддера на бит (для префикс-пересчёта)
+   787→    al = Wires()
+   788→    C = Circuit()
+   789→    A = al.alloc(256)
+   790→    B = al.alloc(256)
+   791→    cin = al.one()
+   792→    ripple_add(C, A, B, cin)
+   793→    d_add = C.depth()
+   794→    d_add_bit = d_add / 256
+   795→    bk = 2 * math.log2(256) - 1
+   796→    factor = bk / d_add
+   797→    print(f"аддер n=256: глубина {d_add} ({d_add_bit:.2f} на бит); "
+   798→          f"Brent-Kung {bk:.0f}; коэффициент префикс-пересчёта "
+   799→          f"{factor:.5f}")
+   800→
+   801→    n256 = next(r for r in rows if r["n"] == 256)
+   802→    rate, M = load_rate_m()
+   803→    rm = rate * M
+   804→    log2_rows = []
+   805→    for tau, tau_name in TAUS:
+   806→        for kind, dep in (("эталонная схема", n256["depth"]),
+   807→                          ("префикс-суммы", n256["depth"] * factor),
+   808→                          ("древесный параллелизм (оценка)",
+   809→                           6 * math.log2(256) ** 2)):
+   810→            kappa = dep * tau
+   811→            w_star = ((math.pi / 4) * rm * kappa) ** 2
+   812→            log2_rows.append({
+   813→                "tau": tau_name, "variant": kind,
+   814→                "kappa seconds": float(f"{kappa:.3e}"),
+   815→                "log2 W*": round(math.log2(w_star), 1) if w_star > 0 else None,
+   816→            })
+   817→            print(f"tau={tau_name:7s} | {kind:32s} | kappa = {kappa:.3e} с | "
+   818→                  f"W* = 2^{math.log2(w_star):.1f}")
+   819→
+   820→    # контекст итераций: |S| = 1.167*W/M (routed), итерации (pi/4)*sqrt(M/1.167)
+   821→    iter_mark = (math.pi / 4) * math.sqrt(M / 1.167)
+   822→    print(f"итераций маркировки (pi/4)*sqrt(M/1.167) = {iter_mark:.0f} "
+   823→          f"(константа, не зависит от W)")
+   824→
+   825→    # W* при ожиданиях из постановки
+   826→    ref = []
+   827→    for kappa, tag in ((1e-6, "kappa = 1 mks (ранний угол memo)"),
+   828→                       (1e-3, "kappa = 1 ms"),
+   829→                       (11e-6, "нижняя граница бенда [2^40, 2^55] из постановки"),
+   830→                       (2e-3, "верхняя граница бенда [2^40, 2^55] из постановки")):
+   831→        w_star = ((math.pi / 4) * rm * kappa) ** 2
+   832→        ref.append({"kappa": tag, "log2 W*": round(math.log2(w_star), 1)})
+   833→    print("справка W*(kappa):", ref)
+   834→
+   835→    out = {
+   836→        "predicate": "k in S routed-economy: k - канонический представитель "
+   837→                     "Lambda-орбиты (порядок lambda = 3, ровно 2 сравнения) "
+   838→                     "и сигнатура (старшие 2 бита) в интервале [0, 2)",
+   839→        "falsifier": {
+   840→            "pre-registered": "memo 10.11 «Дальше», коммит edd802d (до кода)",
+   841→            "branch O(N)": "канонизация сравнением со всеми элементами "
+   842→                           "орбиты вместо двух соседей",
+   843→            "outcome": "не сработал: в схеме канонизация - ровно 2 сравнения; "
+   844→                       "предикат 8*n^2 Toffoli и ~20*n^2 глубины на эталонной "
+   845→                       "схеме, глубина O(n log n) с префикс-суммами",
+   846→        },
+   847→        "construction": {
+   848→            "adder": "Cuccaro-структура: 2 Toffoli + 4 CNOT на бит, 1 ancilla; "
+   849→                     "выведена и бит-верифицирована исчерпывающе",
+   850→            "comparator": "заёмная цепочка, 5 Toffoli на бит",
+   851→            "mult": "широкий аккумулятор n+ceil(log2 n) бит, n inplace-сложений, "
+   852→                    "бинарное сокращение mod p за m шагов (каскад промежуточных "
+   853→                    "регистров неизбежен: реверс шага j требует R_{j+1})",
+   854→            "cleanup": "реверс под-схем в обратном хронологическом порядке; "
+   855→                       "каждая под-схема - биекция",
+   856→            "secp256k1 constants": "порядок N и lambda/lambda^2 из "
+   857→                                   "phase_signature_135bit.json (lambda^3 = 1 "
+   858→                                   "mod N проверена в рантайме)",
+   859→        },
+   860→        "verification": {
+   861→            "engine primitives": eng,
+   862→            "reduce bit-level": red_checks,
+   863→            "predicate bit-level": pred_checks,
+   864→            "note": "полный предикат и reduce на движке не прогоняются "
+   865→                    "(>45 проводов = 2^45 амплитуд); их корректность "
+   866→                    "покрывается бит-уровнем на всех 2^n входах",
+   867→        },
+   868→        "scaling": {
+   869→            "rows": rows,
+   870→            "fit toffoli": fit,
+   871→            "adder n=256 depth": d_add,
+   872→            "adder depth per bit": round(d_add_bit, 3),
+   873→            "brent-kung depth": round(bk, 1),
+   874→            "prefix factor": round(factor, 5),
+   875→        },
+   876→        "kappa_w_star": {
+   877→            "formula": "W* = ((pi/4)*rate*M*kappa)^2 - определение из memo 10.11; "
+   878→                       "rate/M - замеры canonical H rows @400k",
+   879→            "rate steps/s": rate,
+   880→            "M rows": M,
+   881→            "rows": log2_rows,
+   882→            "reference": ref,
+   883→            "note n": "n в схеме - ширина арифметики log2(N) = 256 для "
+   884→                      "secp256k1; ширина окна W входит только в число "
+   885→                      "итераций Гровера, не в стоимость оракула",
+   886→        },
+   887→        "marking_iterations": {
+   888→            "S density": "routed 1.167 кандидата на гигантский шаг "
+   889→                         "(h_curve_summary.json economy)",
+   890→            "S(W)": "1.167*W/M",
+   891→            "grover iterations": round(iter_mark, 1),
+   892→            "grover iterations note": "(pi/4)*sqrt(W/|S|) = (pi/4)*sqrt(M/1.167) "
+   893→                                      "- константа, не зависит от W; но Гровер "
+   894→                                      "с предикатом возвращает равномерного "
+   895→                                      "кандидата из S, а не ключ - как финишёр "
+   896→                                      "он неполон без QRAM или EC-оракула",
+   897→        },
+   898→    }
+   899→    out_path = Path("results/qip_predicate_kappa.json")
+   900→    out_path.write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
+   901→    print(f"[saved] {out_path}")
+   902→
+   903→
+   904→if __name__ == "__main__":
+   905→    main()
+   906→
