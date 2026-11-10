@@ -3,7 +3,7 @@
   "falsifier": {
     "pre-registered": "memo 10.11 «Дальше», коммит edd802d (до кода)",
     "branch O(N)": "канонизация сравнением со всеми элементами орбиты вместо двух соседей",
-    "outcome": "не сработал: в схеме канонизация - ровно 2 сравнения; предикат 8*n^2 Toffoli и ~20*n^2 глубины на эталонной схеме, глубина O(n log n) с префикс-суммами"
+    "outcome": "не сработал: в схеме канонизация - ровно 2 сравнения; предикат 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45 Тоффоли (структурная формула, точна на всех точках сетки), глубина O(n^2) на эталонной схеме (замер 886590 слоёв при n=256) и O(n log n) с префикс-суммами"
   },
   "construction": {
     "adder": "Cuccaro-структура: 2 Toffoli + 4 CNOT на бит, 1 ancilla; выведена и бит-верифицирована исчерпывающе",
@@ -293,7 +293,7 @@
         "depth": 518136,
         "wires": 14300,
         "toffoli / n^2": 13.65,
-        "build seconds": 1.86
+        "build seconds": 1.89
       },
       {
         "n": 256,
@@ -305,7 +305,7 @@
         "depth": 886590,
         "wires": 18844,
         "toffoli / n^2": 12.2,
-        "build seconds": 3.05
+        "build seconds": 3.04
       }
     ],
     "fit toffoli": {
@@ -313,7 +313,263 @@
       "b": 1007.832,
       "c": -8947.45,
       "max rel residual": 0.11823,
-      "points": "n = 24..256 (малые n исключены: скачки m маскируют n^2)"
+      "points": "n = 24..256 (малые n исключены: скачки m маскируют n^2)",
+      "caveat": "a*n^2 - не предиктор: член 136*n*log2(n) поглощён b*n; предиктор - структурная модель (см. structural model)"
+    },
+    "structural model": {
+      "formula": "T(n) = 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45, m = ceil(log2 n)",
+      "expanded": "8*n^2 + 136*n*log2(n) - 44*n + 128*log2(n)^2 - 64*log2(n) + 45",
+      "components": "8n(n+m): фаза умножений (2 умножения x n сложений x 2(n+m) Тоффоли, x2 очистка); 64(2m-1)(n+m): каскад сокращения ((2m-1) cond_sub x 16(n+m), x2 умножения x2 очистка); 20n: канонизация (4 компаратора x 5n); 45: интервальная логика и AND",
+      "exact match": "19/19 точек сетки n=4..256, 0 расхождений",
+      "component check": [
+        {
+          "n": 8,
+          "components": {
+            "mult phase-1 (x1)": {
+              "measured": 176,
+              "formula": 176,
+              "match": true
+            },
+            "mult reduce (x1)": {
+              "measured": 880,
+              "formula": 880,
+              "match": true
+            },
+            "comparator [A<K] (x1)": {
+              "measured": 40,
+              "formula": 40,
+              "match": true
+            },
+            "interval cmps (both)": {
+              "measured": 20,
+              "formula": 20,
+              "match": true
+            },
+            "AND tree": {
+              "measured": 5,
+              "formula": 5,
+              "match": true
+            },
+            "predicate (total)": {
+              "measured": 4429,
+              "formula": "4*mult + 4*cmp + 2*interval + AND",
+              "match": true
+            }
+          },
+          "predicate measured": 4429,
+          "match": true
+        },
+        {
+          "n": 24,
+          "components": {
+            "mult phase-1 (x1)": {
+              "measured": 1392,
+              "formula": 1392,
+              "match": true
+            },
+            "mult reduce (x1)": {
+              "measured": 4176,
+              "formula": 4176,
+              "match": true
+            },
+            "comparator [A<K] (x1)": {
+              "measured": 120,
+              "formula": 120,
+              "match": true
+            },
+            "interval cmps (both)": {
+              "measured": 20,
+              "formula": 20,
+              "match": true
+            },
+            "AND tree": {
+              "measured": 5,
+              "formula": 5,
+              "match": true
+            },
+            "predicate (total)": {
+              "measured": 22797,
+              "formula": "4*mult + 4*cmp + 2*interval + AND",
+              "match": true
+            }
+          },
+          "predicate measured": 22797,
+          "match": true
+        },
+        {
+          "n": 64,
+          "components": {
+            "mult phase-1 (x1)": {
+              "measured": 8960,
+              "formula": 8960,
+              "match": true
+            },
+            "mult reduce (x1)": {
+              "measured": 12320,
+              "formula": 12320,
+              "match": true
+            },
+            "comparator [A<K] (x1)": {
+              "measured": 320,
+              "formula": 320,
+              "match": true
+            },
+            "interval cmps (both)": {
+              "measured": 20,
+              "formula": 20,
+              "match": true
+            },
+            "AND tree": {
+              "measured": 5,
+              "formula": 5,
+              "match": true
+            },
+            "predicate (total)": {
+              "measured": 86445,
+              "formula": "4*mult + 4*cmp + 2*interval + AND",
+              "match": true
+            }
+          },
+          "predicate measured": 86445,
+          "match": true
+        },
+        {
+          "n": 128,
+          "components": {
+            "mult phase-1 (x1)": {
+              "measured": 34560,
+              "formula": 34560,
+              "match": true
+            },
+            "mult reduce (x1)": {
+              "measured": 28080,
+              "formula": 28080,
+              "match": true
+            },
+            "comparator [A<K] (x1)": {
+              "measured": 640,
+              "formula": 640,
+              "match": true
+            },
+            "interval cmps (both)": {
+              "measured": 20,
+              "formula": 20,
+              "match": true
+            },
+            "AND tree": {
+              "measured": 5,
+              "formula": 5,
+              "match": true
+            },
+            "predicate (total)": {
+              "measured": 253165,
+              "formula": "4*mult + 4*cmp + 2*interval + AND",
+              "match": true
+            }
+          },
+          "predicate measured": 253165,
+          "match": true
+        },
+        {
+          "n": 192,
+          "components": {
+            "mult phase-1 (x1)": {
+              "measured": 76800,
+              "formula": 76800,
+              "match": true
+            },
+            "mult reduce (x1)": {
+              "measured": 48000,
+              "formula": 48000,
+              "match": true
+            },
+            "comparator [A<K] (x1)": {
+              "measured": 960,
+              "formula": 960,
+              "match": true
+            },
+            "interval cmps (both)": {
+              "measured": 20,
+              "formula": 20,
+              "match": true
+            },
+            "AND tree": {
+              "measured": 5,
+              "formula": 5,
+              "match": true
+            },
+            "predicate (total)": {
+              "measured": 503085,
+              "formula": "4*mult + 4*cmp + 2*interval + AND",
+              "match": true
+            }
+          },
+          "predicate measured": 503085,
+          "match": true
+        },
+        {
+          "n": 256,
+          "components": {
+            "mult phase-1 (x1)": {
+              "measured": 135168,
+              "formula": 135168,
+              "match": true
+            },
+            "mult reduce (x1)": {
+              "measured": 63360,
+              "formula": 63360,
+              "match": true
+            },
+            "comparator [A<K] (x1)": {
+              "measured": 1280,
+              "formula": 1280,
+              "match": true
+            },
+            "interval cmps (both)": {
+              "measured": 20,
+              "formula": 20,
+              "match": true
+            },
+            "AND tree": {
+              "measured": 5,
+              "formula": 5,
+              "match": true
+            },
+            "predicate (total)": {
+              "measured": 799277,
+              "formula": "4*mult + 4*cmp + 2*interval + AND",
+              "match": true
+            }
+          },
+          "predicate measured": 799277,
+          "match": true
+        }
+      ],
+      "fit structural basis": {
+        "coefficients": {
+          "a (n^2)": 8.0,
+          "b (n*m)": 136.0,
+          "c (n)": -44.0,
+          "d (m^2)": 128.0,
+          "e (m)": -64.0,
+          "f (1)": 45.0
+        },
+        "construction": {
+          "a (n^2)": 8.0,
+          "b (n*m)": 136.0,
+          "c (n)": -44.0,
+          "d (m^2)": 128.0,
+          "e (m)": -64.0,
+          "f (1)": 45.0
+        },
+        "max |fit-construction|": 0.0,
+        "max rel residual": 2.71e-12,
+        "points": "все 19 точек сетки n = 4..256",
+        "verdict": "фит по структурному базису восстанавливает коэффициенты конструкции: модель точна, квадратичная сводка (a=8.44) - не предиктор по отдельности"
+      },
+      "n*log2(n) share at n=256": 0.348,
+      "asymptote": "член 136*n*log2(n) < 10% от 8n^2 только при n >= 1871 - за пределами практической ширины; для secp256k1 (n=256) рабочее число - прямой замер 799277 = 12.2*n^2, не коэффициент фита",
+      "kappa independence": "kappa = глубина x такт; глубина - прямой замер n=256 (886590 слоёв), префикс/древесная - от того же замера; фит Тоффоли в kappa и W* не входит, W* бенд не меняется"
     },
     "adder n=256 depth": 1536,
     "adder depth per bit": 6.0,

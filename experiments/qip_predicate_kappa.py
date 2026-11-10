@@ -34,9 +34,19 @@ S routed-economy - не таблица (QRAM-модель снята, см. memo
 Замер: Toffoli/глубина/провода при n = 4..256. n - ширина арифметики
 (log2 N): для secp256k1 берутся реальный порядок N и лямбды из
 phase_signature_135bit.json; ширина окна W входит только в число итераций
-Гровера, не в стоимость оракула. Фит T(n) = a*n^2 + b*n + c.
-kappa = глубина * логический такт, tau из {10 ns, 100 ns, 1 mks}.
-Префикс-вариант - механический пересчёт от замера: глубина аддера 5n
+Гровера, не в стоимость оракула.
+
+Структурная модель счёта (точна на всех точках сетки, проверено
+покомпонентно и на полном предикате):
+    T(n) = 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45,  m = ceil(log2 n),
+т.е. 8*n^2 + 136*n*log2(n) - 44*n + 128*log2(n)^2 - 64*log2(n) + 45.
+Квадратичный фит T(n) = a*n^2 + b*n + c - только сводка: его член b*n
+поглощает структурный член 136*n*log2(n), поэтому a*n^2 по отдельности
+не предиктор (при n=256: a*n^2 = 553k против замера 799277).
+
+kappa = глубина * логический такт, tau из {10 ns, 100 ns, 1 mks}; глубина
+берётся прямым замером, фит в kappa и W* не входит.
+Префикс-вариант - механический пересчёт от замера: глубина аддера 6n
 заменяется на Brent-Kung 2*log2(n)-1. Древесный параллелизм - оценка,
 не замер (см. json). W* = ((pi/4)*rate*M*kappa)^2, rate/M - замеры из
 h_curve_summary.json (canonical H rows, H = 400k).
@@ -697,7 +707,14 @@ def fit_quadratic(rows):
     """T(n) = a*n^2 + b*n + c (МНК) на n >= 24: на малых n скачки
     m = ceil(log2 n) (2 -> 3 -> 4 ...) и константные накладки маскируют
     квадратичный член (на 4..13 фит даёт отрицательный a - мусор).
-    Строение схемы: 8*n^2 Toffoli + O(n log n)."""
+
+    ВНИМАНИЕ: a - не предиктор по отдельности. Строение схемы даёт точную
+    модель T(n) = 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45, m = ceil(log2 n),
+    т.е. 8n^2 + 136*n*log2(n) + O(n). Член 136*n*log2(n) фит поглощает в
+    b*n (при n=256: 136*8*256 = 278528, 34.8% счёта; b*n = 258005), поэтому
+    a*n^2 занижает замер на 31%, а полная фит-формула попадает с точностью
+    ~0.4%. См. fit_structural - МНК по структурному базису восстанавливает
+    коэффициенты конструкции."""
     pts = [r for r in rows if r["n"] >= 24]
     ns = [float(r["n"]) for r in pts]
     ts = [float(r["toffoli"]) for r in pts]
@@ -726,7 +743,128 @@ def fit_quadratic(rows):
         residuals.append(abs(pred - r["toffoli"]) / r["toffoli"])
     return {"a": round(a_, 4), "b": round(b_, 3), "c": round(c_, 2),
             "max rel residual": round(max(residuals), 5),
-            "points": "n = 24..256 (малые n исключены: скачки m маскируют n^2)"}
+            "points": "n = 24..256 (малые n исключены: скачки m маскируют n^2)",
+            "caveat": "a*n^2 - не предиктор: член 136*n*log2(n) поглощён "
+                      "b*n; предиктор - структурная модель (см. structural model)"}
+
+
+def fit_structural(rows):
+    """МНК по структурному базису [n^2, n*m, n, m^2, m, 1] на ВСЕХ точках.
+
+    Структурная формула T(n) = 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45
+    линейна по этому базису с коэффициентами (8, 136, -44, 128, -64, 45);
+    фит должен их восстановить с нулевым остатком."""
+    ns = [float(r["n"]) for r in rows]
+    ts = [float(r["toffoli"]) for r in rows]
+    ms = [float(max(1, (int(v) - 1).bit_length())) for v in ns]
+    cols = [[v * v for v in ns],
+            [v * mm for v, mm in zip(ns, ms)],
+            list(ns),
+            [mm * mm for mm in ms],
+            ms,
+            [1.0] * len(ns)]
+    k = len(cols)
+    A = [[sum(cols[i][t] * cols[j][t] for t in range(len(ns)))
+          for j in range(k)] for i in range(k)]
+    y = [sum(cols[i][t] * ts[t] for t in range(len(ns))) for i in range(k)]
+    M = [row[:] + [y[i]] for i, row in enumerate(A)]
+    for col in range(k):
+        piv = max(range(col, k), key=lambda r: abs(M[r][col]))
+        M[col], M[piv] = M[piv], M[col]
+        for r in range(k):
+            if r == col:
+                continue
+            factor = M[r][col] / M[col][col]
+            for kk in range(col, k + 1):
+                M[r][kk] -= factor * M[col][kk]
+    beta = [M[i][k] / M[i][i] for i in range(k)]
+    resid = max(abs(sum(beta[i] * cols[i][t] for i in range(k)) - ts[t]) / ts[t]
+                for t in range(len(ns)))
+    names = ["a (n^2)", "b (n*m)", "c (n)", "d (m^2)", "e (m)", "f (1)"]
+    construction = [8.0, 136.0, -44.0, 128.0, -64.0, 45.0]
+    dev = max(abs(be - co) for be, co in zip(beta, construction))
+    return {"coefficients": {nm: round(be, 6) for nm, be in zip(names, beta)},
+            "construction": {nm: co for nm, co in zip(names, construction)},
+            "max |fit-construction|": round(dev, 6),
+            "max rel residual": float(f"{resid:.2e}"),
+            "points": "все 19 точек сетки n = 4..256",
+            "verdict": "фит по структурному базису восстанавливает "
+                       "коэффициенты конструкции: модель точна, квадратичная "
+                       "сводка (a=8.44) - не предиктор по отдельности"}
+
+
+def decompose_point(n, p, lam):
+    """Покомпонентный разбор Тоффоли-счёта при ширине n.
+
+    Строит компоненты отдельно и сверяет каждый с формулой строения:
+    умножение = фаза 1 (n сложений по 2(n+m)) + сокращение ((2m-1) cond_sub
+    по 16(n+m)); предикат = 4*умножение (2 умножения x очистка) + 4*компа-
+    ратор [A<K] по 5n (2 прямых + 2 в очистке) + интервальная логика
+    (2 компаратора на B_SIG битах, прямые + реверс) + AND-дерево (5).
+    Счёт Тоффоли не зависит от значений констант (только от ширин), поэтому
+    сверка компонент - сверка структуры, значения p/lam роли не играют.
+    """
+    m = max(1, (n - 1).bit_length())
+    nw = n + m
+    al = Wires()
+    K = al.alloc(n)
+    ph = Circuit()
+    ACC = al.alloc(nw)
+    tmp = al.alloc(nw)
+    cin = al.one()
+    coeffs = [lam * pow(2, i, p) % p for i in range(n)]
+    for i in range(n):
+        ci = coeffs[i]
+        for j in range(n):
+            if (ci >> j) & 1:
+                ph.cx(K[i], tmp[j])
+        ripple_add(ph, tmp, ACC, cin)
+        for j in range(n):
+            if (ci >> j) & 1:
+                ph.cx(K[i], tmp[j])
+    mult_phase1 = ph.toffoli()
+    red, _ = build_reduce(ACC, p, al, m)
+    mult_reduce = red.toffoli()
+    mult_one = mult_phase1 + mult_reduce
+
+    A1 = al.alloc(n)
+    cs, _ = cmp_lt(A1, K, al)
+    cmp_one = cs.toffoli()
+
+    sig = al.alloc(B_SIG)
+    lo_w = al.alloc(B_SIG)
+    hi_w = al.alloc(B_SIG)
+    los, _ = cmp_lt(sig, lo_w, al)
+    his, _ = cmp_lt(sig, hi_w, al)
+    interval_cmp = los.toffoli() + his.toffoli()
+
+    and_tree = Circuit()
+    fhi = al.one()          # флаг интервального компаратора (значение неважно)
+    c1, c2, ta, tb, t1, mm = (al.one() for _ in range(6))
+    and_tree.ccx(ta, fhi, tb)
+    and_tree.ccx(c1, c2, t1)
+    and_tree.ccx(t1, tb, mm)
+    and_tree.ccx(c1, c2, t1)   # очистка
+    and_tree.ccx(ta, fhi, tb)  # очистка
+    and_t = and_tree.toffoli()
+
+    checks = {
+        "mult phase-1 (x1)": (mult_phase1, 2 * n * nw),
+        "mult reduce (x1)": (mult_reduce, 16 * (2 * m - 1) * nw),
+        "comparator [A<K] (x1)": (cmp_one, 5 * n),
+        "interval cmps (both)": (interval_cmp, 2 * 5 * B_SIG),
+        "AND tree": (and_t, 5),
+    }
+    comp = {}
+    ok_all = True
+    for name, (got, exp) in checks.items():
+        comp[name] = {"measured": got, "formula": exp, "match": got == exp}
+        ok_all &= got == exp
+    pred = 4 * mult_one + 4 * cmp_one + 2 * interval_cmp + and_t
+    comp["predicate (total)"] = {"measured": pred,
+                                 "formula": "4*mult + 4*cmp + 2*interval + AND",
+                                 "match": ok_all}
+    return comp
 
 
 # --------------------------------------------------------------------------
@@ -782,6 +920,34 @@ def main():
     print(f"фит T(n) = {fit['a']}*n^2 + {fit['b']}*n + {fit['c']} "
           f"({fit['points']}), макс. относительный остаток "
           f"{fit['max rel residual']}")
+
+    print("== Структурная модель и покомпонентный разбор ==")
+    # точность структурной формулы на ВСЕХ точках сетки
+    exact = 0
+    for r in rows:
+        n = r["n"]
+        m_ = max(1, (n - 1).bit_length())
+        exact += (8 * n * (n + m_) + 64 * (2 * m_ - 1) * (n + m_)
+                  + 20 * n + 45 == r["toffoli"])
+    print(f"структурная формула T(n) = 8n(n+m)+64(2m-1)(n+m)+20n+45: "
+          f"точна на {exact}/{len(rows)} точках сетки n=4..256")
+
+    fit_st = fit_structural(rows)
+    print(f"фит по структурному базису: макс. |коэф-конструкция| "
+          f"{fit_st['max |fit-construction|']}, остаток "
+          f"{fit_st['max rel residual']}")
+
+    dec = []
+    for n in (8, 24, 64, 128, 192, 256):
+        p, lam, _ = params_for(n)
+        comp = decompose_point(n, p, lam)
+        meas = next(r["toffoli"] for r in rows if r["n"] == n)
+        pred = comp["predicate (total)"]["measured"]
+        match = pred == meas
+        dec.append({"n": n, "components": comp,
+                    "predicate measured": meas, "match": match})
+        print(f"n={n:3d}: разбор {pred:8d} против замера {meas:8d} - "
+              f"{'совпало' if match else 'MISMATCH'}")
 
     # глубина аддера на бит (для префикс-пересчёта)
     al = Wires()
@@ -841,8 +1007,10 @@ def main():
             "branch O(N)": "канонизация сравнением со всеми элементами "
                            "орбиты вместо двух соседей",
             "outcome": "не сработал: в схеме канонизация - ровно 2 сравнения; "
-                       "предикат 8*n^2 Toffoli и ~20*n^2 глубины на эталонной "
-                       "схеме, глубина O(n log n) с префикс-суммами",
+                       "предикат 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45 "
+                       "Тоффоли (структурная формула, точна на всех точках "
+                       "сетки), глубина O(n^2) на эталонной схеме (замер "
+                       "886590 слоёв при n=256) и O(n log n) с префикс-суммами",
         },
         "construction": {
             "adder": "Cuccaro-структура: 2 Toffoli + 4 CNOT на бит, 1 ancilla; "
@@ -868,6 +1036,34 @@ def main():
         "scaling": {
             "rows": rows,
             "fit toffoli": fit,
+            "structural model": {
+                "formula": "T(n) = 8*n*(n+m) + 64*(2m-1)*(n+m) + 20*n + 45, "
+                           "m = ceil(log2 n)",
+                "expanded": "8*n^2 + 136*n*log2(n) - 44*n + 128*log2(n)^2 "
+                            "- 64*log2(n) + 45",
+                "components": "8n(n+m): фаза умножений (2 умножения x n "
+                              "сложений x 2(n+m) Тоффоли, x2 очистка); "
+                              "64(2m-1)(n+m): каскад сокращения ((2m-1) "
+                              "cond_sub x 16(n+m), x2 умножения x2 очистка); "
+                              "20n: канонизация (4 компаратора x 5n); 45: "
+                              "интервальная логика и AND",
+                "exact match": f"{exact}/{len(rows)} точек сетки n=4..256, "
+                               "0 расхождений",
+                "component check": dec,
+                "fit structural basis": fit_st,
+                "n*log2(n) share at n=256": round(
+                    136 * 8 * 256 / next(r["toffoli"] for r in rows
+                                         if r["n"] == 256), 3),
+                "asymptote": "член 136*n*log2(n) < 10% от 8n^2 только при "
+                             "n >= 1871 - за пределами практической ширины; "
+                             "для secp256k1 (n=256) рабочее число - прямой "
+                             "замер 799277 = 12.2*n^2, не коэффициент фита",
+                "kappa independence": "kappa = глубина x такт; глубина - "
+                                      "прямой замер n=256 (886590 слоёв), "
+                                      "префикс/древесная - от того же замера; "
+                                      "фит Тоффоли в kappa и W* не входит, "
+                                      "W* бенд не меняется",
+            },
             "adder n=256 depth": d_add,
             "adder depth per bit": round(d_add_bit, 3),
             "brent-kung depth": round(bk, 1),
