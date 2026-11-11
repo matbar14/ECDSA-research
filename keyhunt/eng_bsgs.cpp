@@ -163,6 +163,8 @@ static uint64_t checkpoint_steps = 1;
 static bool checkpoint_resume = false;
 bool lambda_priority = false;
 bool lambda_priority_explicit = false;
+std::string binary_format = "cbt1";
+uint32_t cbt3_bits = 64;
 uint64_t lambda_sector_count = 16;
 bool phase_signature = false;
 // --partner-table: exact-verify out-of-interval GLV orbit branches. A K3 hit
@@ -684,7 +686,11 @@ const char *cbt1_payload_kind_name(uint32_t kind) {
 }
 static constexpr uint32_t CBT1_HEADER_SIZE = 256;
 static constexpr uint32_t CBT1_ROW_SIZE = 65;
+static constexpr uint32_t CBT2_ROW_SIZE = 36;
 static std::string table_binary_path;       // --table-binary (mmap load)
+static uint32_t file_format_id = 1;
+static uint32_t file_row_size = CBT1_ROW_SIZE;
+static uint64_t file_base = 0;
 static std::string dump_table_binary_path;  // --dump-table-binary (write)
 static const unsigned char *file_rows = nullptr;  // payload base (row 0)
 static uint64_t file_row_count = 0;
@@ -811,6 +817,7 @@ int load_table_binary(const std::string &path) {
     return 2;
   }
   const uint32_t payload_kind = get_u32be(h + 8);
+  const uint32_t format_id = get_u32be(h + 76);  // 0/1 = CBT1
   if (payload_kind != CBT1_PAYLOAD_GIANT_GRID &&
       payload_kind != CBT1_PAYLOAD_PLAIN_GRID)
     return reject("unsupported payload_kind");
@@ -835,13 +842,27 @@ int load_table_binary(const std::string &path) {
     return 2;
   }
   if (get_u32be(h + 12) != CBT1_HEADER_SIZE) return reject("header_size");
-  if (get_u32be(h + 16) != CBT1_ROW_SIZE) return reject("row_size");
+  const uint32_t row_size_hdr = get_u32be(h + 16);
+  if (row_size_hdr != CBT1_ROW_SIZE && row_size_hdr != CBT2_ROW_SIZE)
+    return reject("row_size");
   if (get_u32be(h + 20) != CBT1_CURVE_SECP256K1) return reject("curve_id");
+  if (format_id != 0 && format_id != 1 && format_id != 2) {
+    std::fprintf(stderr,
+                 "[E] table binary %s: format_id %u not supported by this build "
+                 "(CBT1/CBT2)\n",
+                 path.c_str(), format_id);
+    ::munmap(base, size);
+    return 2;
+  }
+  if (format_id == 2 && row_size_hdr != CBT2_ROW_SIZE) {
+    ::munmap(base, size);
+    return reject("cbt2 row_size");
+  }
   const uint64_t rows = get_u64be(h + 32);
   const uint64_t stride = get_u64be(h + 40);
   if (rows == 0) return reject("row_count is zero");
-  if (CBT1_HEADER_SIZE + rows * CBT1_ROW_SIZE != size ||
-      (size - CBT1_HEADER_SIZE) / CBT1_ROW_SIZE != rows)
+  if (CBT1_HEADER_SIZE + rows * row_size_hdr != size ||
+      (size - CBT1_HEADER_SIZE) / row_size_hdr != rows)
     return reject("row_count does not match file size");
   alignas(8) unsigned char expect[32];
   curve.order.Get32Bytes(expect);
@@ -857,7 +878,7 @@ int load_table_binary(const std::string &path) {
     return reject("header checksum mismatch");
   const unsigned char *payload = h + CBT1_HEADER_SIZE;
   const uint64_t stored_payload_fnv = get_u64be(h + 240);
-  const size_t payload_bytes = static_cast<size_t>(rows) * CBT1_ROW_SIZE;
+  const size_t payload_bytes = static_cast<size_t>(rows) * row_size_hdr;
   const long long file_mtime_ns =
       (static_cast<long long>(st.st_mtim.tv_sec) * 1000000000LL
        + static_cast<long long>(st.st_mtim.tv_nsec));
@@ -890,8 +911,8 @@ int load_table_binary(const std::string &path) {
     if (fnv1a_bytes(payload, payload_bytes) != stored_payload_fnv)
       return reject("payload checksum mismatch");
     for (uint64_t i = 1; i < rows; ++i) {
-      if (std::memcmp(payload + i * CBT1_ROW_SIZE,
-                      payload + (i - 1) * CBT1_ROW_SIZE, 33) < 0) {
+      if (std::memcmp(payload + i * row_size_hdr,
+                      payload + (i - 1) * row_size_hdr, 33) < 0) {
         std::fprintf(stderr,
                      "[E] table binary %s: keys not sorted ascending at row "
                      "%llu (reject)\n",
@@ -924,6 +945,9 @@ int load_table_binary(const std::string &path) {
                    "written (every start will re-validate)\n", path.c_str());
     }
   }
+  file_format_id = (format_id == 0 ? 1 : format_id);
+  file_row_size = row_size_hdr;
+  file_base = get_u64be(h + 192);
   table_map.base = static_cast<const unsigned char *>(base);
   table_map.size = size;
   file_rows = payload;
@@ -938,7 +962,8 @@ int load_table_binary(const std::string &path) {
             MADV_DONTNEED);
   std::cout << "  table binary file: " << path << " (" << rows
             << " rows, payload " << cbt1_payload_kind_name(payload_kind)
-            << ", 65 B/row)\n"
+            << ", format " << (file_format_id == 2 ? "cbt2" : "cbt1")
+            << ", " << file_row_size << " B/row)\n"
             << "  table binary validation: "
             << (cache_hit
                     ? "cache hit (size+mtime bound to full pass, sha256 "
@@ -957,6 +982,18 @@ int load_table_binary(const std::string &path) {
 
 int dump_table_binary(const std::string &path) {
   const size_t rows = shared_table.size();
+  const bool is_cbt2 = (binary_format == "cbt2");
+  const bool is_cbt3 = (binary_format == "cbt3");
+  if (is_cbt3) {
+    std::fprintf(stderr,
+                 "[E] dump table binary: format cbt3 not implemented yet\n");
+    return 2;
+  }
+  if (binary_format != "cbt1" && !is_cbt2) {
+    std::fprintf(stderr, "[E] dump table binary: unknown format %s\n",
+                 binary_format.c_str());
+    return 2;
+  }
   // Payload kind follows the build mode: giant_grid (K3 key + canonical
   // scalar) under --glv-orbit, plain_grid (point key + row scalar) in plain
   // mode. Both are 33 B key + 32 B scalar, sorted ascending by key.
@@ -970,14 +1007,51 @@ int dump_table_binary(const std::string &path) {
                  rows, shared_scalars.size());
     return 2;
   }
+  const uint32_t row_size = is_cbt2 ? CBT2_ROW_SIZE : CBT1_ROW_SIZE;
+  const uint32_t format_id = is_cbt2 ? 2 : 1;
+  // Determine row head/scalar values for CBT2 contiguity/position.
+  auto row_head = [&](size_t i) -> uint64_t {
+    if (glv_orbit_mode) {
+      // GLV builds store the row scalar (canonical/head) in shared_scalars.
+      // Positions require values < 2^24 in range base..base+rows-1.
+      return get_u64be(shared_scalars[i].data() + 24);
+    }
+    return shared_table[i].j;
+  };
+  uint64_t cbt2_base = 0;
+  if (is_cbt2) {
+    // Contiguous heads required: j in [base, base+rows).
+    uint64_t mn = UINT64_MAX, mx = 0;
+    for (size_t i = 0; i < rows; ++i) {
+      uint64_t jv = row_head(i);
+      if (jv < mn) mn = jv;
+      if (jv > mx) mx = jv;
+    }
+    if (rows == 0 || mx - mn + 1 != rows) {
+      std::fprintf(stderr,
+                   "[E] dump table binary: CBT2 requires contiguous head range; "
+                   "got min=%llu max=%llu rows=%zu\n",
+                   static_cast<unsigned long long>(mn),
+                   static_cast<unsigned long long>(mx), rows);
+      return 2;
+    }
+    cbt2_base = mn;
+    // Position is 3 bytes: reject if range exceeds 24-bit space.
+    if ((mx - mn) > 0xFFFFFFULL) {
+      std::fprintf(stderr,
+                   "[E] dump table binary: CBT2 position overflow (range %llu > 2^24)\n",
+                   static_cast<unsigned long long>(mx - mn));
+      return 2;
+    }
+  }
   std::vector<unsigned char> buf(CBT1_HEADER_SIZE +
-                                 rows * CBT1_ROW_SIZE);
+                                 rows * row_size);
   unsigned char *h = buf.data();
   std::memcpy(h, CBT1_MAGIC, 4);
   put_u32be(h + 4, CBT1_VERSION);
   put_u32be(h + 8, payload_kind);
   put_u32be(h + 12, CBT1_HEADER_SIZE);
-  put_u32be(h + 16, CBT1_ROW_SIZE);
+  put_u32be(h + 16, row_size);
   put_u32be(h + 20, CBT1_CURVE_SECP256K1);
   put_u32be(h + 24, glv_orbit_mode ? 6 : 1);  // orbit size: C6 orbit / none
   put_u32be(h + 28, 1);            // flags: keys sorted ascending
@@ -987,23 +1061,30 @@ int dump_table_binary(const std::string &path) {
   put_u64be(h + 56, 0);                 // H unknown for a generic table
   put_u64be(h + 64, 0);                 // window unknown
   put_u32be(h + 72, 1);                 // canonical source rows/head
+  put_u32be(h + 76, format_id);         // format_id: 1=CBT1,2=CBT2
+  put_u64be(h + 192, cbt2_base);        // base for CBT2 positions
+  put_u32be(h + 184, 0);                // trunc_bits (CBT3 only)
   curve.order.Get32Bytes(h + 80);
   curve.P.Get32Bytes(h + 112);
   glv_lambda.Get32Bytes(h + 144);
   put_u64be(h + 176, static_cast<uint64_t>(std::time(nullptr)));
   unsigned char *payload = h + CBT1_HEADER_SIZE;
   for (size_t i = 0; i < rows; ++i) {
-    unsigned char *row = payload + i * CBT1_ROW_SIZE;
+    unsigned char *row = payload + i * row_size;
     std::memcpy(row, shared_table[i].key.data(), 33);
-    if (glv_orbit_mode) {
+    if (is_cbt2) {
+      uint64_t pos = row_head(i) - cbt2_base;
+      // 3-byte big-endian position
+      row[33] = static_cast<unsigned char>((pos >> 16) & 0xFF);
+      row[34] = static_cast<unsigned char>((pos >> 8) & 0xFF);
+      row[35] = static_cast<unsigned char>(pos & 0xFF);
+    } else if (glv_orbit_mode) {
       std::memcpy(row + 33, shared_scalars[i].data(), 32);
     } else {
-      // Plain rows are consecutive integers [0, m): the scalar column is
-      // the row index j, zero-extended to 32 big-endian bytes.
       std::memset(row + 33, 0, 24);
       put_u64be(row + 57, shared_table[i].j);
     }
-    if (i > 0 && std::memcmp(row, row - CBT1_ROW_SIZE, 33) < 0) {
+    if (i > 0 && std::memcmp(row, row - row_size, 33) < 0) {
       std::fprintf(stderr,
                    "[E] dump table binary: table not sorted ascending at "
                    "row %zu\n",
@@ -1011,7 +1092,7 @@ int dump_table_binary(const std::string &path) {
       return 2;
     }
   }
-  put_u64be(h + 240, fnv1a_bytes(payload, rows * CBT1_ROW_SIZE));
+  put_u64be(h + 240, fnv1a_bytes(payload, rows * row_size));
   put_u64be(h + 248, fnv1a_bytes(h, 248));
   // Atomic write (tmp + fsync + rename), same discipline as checkpoints.
   const std::string tmp = path + ".tmp";
@@ -1039,7 +1120,8 @@ int dump_table_binary(const std::string &path) {
   }
   std::cout << "  dumped table: " << path << " (" << rows << " rows, "
             << buf.size() << " bytes, payload "
-            << cbt1_payload_kind_name(payload_kind) << ")\n";
+            << cbt1_payload_kind_name(payload_kind) << ", format "
+            << (is_cbt2 ? "cbt2" : "cbt1") << ")\n";
   return 0;
 }
 
@@ -1219,7 +1301,7 @@ void search_slice(uint64_t local_start, uint64_t local_size,
           ? static_cast<size_t>(file_row_count)
           : shared_table.size();
       auto row_key = [&](size_t idx) -> const unsigned char * {
-        return file_mode ? file_rows + idx * 65
+        return file_mode ? file_rows + idx * file_row_size
                          : shared_table[idx].key.data();
       };
 
@@ -1281,9 +1363,18 @@ void search_slice(uint64_t local_start, uint64_t local_size,
             }
             Int row_scalar;
             if (file_mode) {
-              row_scalar.Set32Bytes(
-                  const_cast<unsigned char *>(file_rows + row_index * 65 +
-                                              33));
+              if (file_format_id == 2) {
+                // CBT2: reconstruct scalar from base + 3-byte position.
+                uint64_t pos =
+                  ((uint64_t)file_rows[row_index * file_row_size + 33] << 16) |
+                  ((uint64_t)file_rows[row_index * file_row_size + 34] << 8) |
+                  ((uint64_t)file_rows[row_index * file_row_size + 35]);
+                row_scalar.SetInt64(file_base + pos);
+              } else {
+                // CBT1: scalar at offset 33 within 65-byte row.
+                row_scalar.Set32Bytes(
+                    const_cast<unsigned char *>(file_rows + row_index * file_row_size + 33));
+              }
             } else {
               row_scalar.Set32Bytes(shared_scalars[row_index].data());
             }
@@ -1340,12 +1431,25 @@ void search_slice(uint64_t local_start, uint64_t local_size,
                                             local_offset);
             }
           } else {
-            // Plain row scalar: the build stores j in BabyRow; a plain_grid
-            // CBT1 file stores the same value zero-extended in the row's
-            // 32-byte scalar column (low 8 bytes, big-endian).
-            uint64_t j = file_mode
-                ? get_u64be(file_rows + row_index * 65 + 57)
-                : shared_table[row_index].j;
+            // Plain row scalar: the build stores j in BabyRow.
+            // CBT1 (65 B) stores j zero-extended in bytes 33..64; CBT2 (36 B)
+            // stores j as base + 3-byte position at bytes 33..35.
+            uint64_t j;
+            if (file_mode) {
+              if (file_format_id == 2) {
+                // CBT2: 3-byte big-endian position at offset 33.
+                uint64_t pos =
+                  ((uint64_t)file_rows[row_index * file_row_size + 33] << 16) |
+                  ((uint64_t)file_rows[row_index * file_row_size + 34] << 8) |
+                  ((uint64_t)file_rows[row_index * file_row_size + 35]);
+                j = file_base + pos;
+              } else {
+                // CBT1: j zero-extended in 32-byte scalar, low 8 bytes at offset 57.
+                j = get_u64be(file_rows + row_index * file_row_size + 57);
+              }
+            } else {
+              j = shared_table[row_index].j;
+            }
             local_offset = local_start + i * m + j;
             if (local_offset < local_start + local_size) {
               candidate.Set(&base_scalar);
@@ -1777,6 +1881,8 @@ void usage(const char *name) {
       "      --resume          resume the --cover plan from --checkpoint-file (fingerprint is verified)\n"
       "      --progress-interval N  print a progress line (steps/s, RSS) every N seconds, 0 = off (default 60)\n"
       "      --lambda-dump     print the exact three Lambda values and exit\n"
+      "      --binary-format F  CBT container format: cbt1 (default), cbt2, cbt3 (skeleton)\n"
+      "      --cbt3-bits N      truncated key bits for cbt3 (default 64)\n"
       "  -t, --threads N       worker threads (default 1)\n"
       "  -h, --help            show this help\n", name);
 }
@@ -1801,6 +1907,8 @@ int main(int argc, char **argv) {
       {"table-scalars", required_argument, nullptr, 'S'},
       {"table-binary", required_argument, nullptr, 'B'},
       {"dump-table-binary", required_argument, nullptr, 'T'},
+      {"binary-format", required_argument, nullptr, 'F'},
+      {"cbt3-bits", required_argument, nullptr, 'K'},
       {"cover-start", required_argument, nullptr, 'c'},
       {"cover-size", required_argument, nullptr, 'C'},
       {"checkpoint-file", required_argument, nullptr, 'x'},
@@ -1818,7 +1926,7 @@ int main(int argc, char **argv) {
   std::string cover_size_text;
   bool lambda_dump = false;
   int c;
-  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:B:T:c:C:x:y:zR:DZ:h", options, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "q:a:w:s:t:b:d:glL:PpkS:B:T:F:K:c:C:x:y:zR:DZ:h", options, nullptr)) != -1) {
     switch (c) {
       case 'q': target_hex = optarg; break;
       case 'a': start_text = optarg; break;
@@ -1836,6 +1944,8 @@ int main(int argc, char **argv) {
       case 'S': table_scalars_path = optarg; break;
       case 'B': table_binary_path = optarg; break;
       case 'T': dump_table_binary_path = optarg; break;
+      case 'F': binary_format = optarg; break;
+      case 'K': { uint64_t n; if (!parse_u64(optarg, n) || n == 0) { usage(argv[0]); return 2; } cbt3_bits = static_cast<uint32_t>(n); break; }
       case 'c': cover_start_text = optarg; break;
       case 'C': cover_size_text = optarg; break;
       case 'x': checkpoint_path = optarg; break;
@@ -2254,7 +2364,11 @@ int main(int argc, char **argv) {
       char fnv_hex[17];
       std::snprintf(fnv_hex, sizeof(fnv_hex), "%016llx",
                     static_cast<unsigned long long>(file_payload_fnv));
-      table_identity = "cbt1|" + table_binary_path + "|"
+      // Include container format details so a checkpoint/table binding is
+      // format-specific (CBT1 vs CBT2 differ in layout and scalar recovery).
+      table_identity = "cbt|" + std::to_string(file_format_id) + "|rs"
+          + std::to_string(file_row_size) + "|base"
+          + std::to_string(file_base) + "|" + table_binary_path + "|"
           + std::to_string(file_bytes) + "|" + std::to_string(file_row_count)
           + "|" + fnv_hex;
     }

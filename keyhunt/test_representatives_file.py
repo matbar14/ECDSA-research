@@ -88,6 +88,8 @@ def main():
     parser.add_argument("--partner-trials", type=int, default=4)
     parser.add_argument("--core-trials", type=int, default=2)
     parser.add_argument("--seed", type=int, default=20261030)
+    parser.add_argument("--binary-format", choices=["cbt1","cbt2"], default=None,
+                        help="if set, build+dump once and run cases via --table-binary (exercises file mode)")
     args = parser.parse_args()
 
     rng = random.Random(args.seed)
@@ -97,6 +99,30 @@ def main():
     size = stride * 4096            # окно проверки: 4096 гигант-позиций
     print(f"file: {args.file}")
     print(f"rows: {H}, check window: {size} ({4096} giant positions)")
+
+    table_extra = ["--table-scalars", args.file]
+    if args.binary_format in ("cbt1", "cbt2"):
+        import tempfile, os
+        tmpbin = tempfile.NamedTemporaryFile(prefix="repr_", suffix=".cbt", delete=False)
+        tmpbin.close()
+        # Build once and dump. Use a dummy target outside the tiny window so
+        # dump still happens after build; search window is irrelevant.
+        dummy = pubkey_hex(START + 7)
+        cmd = [args.binary, "--target", dummy, "--start", hex(START),
+               "--size", str(stride), "--segment", str(stride), "--threads", "2",
+               "--glv-orbit", "--phase-signature", "--canonical-k3",
+               "--table-scalars", args.file,
+               "--binary-format", args.binary_format,
+               "--dump-table-binary", tmpbin.name]
+        print(f"[0] building {args.binary_format} table: {tmpbin.name}")
+        t0 = time.perf_counter()
+        proc = subprocess.run(cmd, text=True, capture_output=True)
+        print(f"[0] build rc={proc.returncode}, wall={time.perf_counter()-t0:.1f}s")
+        if proc.returncode != 0 or not Path(tmpbin.name).exists():
+            print(proc.stdout[-2000:])
+            print(proc.stderr[-2000:], file=sys.stderr)
+            raise SystemExit("failed to build binary table")
+        table_extra = ["--table-binary", tmpbin.name]
 
     failures = []
 
@@ -110,8 +136,7 @@ def main():
         failures.append(f"canonicality: {bad} rows mismatch")
 
     # [2] partner-recovery: s* = +/-lambda^a * c
-    base_extra = ["--glv-orbit", "--phase-signature", "--partner-table",
-                  "--table-scalars", args.file]
+    base_extra = ["--glv-orbit", "--phase-signature", "--partner-table"] + table_extra
     for _ in range(args.partner_trials):
         idx = rng.randrange(H)
         c = rows[idx]
@@ -148,8 +173,7 @@ def main():
     s = pow(LAMBDA, 1, N) * c % N
     scalar = (START + i * stride + s) % N
     run = run_engine(args.binary, pubkey_hex(scalar), size,
-                     ["--glv-orbit", "--phase-signature",
-                      "--table-scalars", args.file])
+                     ["--glv-orbit", "--phase-signature"] + table_extra)
     if run["recovered"] is None:
         print(f"[4] negative control (no --partner-table): PASS "
               f"(не восстановлено, как и ожидалось)")
@@ -162,6 +186,9 @@ def main():
         for f in failures:
             print(" -", f)
         raise SystemExit(1)
+    if args.binary_format in ("cbt1","cbt2"):
+        try: os.unlink(tmpbin.name); os.unlink(tmpbin.name + ".cache")
+        except Exception: pass
     print("\nALL PASS")
 
 

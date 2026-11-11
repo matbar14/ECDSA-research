@@ -2789,7 +2789,7 @@ CBT1-строка 65 Б = 33 Б ключ + 32 Б канонический ска
 
 ### Дальше
 
-- реализовать CBT2-core (без скалярной колонки) и CBT3-trunc (усечённый ключ
+- CBT2-core (36 B/row, key+pos) реализован; осталось CBT3-trunc (усечённый ключ
   + отложенная точная проверка) в движке: генератор, лоадер, FP-путь;
 - `make_representatives_file.py`: режим зеркальных голов `[R, 2R-1]` и
   длинный `--cover` прогон на зеркальном тилинге с чекпоинтами;
@@ -2805,3 +2805,29 @@ CBT1-строка 65 Б = 33 Б ключ + 32 Б канонический ска
 (0 build scalar mults, RSS ~7 MB вместо ~92 MB). `--giant-stride` совместим
 с file-mode, поэтому mirror-таблицу можно строить один раз и переиспользовать
 для многократных поисков в одном окне.
+
+### CBT2-core реализован (sorted key + 3B position, 36 B/row)
+
+В `keyhunt/eng_bsgs.cpp` добавлен формат CBT2 (Шаг 2): `--binary-format cbt2`
+пишет строки `key[33] + pos[3]` (big-endian, `j = base + pos`), `format_id=2`,
+`row_size=36`, `base` в header. Чтение (`--table-binary`) принимает CBT1/CBT2,
+восстанавливает скаляр из позиции в plain и GLV hit-путях; `table_identity`
+cover/checkpoint включает `format_id/row_size/base` (формат-специфичный binding).
+Проверки writer: contiguous heads `[base, base+R)`, позиция в 24 бита (иначе
+`exit 2`); contiguity/pos берутся из реального head-скаляра (`shared_scalars` в
+GLV/table-scalars, `shared_table.j` в plain). `--binary-format cbt3` и
+`--cbt3-bits` зарезервированы (скелет, writer/reader пока `not implemented`).
+
+Проверки:
+- `test_binary_table.py` — ALL PASS (CBT1 без регрессии).
+- 40-bit mirror (H=741456, heads [741456,1482911], `--giant-stride 1482911`,
+  `--glv-orbit --canonical-k3`, `-t 64`): dump CBT2 `26692672` B (741456 rows,
+  36 B/row, giant_grid) vs CBT1 ~46 MiB; reuse `--table-binary` даёт
+  `build EC mults 0`, `giant steps planned 370729`, `search hits 1`,
+  `exact candidate checks 2`, `recovered 0xe9ae4933d6`, `recovery correct`,
+  `total ~0.063s`, RSS после build ~7 MB (peak ~30 MB).
+- `test_representatives_file.py --binary-format cbt2` (build+dump, затем кейсы
+  через `--table-binary`): ALL PASS — canonical 200/200, partner-recovery 4/4
+  (в т.ч. `partner recoveries=1`), core 2/2, negative control без
+  `--partner-table` не восстанавливает. Подтверждает восстановление
+  `row_scalar = base + pos` в CBT2 file-mode для orbit/partner-пути.
