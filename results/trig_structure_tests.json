@@ -1,0 +1,51 @@
+{
+ "rational_phi": {
+  "trials": 20000,
+  "ec_path_us_per_orbit": 189.24403569999413,
+  "xonly_path_us_per_orbit": 65.44372234993716,
+  "speedup": 2.8917064754978115
+ },
+ "uniformity": {
+  "L0": {
+   "chi2": 4059.10546875,
+   "dof": 4095,
+   "chi2_reduced": 0.9912345467032967,
+   "circular_mean_bucket": 1375.4228000646615,
+   "circular_variance": 0.9998225163289894,
+   "max_bucket": 1145,
+   "min_bucket": 914
+  },
+  "L1": {
+   "chi2": 4222.802734375,
+   "dof": 4095,
+   "chi2_reduced": 1.0312094589438339,
+   "circular_mean_bucket": 3877.711520422196,
+   "circular_variance": 0.9995517447227239,
+   "max_bucket": 1138,
+   "min_bucket": 905
+  }
+ },
+ "orbit_angles": {
+  "samples": 12582912,
+  "mean_dist": 1024.1310256322224,
+  "expected_if_sixth": 682,
+  "expected_if_third": 1365,
+  "frac_near_sixth": 0.008265018463134766,
+  "frac_near_third": 0.008320093154907227,
+  "uniform_ref_frac": 0.004150390625
+ },
+ "additivity": {
+  "trials": 1000000,
+  "seconds": 13.0506761559991,
+  "delta_chi2_reduced": 1.0049783560439562,
+  "delta_max_bucket_share": 0.000298,
+  "cond_chi2_reduced": 0.9996354672956287,
+  "cond_dof": 16773120
+ },
+ "fft": {
+  "n": 1048576,
+  "max_over_mean_spec": 4.042634004107308,
+  "low_freq_power_share": 0.009812135658189877,
+  "uniform_ref_low_share": 0.009998321533203125
+ }
+}
