@@ -344,19 +344,15 @@ std::array<unsigned char, 64> phase_signature_of(Point &p) {
 // x-coordinates only, and negation does not change x. The map s -> c is
 // constant on orbits and distinct across orbits, so "equal canonical scalar"
 // is exactly "same orbit".
-Int canonical_orbit_scalar(Int &s, int &r_out) {
-  Int reps[3];
-  reps[0].Set(&s);
-  reps[0].Mod(&curve.order);
-  reps[1].Set(&glv_lambda);
-  reps[1].ModMulK1order(&s);
-  reps[2].Set(&glv_lambda2);
-  reps[2].ModMulK1order(&s);
+// Selection semantics must stay deterministic: iterate r = 0,1,2 and replace
+// the best strictly-lower candidate only. reps[0] is reduced mod n inside.
+Int canonical_from_reps(Int reps[3], int &r_out) {
   Int best;
   bool have = false;
   r_out = 0;
   for (int r = 0; r < 3; ++r) {
     Int v(reps[r]);
+    if (r == 0) v.Mod(&curve.order);
     Int opposite(&curve.order);
     opposite.Sub(&v);  // n - v, lies in (0, n] for v in [0, n)
     bool take_v = v.IsLower(&opposite) || opposite.IsZero();
@@ -368,6 +364,16 @@ Int canonical_orbit_scalar(Int &s, int &r_out) {
     }
   }
   return best;
+}
+Int canonical_orbit_scalar(Int &s, int &r_out) {
+  Int reps[3];
+  reps[0].Set(&s);
+  reps[0].Mod(&curve.order);
+  reps[1].Set(&glv_lambda);
+  reps[1].ModMulK1order(&s);
+  reps[2].Set(&glv_lambda2);
+  reps[2].ModMulK1order(&s);
+  return canonical_from_reps(reps, r_out);
 }
 
 uint64_t ceil_sqrt_u64(uint64_t n) {
@@ -1134,24 +1140,243 @@ struct GlvRowData {
   std::array<unsigned char, 64> sig;  // meaningful when phase_signature
 };
 
-GlvRowData build_glv_row(Int &row_scalar, Int &row_x, bool want_sig) {
+// K3 = x^3 is invariant under the phi rotations (beta^3 = 1), so the key is
+// computed from the unrotated row x; only the signature depends on the
+// rotation, and the Lambda triple at beta^r*x is exactly the cyclic shift of
+// the triple at x (verified: Lambda(beta*x) = L1, Lambda(beta^2*x) = L2).
+// lambdas != NULL supplies the precomputed (batched) triple at x and rot
+// selects the cyclic shift; otherwise the triple is computed at beta^r*x
+// directly (reference path, one row at a time).
+GlvRowData build_glv_row(Int &row_scalar, Int &row_x, bool want_sig,
+                         const Int *stored_scalar = nullptr, int rotation = 0,
+                         const Int *lambdas = nullptr) {
   GlvRowData out;
-  Int stored(&row_scalar);
-  Int sig_x(&row_x);
-  if (canonical_k3_mode) {
-    int rotation = 0;
-    Int canon = canonical_orbit_scalar(row_scalar, rotation);
-    stored.Set(&canon);
-    for (int i = 0; i < rotation; ++i) {
-      sig_x.ModMulK1(&beta, &sig_x);
+  out.key = invariant_key_from_x(row_x);
+  Int stored_copy;
+  if (stored_scalar) stored_copy.Set(const_cast<Int *>(stored_scalar));
+  else stored_copy.Set(&row_scalar);
+  alignas(8) unsigned char scalar_bytes[32];
+  stored_copy.Get32Bytes(scalar_bytes);
+  std::memcpy(out.scalar.data(), scalar_bytes, 32);
+  if (want_sig) {
+    if (lambdas != nullptr) {
+      Int t[3] = {lambdas[rotation % 3], lambdas[(rotation + 1) % 3],
+                  lambdas[(rotation + 2) % 3]};
+      Int d01;
+      d01.ModSub(&t[1], &t[0]);
+      Int d12;
+      d12.ModSub(&t[2], &t[1]);
+      alignas(8) unsigned char tmp[32];
+      d01.Get32Bytes(tmp);
+      std::memcpy(out.sig.data(), tmp, 32);
+      d12.Get32Bytes(tmp);
+      std::memcpy(out.sig.data() + 32, tmp, 32);
+    } else {
+      Int sig_x(&row_x);
+      for (int i = 0; i < rotation; ++i) sig_x.ModMulK1(&beta, &sig_x);
+      out.sig = phase_signature_from_x(sig_x);
     }
   }
-  out.key = invariant_key_from_x(sig_x);
-  alignas(8) unsigned char scalar_bytes[32];
-  stored.Get32Bytes(scalar_bytes);
-  std::memcpy(out.scalar.data(), scalar_bytes, 32);
-  if (want_sig) out.sig = phase_signature_from_x(sig_x);
   return out;
+}
+
+// Projective x-only differential step for the baby walk (Brier-Joye style
+// identity for a=0 curves, verified against affine EC arithmetic over random
+// scalars and scaling-invariant in (Xm,Zm), (Xp,Zp)):
+//   T = Xp - v Zp
+//   x_{j+1} = [ 2 (Xp^3 + (v^3+2b) Zp^3) Zm - T^2 (Zp Xm + Zm (2Xp + 2v Zp)) ]
+//             / (Zm Zp T^2)
+// where v = x(G), (Xp:Zp) = x(j G), (Xm:Zm) = x((j-1) G). One row costs about
+// ten field multiplications and no field inversion; the affine x values are
+// recovered per block by one batched inversion.
+static Int diff_v;        // x(G)
+static Int diff_v3_2b;    // v^3 + 2b, b = 7
+static Int diff_two_v;    // 2v
+static Int diff_num_c;    // x(G) - beta x(G): constant Lambda numerator part
+static Int diff_four;     // 4
+static Int diff_eight_b;  // 8b = 56
+static Int diff_v3_b4;    // 4(v^3 + b)
+
+static void init_diff_constants() {
+  diff_v.Set(&curve.G.x);
+  Int v3;
+  v3.ModSquare(&diff_v);
+  v3.ModMulK1(&diff_v);
+  diff_v3_2b.Set(&v3);
+  Int two_b;
+  two_b.SetInt32(14);
+  diff_v3_2b.ModAdd(&two_b);
+  diff_two_v.ModAdd(&diff_v, &diff_v);
+  diff_num_c.ModSub(&curve.G.x, &beta_g);
+  diff_four.SetInt32(4);
+  diff_eight_b.SetInt32(56);
+  // doubling denominator: 4(v^3 + b) with b = 7 (not v^3 + 2b - that
+  // constant belongs to the differential step identity).
+  Int seven;
+  seven.SetInt32(7);
+  diff_v3_b4.ModAdd(&v3, &seven);
+  diff_v3_b4.ModMulK1(&diff_four);
+}
+
+static void differential_step(Int &Xm, Int &Zm, Int &Xp, Int &Zp) {
+  Int t1;
+  t1.ModMulK1(&diff_v, &Zp);
+  Int T;
+  T.ModSub(&Xp, &t1);
+  Int T2;
+  T2.ModSquare(&T);
+  Int xs;
+  xs.ModSquare(&Xp);
+  xs.ModMulK1(&Xp);
+  Int zs;
+  zs.ModSquare(&Zp);
+  zs.ModMulK1(&Zp);  // Zp^3
+  zs.ModMulK1(&diff_v3_2b, &zs);
+  zs.ModAdd(&xs);  // Xp^3 + (v^3+2b) Zp^3
+  Int Xn;
+  Xn.ModMulK1(&zs, &Zm);
+  Xn.ModAdd(&Xn);  // 2 zs Zm
+  Int M1;
+  M1.ModMulK1(&T2, &Zp);
+  M1.ModMulK1(&Xm);          // T^2 Zp Xm
+  Int M2;
+  M2.ModMulK1(&T2, &Zm);     // T^2 Zm
+  Int M2b;
+  M2b.ModAdd(&Xp, &Xp);      // 2Xp
+  Int M2c;
+  M2c.ModMulK1(&diff_two_v, &Zp);
+  M2b.ModAdd(&M2c);          // 2Xp + 2v Zp
+  M2.ModMulK1(&M2b);         // T^2 Zm (2Xp + 2v Zp)
+  Xn.ModSub(&M1);
+  Xn.ModSub(&M2);
+  Int Zn;
+  Zn.ModMulK1(&Zm, &Zp);
+  Zn.ModMulK1(&T2);
+  Xm.Set(&Xp);
+  Zm.Set(&Zp);
+  Xp.Set(&Xn);
+  Zp.Set(&Zn);
+}
+
+// Batch inversion (Montgomery): values[i] <- values[i]^-1 mod P.
+// Values must be nonzero; caller keeps zero-denominator rows on the
+// single-row fallback path.
+static void modinv_batch(Int *values, size_t count) {
+  if (count == 0) return;
+  std::vector<Int> prefix(count);
+  Int acc;
+  acc.SetInt32(1);
+  for (size_t i = 0; i < count; ++i) {
+    prefix[i].Set(&acc);
+    acc.ModMulK1(&values[i]);
+  }
+  acc.ModInv();
+  for (size_t i = count; i-- > 0;) {
+    // Save the original value before overwriting: the running product must
+    // consume the ORIGINAL element, not the freshly written inverse.
+    Int original(values[i]);
+    values[i].ModMulK1(&acc, &prefix[i]);
+    acc.ModMulK1(&original);
+  }
+}
+
+// Batched Lambda triples for a whole block: L_i^k for row i, angle k, at the
+// unrotated row x. num_k = (x(G)-beta x(G)) (x_k - x_{k+1}),
+// den_k = (x(G) - x_{k+1}) (x_k - beta x(G)), x_3 = x_0. Rows with a zero
+// denominator are marked non-batched (boundary convention Lambda = 0 is
+// then applied by the per-row fallback in build_glv_row).
+static void fill_lambda_batch(std::vector<Int> &bx, size_t count,
+                              std::vector<Int> &lambdas,
+                              std::vector<Int> &dens,
+                              std::vector<char> &batched) {
+  lambdas.resize(3 * count);
+  dens.resize(3 * count);
+  batched.assign(count, 1);
+  for (size_t i = 0; i < count; ++i) {
+    Int xs[3];
+    xs[0].Set(&bx[i]);
+    xs[1].ModMulK1(&beta, &xs[0]);
+    xs[2].ModMulK1(&beta, &xs[1]);
+    for (int k = 0; k < 3; ++k) {
+      int j = (k + 1) % 3;
+      Int num;
+      num.ModSub(&xs[k], &xs[j]);
+      num.ModMulK1(&diff_num_c, &num);
+      Int d1;
+      d1.ModSub(&curve.G.x, &xs[j]);
+      Int d2;
+      d2.ModSub(&xs[k], &beta_g);
+      dens[3 * i + k].ModMulK1(&d1, &d2);
+      lambdas[3 * i + k].Set(&num);
+      if (dens[3 * i + k].IsZero()) batched[i] = 0;
+    }
+  }
+  modinv_batch(dens.data(), dens.size());
+}
+
+// Store one block of walk rows: batch-normalize the projective x values,
+// batch the Lambda triples, finalize the GLV payload per row.
+static void flush_glv_block(uint64_t j_first, size_t count,
+                            std::vector<Int> &bx, std::vector<Int> &bz,
+                            std::vector<Int> &blam1, std::vector<Int> &blam2,
+                            bool canonical_mode, bool sig_mode) {
+  // First-degree projective coordinates: affine x = X / Z (not X / Z^2 -
+  // this is a homogeneous differential-addition chain, not Jacobian).
+  static thread_local std::vector<Int> prefix, zinv;
+  prefix.resize(count);
+  zinv.resize(count);
+  Int acc;
+  acc.SetInt32(1);
+  for (size_t i = 0; i < count; ++i) {
+    prefix[i].Set(&acc);
+    acc.ModMulK1(&bz[i]);
+  }
+  acc.ModInv();
+  for (size_t i = count; i-- > 0;) {
+    zinv[i].ModMulK1(&acc, &prefix[i]);
+    acc.ModMulK1(&bz[i]);
+  }
+  // Normalize to affine x in place BEFORE the batched Lambda triples:
+  // fill_lambda_batch consumes affine x values, not projective numerators.
+  for (size_t i = 0; i < count; ++i) {
+    Int x_aff;
+    x_aff.ModMulK1(&bx[i], &zinv[i]);
+    bx[i].Set(&x_aff);
+  }
+  std::vector<Int> lambdas;
+  std::vector<char> batched;
+  if (sig_mode) {
+    std::vector<Int> dens;
+    fill_lambda_batch(bx, count, lambdas, dens, batched);
+    for (size_t i = 0; i < 3 * count; ++i) {
+      lambdas[i].ModMulK1(&dens[i]);
+    }
+  }
+  for (size_t i = 0; i < count; ++i) {
+    uint64_t j = j_first + i;
+    Int x_aff;
+    x_aff.Set(&bx[i]);
+    Int row_scalar;
+    row_scalar.SetInt64(j);
+    Int stored;
+    int rotation = 0;
+    const Int *stored_ptr = nullptr;
+    if (canonical_mode) {
+      Int reps[3];
+      reps[0].Set(&row_scalar);
+      reps[1].Set(&blam1[i]);
+      reps[2].Set(&blam2[i]);
+      Int best = canonical_from_reps(reps, rotation);
+      stored.Set(&best);
+      stored_ptr = &stored;
+    }
+    GlvRowData row = build_glv_row(
+        row_scalar, x_aff, sig_mode, stored_ptr, rotation,
+        (sig_mode && batched[i]) ? &lambdas[3 * i] : nullptr);
+    shared_table[static_cast<size_t>(j)] = {row.key, j};
+    shared_scalars[static_cast<size_t>(j)] = row.scalar;
+    if (sig_mode) shared_signatures[static_cast<size_t>(j)] = row.sig;
+  }
 }
 
 void build_shared_table(uint64_t m) {
@@ -1166,28 +1391,110 @@ void build_shared_table(uint64_t m) {
     uint64_t end = m * (worker + 1) / worker_count;
     if (begin == end) continue;
     builders.emplace_back([begin, end, sig_mode]() {
-      Point current;
-      if (begin == 0) {
-        current.Clear();
-      } else {
-        Int scalar;
-        scalar.SetInt64(begin);
-        current = ec_mult(scalar);
-      }
-      for (uint64_t j = begin; j < end; ++j) {
-        if (glv_orbit_mode) {
-          Int row_scalar;
-          row_scalar.SetInt64(j);
-          GlvRowData row = build_glv_row(row_scalar, current.x, sig_mode);
-          shared_table[static_cast<size_t>(j)] = {row.key, j};
-          shared_scalars[static_cast<size_t>(j)] = row.scalar;
-          if (sig_mode) {
-            shared_signatures[static_cast<size_t>(j)] = row.sig;
-          }
+      uint64_t j = begin;
+      if (!glv_orbit_mode) {
+        // Plain mode keeps the affine walk: point_key needs y parity,
+        // which an x-only walk cannot provide.
+        Point current;
+        if (begin == 0) {
+          current.Clear();
         } else {
-          shared_table[static_cast<size_t>(j)] = {point_key(current), j};
+          Int scalar;
+          scalar.SetInt64(begin);
+          current = ec_mult(scalar);
         }
-        current = add_safe(current, curve.G);
+        for (uint64_t jj = begin; jj < end; ++jj) {
+          shared_table[static_cast<size_t>(jj)] = {point_key(current), jj};
+          current = add_safe(current, curve.G);
+        }
+        return;
+      }
+      // GLV mode: x-only projective differential walk. Rows 0 (zero) and
+      // 1 (G) have no differential form and are stored directly; the walk
+      // starts at row 2 with the projective doubling of G.
+      auto store_special_row = [&](uint64_t jj, Int &x_aff) {
+        Int row_scalar;
+        row_scalar.SetInt64(jj);
+        const Int *stored_ptr = nullptr;
+        int rotation = 0;
+        Int canon;
+        if (canonical_k3_mode) {
+          canon = canonical_orbit_scalar(row_scalar, rotation);
+          stored_ptr = &canon;
+        }
+        GlvRowData row = build_glv_row(row_scalar, x_aff, sig_mode,
+                                       stored_ptr, rotation);
+        shared_table[static_cast<size_t>(jj)] = {row.key, jj};
+        shared_scalars[static_cast<size_t>(jj)] = row.scalar;
+        if (sig_mode) shared_signatures[static_cast<size_t>(jj)] = row.sig;
+      };
+      if (j == 0) {
+        Int zero;
+        zero.SetInt32(0);
+        store_special_row(0, zero);
+        ++j;
+      }
+      if (j == 1 && j < end) {
+        store_special_row(1, curve.G.x);
+        ++j;
+      }
+      if (j >= end) return;
+      Int Xm, Zm, Xp, Zp;
+      if (j == 2) {
+        // projective doubling of G: x(2G) = (v^4-8bv)/(4(v^3+b))
+        Int vs;
+        vs.ModSquare(&diff_v);
+        Xp.ModSquare(&vs);              // v^4
+        Int t;
+        t.ModMulK1(&diff_eight_b, &diff_v);  // 8 b v
+        Xp.ModSub(&t);
+        Zp.Set(&diff_v3_b4);            // 4(v^3+b)
+        Xm.Set(&diff_v);
+        Zm.SetInt32(1);
+      } else {
+        Int jm1, jj;
+        jm1.SetInt64(j - 1);
+        jj.SetInt64(j);
+        Point pm = ec_mult(jm1);
+        Point pp = ec_mult(jj);
+        Xm.Set(&pm.x);
+        Zm.SetInt32(1);
+        Xp.Set(&pp.x);
+        Zp.SetInt32(1);
+      }
+      // Incremental canonical scalars: lam1 = lambda*j, lam2 = lambda^2*j
+      // (mod n), advanced by order-additions instead of per-row mod-n
+      // multiplications.
+      Int lam1, lam2;
+      if (canonical_k3_mode) {
+        Int js;
+        js.SetInt64(j);
+        lam1.Set(&glv_lambda);
+        lam1.ModMulK1order(&js);
+        lam2.Set(&glv_lambda2);
+        lam2.ModMulK1order(&js);
+      }
+      const size_t BLOCK = 512;
+      std::vector<Int> bx(BLOCK), bz(BLOCK), blam1(BLOCK), blam2(BLOCK);
+      while (j < end) {
+        size_t count = std::min<size_t>(end - j, BLOCK);
+        uint64_t j_first = j;
+        for (size_t i = 0; i < count; ++i, ++j) {
+          bx[i].Set(&Xp);
+          bz[i].Set(&Zp);
+          if (canonical_k3_mode) {
+            blam1[i].Set(&lam1);
+            blam2[i].Set(&lam2);
+          }
+          differential_step(Xm, Zm, Xp, Zp);
+          ec_point_adds.fetch_add(1, std::memory_order_relaxed);
+          if (canonical_k3_mode) {
+            lam1.ModAddK1order(&lam1, &glv_lambda);
+            lam2.ModAddK1order(&lam2, &glv_lambda2);
+          }
+        }
+        flush_glv_block(j_first, count, bx, bz,
+                        blam1, blam2, canonical_k3_mode, sig_mode);
       }
     });
   }
@@ -1215,12 +1522,35 @@ void build_table_from_scalars(std::vector<Int> &scalars) {
     size_t end = m * (worker + 1) / worker_count;
     if (begin == end) continue;
     builders.emplace_back([begin, end, sig_mode, &scalars]() {
-      for (size_t i = begin; i < end; ++i) {
-        Point row_point = ec_mult(scalars[i]);
-        GlvRowData row = build_glv_row(scalars[i], row_point.x, sig_mode);
-        shared_table[i] = {row.key, 0};
-        shared_scalars[i] = row.scalar;
-        if (sig_mode) shared_signatures[i] = row.sig;
+      // main() already canonicalized and deduped the list before any EC
+      // work, so each scalar is its own orbit minimum with rotation 0:
+      // canonical_orbit_scalar(c) == (c, 0) exactly, and re-running it
+      // per row would only repeat two mod-n multiplications.
+      const size_t BLOCK = 512;
+      std::vector<Int> bx(BLOCK);
+      std::vector<Int> lambdas, dens;
+      std::vector<char> batched;
+      for (size_t i = begin; i < end;) {
+        size_t count = std::min<size_t>(end - i, BLOCK);
+        for (size_t k = 0; k < count; ++k, ++i) {
+          Point row_point = ec_mult(scalars[i]);
+          bx[k].Set(&row_point.x);
+        }
+        if (sig_mode) {
+          fill_lambda_batch(bx, count, lambdas, dens, batched);
+          for (size_t k = 0; k < 3 * count; ++k) {
+            lambdas[k].ModMulK1(&dens[k]);
+          }
+        }
+        for (size_t k = 0; k < count; ++k) {
+          size_t idx = i - count + k;
+          GlvRowData row = build_glv_row(
+              scalars[idx], bx[k], sig_mode, &scalars[idx], 0,
+              (sig_mode && batched[k]) ? &lambdas[3 * k] : nullptr);
+          shared_table[idx] = {row.key, 0};
+          shared_scalars[idx] = row.scalar;
+          if (sig_mode) shared_signatures[idx] = row.sig;
+        }
       }
     });
   }
@@ -2032,6 +2362,27 @@ int main(int argc, char **argv) {
   beta2.ModMulK1(&beta, &beta);
   glv_lambda.SetBase16("5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72");
   glv_lambda2.SetBase16("AC9C52B33FA3CF1F5AD9E3FD77ED9BA4A880B9FC8EC739C2E0CFC810B51283CE");
+  init_diff_constants();
+  if (glv_orbit_mode) {
+    // x-only orbit port invariant, checked against real EC arithmetic:
+    // x(phi G) = beta x(G), x(phi^2 G) = beta^2 x(G). The whole GLV build
+    // (K3 keys, signatures, canonical rows) rests on these two field
+    // identities; they also let the orbit columns skip EC arithmetic
+    // entirely (memo 26.11: 2.89x orbit construction speedup).
+    Point phi_g = ec_mult(glv_lambda);
+    Point phi2_g = ec_mult(glv_lambda2);
+    Int expect1, expect2;
+    expect1.ModMulK1(&beta, &curve.G.x);
+    expect2.ModMulK1(&beta, &expect1);
+    if (!phi_g.x.IsEqual(&expect1) || !phi2_g.x.IsEqual(&expect2)) {
+      std::fprintf(stderr,
+                   "[E] GLV orbit self-check failed: x(phi G) != beta x(G) "
+                   "or x(phi^2 G) != beta^2 x(G)\n");
+      return 2;
+    }
+    std::cout << "  GLV orbit self-check: x(phi G)=beta x(G), "
+              << "x(phi^2 G)=beta^2 x(G) OK\n";
+  }
   // --table-binary: mmap a CBT1 file as the table backend. Mutually
   // exclusive with --table-scalars; requires --glv-orbit (the payload keys
   // are K3 invariant keys). Phase-signature routing is unavailable in file

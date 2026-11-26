@@ -77,3 +77,12 @@ kangaroo_benchmark:
 		util.c hash/sha256.cpp hash/sha256_sse.cpp \
 		hash/ripemd160.cpp hash/ripemd160_sse.cpp \
 		-o kangaroo_benchmark
+
+test_diff_walk:
+	g++ -m64 -march=native -mtune=native -O2 -pthread \
+		test_diff_walk.cpp secp256k1/Int.cpp secp256k1/Point.cpp \
+		secp256k1/SECP256K1.cpp secp256k1/IntMod.cpp \
+		secp256k1/IntGroup.cpp secp256k1/Random.cpp \
+		util.c hash/sha256.cpp hash/sha256_sse.cpp \
+		hash/ripemd160.cpp hash/ripemd160_sse.cpp \
+		-o test_diff_walk
