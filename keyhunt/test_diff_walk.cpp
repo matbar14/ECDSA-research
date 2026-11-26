@@ -190,5 +190,44 @@ int main() {
     }
   }
   printf(sig_bad == 0 ? "signature batch == per-row: OK\n" : "signature batch FAILURES: %d\n", sig_bad);
-  return bad != 0 || sig_bad != 0;
+
+  // Scale-invariance of the differential step (the test that catches
+  // homogeneity errors - Zp^2 vs Zp^3, Jacobian vs homogeneous - before
+  // any reference chain is built): 20 random walk positions with random
+  // projective scalings on both state points must produce x((j+1)G).
+  unsigned long long seed = 20261127;
+  int scale_bad = 0;
+  for (int t = 0; t < 20; ++t) {
+    seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;
+    long long j0 = 3 + (long long)((seed >> 33) % 1000000);
+    unsigned long long s1 = seed * 6364136223846793005ULL + 1442695040888963407ULL;
+    unsigned long long s2 = s1 * 6364136223846793005ULL + 1442695040888963407ULL;
+    // scalar mults for reference x((j0-1)G), x(j0 G), x((j0+1)G)
+    Int km1, k0, kp1;
+    km1.SetInt64((unsigned long long)(j0 - 1));
+    k0.SetInt64((unsigned long long)j0);
+    kp1.SetInt64((unsigned long long)(j0 + 1));
+    Point pm = curve.ComputePublicKey(&km1);
+    Point pp = curve.ComputePublicKey(&k0);
+    Point pn = curve.ComputePublicKey(&kp1);
+    // random scalings (odd, in [2, P)): cheap LCG-based 256-bit values
+    Int r1, r2;
+    r1.SetInt32((int)(2 + ((s1 >> 40) & 0x7fffffff)));
+    r2.SetInt32((int)(2 + ((s2 >> 40) & 0x7fffffff)));
+    Int Xm, Zm, Xp, Zp;
+    Xm.ModMulK1(&pm.x, &r1);
+    Zm.Set(&r1);
+    Xp.ModMulK1(&pp.x, &r2);
+    Zp.Set(&r2);
+    differential_step(Xm, Zm, Xp, Zp);
+    Int x_aff;
+    Int zinv; zinv.Set(&Zp); zinv.ModInv();
+    x_aff.ModMulK1(&Xp, &zinv);
+    if (!x_aff.IsEqual(&pn.x)) {
+      if (scale_bad < 3) printf("scale-invariance mismatch at j0=%lld\n", j0);
+      ++scale_bad;
+    }
+  }
+  printf(scale_bad == 0 ? "scale-invariance 20/20: OK\n" : "scale-invariance FAILURES: %d\n", scale_bad);
+  return bad != 0 || sig_bad != 0 || scale_bad != 0;
 }
