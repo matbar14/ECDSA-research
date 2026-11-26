@@ -419,6 +419,21 @@ make kangaroo_benchmark
 даёт дополнительного числа cross-collision; это измерительный режим, а не
 готовый production-поиск.
 
+### δ-свип таблицы отпечатков: вертикальные изолинии
+
+Эксперимент
+[angle_table_delta_sweep.py](experiments/angle_table_delta_sweep.py)
+параметризует качество таблицы слэком δ = B − ⌈log₂W⌉ вместо абсолютной
+ширины: сетка (log₂W, δ) ∈ [10..27] × [−2..+6], 486 ячеек, 200 запросов на
+ячейку. Итоги: плечо pair — идеальный Пуассон (средний бакет 1+2^{−δ},
+P(exact) = e^{−2^{−δ}}, изолинии P(exact) вертикальны — при фиксированном δ
+качество не зависит от W); стена P→1 лежит при δ≈5–6; два бита фазовой
+подписи (d01,d12) детерминированы старшими битами и добавляют ноль энтропии
+(sig = pair при δ−2 — гипотеза «−1.5 бита» опровергнута); GLV-канонизация
+даёт λ_eff = 3W/2^B — стена +1.58 бита по W, но ×0.17 памяти на покрываемый
+скаляр. График: [figures/angle_delta_sweep.html](figures/angle_delta_sweep.html),
+сырые ячейки: [results/angle_table_delta_sweep.json](results/angle_table_delta_sweep.json).
+
 ### Цифры и биты нормированной фазы
 
 Скрипт [phase_digit_bit_experiment.py](experiments/phase_digit_bit_experiment.py)
