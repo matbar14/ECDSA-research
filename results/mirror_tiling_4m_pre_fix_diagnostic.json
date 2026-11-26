@@ -1,0 +1,601 @@
+{
+  "status": "running",
+  "config": {
+    "rows": 4000000,
+    "default stride": 4000000,
+    "mirror stride": 7999999,
+    "chunk scalar width": 4000000000000,
+    "cover chunks": 12,
+    "cover size": 48000000000000,
+    "threads": 2,
+    "kill timeout seconds": 4.0,
+    "miss repeats": 2
+  },
+  "inputs": {
+    "canonical": {
+      "path": "/home/asm/\u0420\u0430\u0431\u043e\u0447\u0438\u0439 \u0441\u0442\u043e\u043b/ECDSA-research/tables/representatives_canonical_H4000000.txt",
+      "bytes": 34882418,
+      "sha256": "ffe0edb5f5918ec05c6b02f47c6295e7ad5d86bff00897ad24f0653742979859"
+    },
+    "mirror": {
+      "path": "/home/asm/\u0420\u0430\u0431\u043e\u0447\u0438\u0439 \u0441\u0442\u043e\u043b/ECDSA-research/tables/representatives_mirror_H4000000.txt",
+      "bytes": 36000423,
+      "sha256": "bb60db4608987939d0aee0529467543f0a83f9ec28592556af3873b2e06b78aa"
+    }
+  },
+  "binary": "/tmp/eng_bsgs_mirror",
+  "workdir": "/tmp/ecdsa_research_mirror4m",
+  "artifact path": "/home/asm/\u0420\u0430\u0431\u043e\u0447\u0438\u0439 \u0441\u0442\u043e\u043b/ECDSA-research/results/mirror_tiling_4m_comparison.json",
+  "tables": {
+    "canonical": {
+      "path": "/tmp/ecdsa_research_mirror4m/canonical_H4000000.cbt1",
+      "bytes": 260000256,
+      "sha256": "fc7bdb80e4e2727c84f239753ca1b852c18b4878ee889a9e9ca19a9d4d1c9389",
+      "reused": false,
+      "build wall seconds": 21.9147,
+      "build peak rss kb": 817892,
+      "build counters": {
+        "giant steps": 2,
+        "giant steps planned": 1000000,
+        "giant steps/second": 4765,
+        "search hits": 1,
+        "invariant hits": 1,
+        "exact candidate checks": 1,
+        "partner recoveries": 0
+      }
+    },
+    "mirror": {
+      "path": "/tmp/ecdsa_research_mirror4m/mirror_H4000000.cbt1",
+      "bytes": 260000256,
+      "sha256": "dc6563a05afec08a118ca73fc2cd57aa400802b81fa313d5c3bbce7b31b799fa",
+      "reused": false,
+      "build wall seconds": 21.855,
+      "build peak rss kb": 817936,
+      "build counters": {
+        "giant steps": 1,
+        "giant steps planned": 1000000,
+        "giant steps/second": 2350,
+        "search hits": 1,
+        "invariant hits": 1,
+        "exact candidate checks": 1,
+        "partner recoveries": 0
+      }
+    }
+  },
+  "proofs": {
+    "canonical:positive": {
+      "offset": 800005900000,
+      "expected scalar": "000000000000000000000000000000400000000000000000000000ba441146e0",
+      "pass": true,
+      "run": {
+        "killed": false,
+        "returncode": 0,
+        "wall seconds": 4.0803,
+        "peak rss kb": 259220,
+        "recovered": "000000000000000000000000000000400000000000000000000000ba441146e0",
+        "resumed chunks before": null,
+        "already recovered": false,
+        "counters": {
+          "giant steps": 392337,
+          "giant steps planned": 1000000,
+          "giant steps/second": 357119,
+          "search hits": 1,
+          "invariant hits": 1,
+          "exact candidate checks": 1,
+          "partner recoveries": 0,
+          "automatic chunks attempted": 1
+        },
+        "stdout tail": "tiplications: 5\n  EC scalar multiplications (build): 0\n  EC scalar multiplications (giant search, cumulative): 3\n  EC scalar multiplications (exact candidate checks): 2\n  EC point additions: 392339\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 392339\n  total EC operations: 392344\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 1000000\n  table build seconds: 2.65e-07\n  RSS after table load: 7132 kB (peak 258708 kB)\n  RSS after canonical pre-pass: 7132 kB (peak 258708 kB)\n  RSS after table build: 7200 kB (peak 258708 kB)\n  giant search seconds: 1.09862\n  giant steps/second: 357119\n  total seconds: 1.09871\n  time to solution seconds: 1.09859 (includes table build)\n  exact candidate checks per hit: 1 (exact 1 / search hits 1)\n  recovered scalar: 0x400000000000000000000000ba441146e0\n  recovered private key: 0x000000000000000000000000000000400000000000000000000000ba441146e0\n  shifted target scalar: 0x400000000000000000000000ba441146e0\n  applied shift: 0x0\n  recovered segment: 0\n  recovered local offset: 800005900000\n  recovery correct: true\n",
+        "stderr tail": ""
+      }
+    },
+    "canonical:negative": {
+      "offset": 4159993480000,
+      "expected scalar": "000000000000000000000000000000400000000000000000000003c892ef0340",
+      "pass": true,
+      "run": {
+        "killed": false,
+        "returncode": 0,
+        "wall seconds": 3.1318,
+        "peak rss kb": 259188,
+        "recovered": "000000000000000000000000000000400000000000000000000003c892ef0340",
+        "resumed chunks before": null,
+        "already recovered": false,
+        "counters": {
+          "giant steps": 1078414,
+          "giant steps planned": 2000000,
+          "giant steps/second": 350347,
+          "search hits": 1,
+          "invariant hits": 1,
+          "exact candidate checks": 1,
+          "partner recoveries": 0,
+          "automatic chunks attempted": 2
+        },
+        "stdout tail": "scalar multiplications (giant search, cumulative): 7\n  EC scalar multiplications (exact candidate checks): 2\n  EC point additions: 1078419\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 1078419\n  total EC operations: 1078428\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 2000000\n  table build seconds: 3.61e-07\n  RSS after table load: 7100 kB (peak 7100 kB)\n  RSS after canonical pre-pass: 7100 kB (peak 7100 kB)\n  RSS after table build: 7168 kB (peak 7168 kB)\n  giant search seconds: 3.07813\n  giant steps/second: 350347\n  total seconds: 3.07821\n  time to solution seconds: 3.07803 (includes table build)\n  exact candidate checks per hit: 1 (exact 1 / search hits 1)\n  recovered scalar: 0x400000000000000000000003c892ef0340\n  recovered private key: 0x000000000000000000000000000000400000000000000000000003c892ef0340\n  shifted target scalar: 0x40000000000000000000000025405ac340\n  applied shift: 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25ae97da20141\n  recovered segment: 0\n  recovered local offset: 159993480000\n  recovery correct: true\n",
+        "stderr tail": ""
+      }
+    },
+    "mirror:positive": {
+      "offset": 800005900000,
+      "expected scalar": "000000000000000000000000000000400000000000000000000000ba441146e0",
+      "pass": true,
+      "run": {
+        "killed": false,
+        "returncode": 0,
+        "wall seconds": 3.7804,
+        "peak rss kb": 259196,
+        "recovered": "000000000000000000000000000000400000000000000000000000ba441146e0",
+        "resumed chunks before": null,
+        "already recovered": false,
+        "counters": {
+          "giant steps": 191080,
+          "giant steps planned": 500002,
+          "giant steps/second": 327477,
+          "search hits": 1,
+          "invariant hits": 1,
+          "exact candidate checks": 1,
+          "partner recoveries": 0,
+          "automatic chunks attempted": 1
+        },
+        "stdout tail": "plications: 5\n  EC scalar multiplications (build): 0\n  EC scalar multiplications (giant search, cumulative): 3\n  EC scalar multiplications (exact candidate checks): 2\n  EC point additions: 191082\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 191082\n  total EC operations: 191087\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 500002\n  table build seconds: 2.75e-07\n  RSS after table load: 7108 kB (peak 258684 kB)\n  RSS after canonical pre-pass: 7108 kB (peak 258684 kB)\n  RSS after table build: 7176 kB (peak 258684 kB)\n  giant search seconds: 0.583492\n  giant steps/second: 327477\n  total seconds: 0.583574\n  time to solution seconds: 0.583436 (includes table build)\n  exact candidate checks per hit: 1 (exact 1 / search hits 1)\n  recovered scalar: 0x400000000000000000000000ba441146e0\n  recovered private key: 0x000000000000000000000000000000400000000000000000000000ba441146e0\n  shifted target scalar: 0x400000000000000000000000ba441146e0\n  applied shift: 0x0\n  recovered segment: 0\n  recovered local offset: 800005900000\n  recovery correct: true\n",
+        "stderr tail": ""
+      },
+      "mirror representation": {
+        "sign": "+",
+        "center": 100000,
+        "row scalar": 6000000
+      }
+    },
+    "mirror:negative": {
+      "offset": 4159993480000,
+      "expected scalar": "000000000000000000000000000000400000000000000000000003c892ef0340",
+      "pass": true,
+      "run": {
+        "killed": false,
+        "returncode": 0,
+        "wall seconds": 1.6498,
+        "peak rss kb": 259200,
+        "recovered": "000000000000000000000000000000400000000000000000000003c892ef0340",
+        "resumed chunks before": null,
+        "already recovered": false,
+        "counters": {
+          "giant steps": 539108,
+          "giant steps planned": 1000004,
+          "giant steps/second": 337731,
+          "search hits": 1,
+          "invariant hits": 1,
+          "exact candidate checks": 4,
+          "partner recoveries": 0,
+          "automatic chunks attempted": 2
+        },
+        "stdout tail": "EC scalar multiplications (giant search, cumulative): 7\n  EC scalar multiplications (exact candidate checks): 5\n  EC point additions: 539113\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 539113\n  total EC operations: 539125\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 1000004\n  table build seconds: 3.45e-07\n  RSS after table load: 7112 kB (peak 7112 kB)\n  RSS after canonical pre-pass: 7112 kB (peak 7112 kB)\n  RSS after table build: 7180 kB (peak 7180 kB)\n  giant search seconds: 1.59626\n  giant steps/second: 337731\n  total seconds: 1.59635\n  time to solution seconds: 1.59617 (includes table build)\n  exact candidate checks per hit: 4 (exact 4 / search hits 1)\n  recovered scalar: 0x400000000000000000000003c892ef0340\n  recovered private key: 0x000000000000000000000000000000400000000000000000000003c892ef0340\n  shifted target scalar: 0x40000000000000000000000025405ac340\n  applied shift: 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25ae97da20141\n  recovered segment: 0\n  recovered local offset: 159993480000\n  recovery correct: true\n",
+        "stderr tail": ""
+      },
+      "mirror representation": {
+        "sign": "-",
+        "center": 520000,
+        "row scalar": 6000000
+      }
+    }
+  },
+  "resume": {
+    "canonical": {
+      "offset": 47999999999999,
+      "sessions": [
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0052,
+          "peak rss kb": 259200,
+          "recovered": null,
+          "resumed chunks before": null,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "mp/ecdsa_research_mirror4m/canonical_H4000000.cbt1 (4000000 rows, payload giant_grid, format cbt1, 65 B/row)\n  table binary validation: cache hit (size+mtime bound to full pass, sha256 fc7bdb80e4e2727c...)\n  table binary H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  automatic source chunk start: 0x4000000000000000000000000000000000 size: 4000000000000\n  checkpoint saved: chunks 1, next source chunk start: 0x400000000000000000000003a352944000\n  automatic source chunk start: 0x400000000000000000000003a352944000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 1,
+            "found": "0",
+            "giant steps": 1000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0029,
+          "peak rss kb": 259200,
+          "recovered": null,
+          "resumed chunks before": 1,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 1, next source chunk start: 0x400000000000000000000003a352944000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x400000000000000000000003a352944000 size: 4000000000000\n  checkpoint saved: chunks 2, next source chunk start: 0x40000000000000000000000746a5288000\n  automatic source chunk start: 0x40000000000000000000000746a5288000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 2,
+            "found": "0",
+            "giant steps": 2000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0036,
+          "peak rss kb": 259200,
+          "recovered": null,
+          "resumed chunks before": 2,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 2, next source chunk start: 0x40000000000000000000000746a5288000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000000746a5288000 size: 4000000000000\n  checkpoint saved: chunks 3, next source chunk start: 0x40000000000000000000000ae9f7bcc000\n  automatic source chunk start: 0x40000000000000000000000ae9f7bcc000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 3,
+            "found": "0",
+            "giant steps": 3000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0029,
+          "peak rss kb": 259200,
+          "recovered": null,
+          "resumed chunks before": 3,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 3, next source chunk start: 0x40000000000000000000000ae9f7bcc000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000000ae9f7bcc000 size: 4000000000000\n  checkpoint saved: chunks 4, next source chunk start: 0x40000000000000000000000e8d4a510000\n  automatic source chunk start: 0x40000000000000000000000e8d4a510000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 4,
+            "found": "0",
+            "giant steps": 4000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0026,
+          "peak rss kb": 259204,
+          "recovered": null,
+          "resumed chunks before": 4,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 4, next source chunk start: 0x40000000000000000000000e8d4a510000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000000e8d4a510000 size: 4000000000000\n  checkpoint saved: chunks 5, next source chunk start: 0x400000000000000000000012309ce54000\n  automatic source chunk start: 0x400000000000000000000012309ce54000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 5,
+            "found": "0",
+            "giant steps": 5000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0033,
+          "peak rss kb": 259208,
+          "recovered": null,
+          "resumed chunks before": 5,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 5, next source chunk start: 0x400000000000000000000012309ce54000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x400000000000000000000012309ce54000 size: 4000000000000\n  checkpoint saved: chunks 6, next source chunk start: 0x400000000000000000000015d3ef798000\n  automatic source chunk start: 0x400000000000000000000015d3ef798000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 6,
+            "found": "0",
+            "giant steps": 6000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.003,
+          "peak rss kb": 259224,
+          "recovered": null,
+          "resumed chunks before": 6,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 6, next source chunk start: 0x400000000000000000000015d3ef798000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x400000000000000000000015d3ef798000 size: 4000000000000\n  checkpoint saved: chunks 7, next source chunk start: 0x40000000000000000000001977420dc000\n  automatic source chunk start: 0x40000000000000000000001977420dc000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 7,
+            "found": "0",
+            "giant steps": 7000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0032,
+          "peak rss kb": 259200,
+          "recovered": null,
+          "resumed chunks before": 7,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 7, next source chunk start: 0x40000000000000000000001977420dc000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000001977420dc000 size: 4000000000000\n  checkpoint saved: chunks 8, next source chunk start: 0x40000000000000000000001d1a94a20000\n  automatic source chunk start: 0x40000000000000000000001d1a94a20000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 8,
+            "found": "0",
+            "giant steps": 8000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0034,
+          "peak rss kb": 259164,
+          "recovered": null,
+          "resumed chunks before": 8,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": " H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 8, next source chunk start: 0x40000000000000000000001d1a94a20000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000001d1a94a20000 size: 4000000000000\n  checkpoint saved: chunks 9, next source chunk start: 0x400000000000000000000020bde7364000\n  automatic source chunk start: 0x400000000000000000000020bde7364000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 9,
+            "found": "0",
+            "giant steps": 9000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0027,
+          "peak rss kb": 259220,
+          "recovered": null,
+          "resumed chunks before": 9,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "H: 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 9, next source chunk start: 0x400000000000000000000020bde7364000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x400000000000000000000020bde7364000 size: 4000000000000\n  checkpoint saved: chunks 10, next source chunk start: 0x4000000000000000000000246139ca8000\n  automatic source chunk start: 0x4000000000000000000000246139ca8000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 10,
+            "found": "0",
+            "giant steps": 10000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0033,
+          "peak rss kb": 259156,
+          "recovered": null,
+          "resumed chunks before": 10,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": ": 0  rows/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  checkpoint resumed: chunks completed before this session: 10, next source chunk start: 0x4000000000000000000000246139ca8000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x4000000000000000000000246139ca8000 size: 4000000000000\n  checkpoint saved: chunks 11, next source chunk start: 0x400000000000000000000028048c5ec000\n  automatic source chunk start: 0x400000000000000000000028048c5ec000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 11,
+            "found": "0",
+            "giant steps": 11000000,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        },
+        {
+          "killed": false,
+          "returncode": 0,
+          "wall seconds": 2.9578,
+          "peak rss kb": 259164,
+          "recovered": "00000000000000000000000000000040000000000000000000002ba7def2ffff",
+          "resumed chunks before": 11,
+          "already recovered": false,
+          "counters": {
+            "giant steps": 11987263,
+            "giant steps planned": 12000000,
+            "giant steps/second": 339998,
+            "search hits": 1,
+            "invariant hits": 1,
+            "exact candidate checks": 1,
+            "partner recoveries": 0,
+            "automatic chunks attempted": 1
+          },
+          "stdout tail": "C scalar multiplications (exact candidate checks): 2\n  EC point additions: 11987298\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 11987298\n  total EC operations: 11987347\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 12000000\n  table build seconds: 3.67e-07\n  RSS after table load: 7064 kB (peak 7064 kB)\n  RSS after canonical pre-pass: 7064 kB (peak 7064 kB)\n  RSS after table build: 7132 kB (peak 7132 kB)\n  giant search seconds: 2.90373\n  giant steps/second: 339998\n  total seconds: 2.90382\n  cumulative elapsed seconds (checkpoint): 34.0278\n  time to solution seconds: 2.77908 (includes table build)\n  exact candidate checks per hit: 1 (exact 1 / search hits 1)\n  recovered scalar: 0x40000000000000000000002ba7def2ffff\n  recovered private key: 0x00000000000000000000000000000040000000000000000000002ba7def2ffff\n  shifted target scalar: 0x400000000000000000000003a352943fff\n  applied shift: 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd2368843d78141\n  recovered segment: 0\n  recovered local offset: 3999999999999\n  recovery correct: true\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 12,
+            "found": "1",
+            "giant steps": 11987263,
+            "plan fingerprint": "834e1a46d7b2b117"
+          }
+        }
+      ],
+      "done": true,
+      "killed sessions": 11,
+      "resume chain pass": true,
+      "pass": true
+    },
+    "mirror": {
+      "offset": 47999999999999,
+      "sessions": [
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0028,
+          "peak rss kb": 259204,
+          "recovered": null,
+          "resumed chunks before": null,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "ws/head(source): 1\nExperimental bounded segmented BSGS\n  interval width: 4000000000000\n  segments: 1\n  segment width: 4000000000000\n  workers: 2\n  GLV orbit quotient: true\n  phase signature routing: false\n  canonical K3 storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  giant stride override: 7999999 (rows 4000000)\n  automatic source chunk start: 0x4000000000000000000000000000000000 size: 4000000000000\n  checkpoint saved: chunks 1, next source chunk start: 0x400000000000000000000003a352944000\n  automatic source chunk start: 0x400000000000000000000003a352944000 size: 4000000000000\n  checkpoint saved: chunks 2, next source chunk start: 0x40000000000000000000000746a5288000\n  automatic source chunk start: 0x40000000000000000000000746a5288000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 2,
+            "found": "0",
+            "giant steps": 1000004,
+            "plan fingerprint": "331edd6c2c8f7d49"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0031,
+          "peak rss kb": 259156,
+          "recovered": null,
+          "resumed chunks before": 2,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  giant stride override: 7999999 (rows 4000000)\n  checkpoint resumed: chunks completed before this session: 2, next source chunk start: 0x40000000000000000000000746a5288000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000000746a5288000 size: 4000000000000\n  checkpoint saved: chunks 3, next source chunk start: 0x40000000000000000000000ae9f7bcc000\n  automatic source chunk start: 0x40000000000000000000000ae9f7bcc000 size: 4000000000000\n  checkpoint saved: chunks 4, next source chunk start: 0x40000000000000000000000e8d4a510000\n  automatic source chunk start: 0x40000000000000000000000e8d4a510000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 4,
+            "found": "0",
+            "giant steps": 2000008,
+            "plan fingerprint": "331edd6c2c8f7d49"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0028,
+          "peak rss kb": 259172,
+          "recovered": null,
+          "resumed chunks before": 4,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  giant stride override: 7999999 (rows 4000000)\n  checkpoint resumed: chunks completed before this session: 4, next source chunk start: 0x40000000000000000000000e8d4a510000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000000e8d4a510000 size: 4000000000000\n  checkpoint saved: chunks 5, next source chunk start: 0x400000000000000000000012309ce54000\n  automatic source chunk start: 0x400000000000000000000012309ce54000 size: 4000000000000\n  checkpoint saved: chunks 6, next source chunk start: 0x400000000000000000000015d3ef798000\n  automatic source chunk start: 0x400000000000000000000015d3ef798000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 6,
+            "found": "0",
+            "giant steps": 3000012,
+            "plan fingerprint": "331edd6c2c8f7d49"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0027,
+          "peak rss kb": 259128,
+          "recovered": null,
+          "resumed chunks before": 6,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "storage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  giant stride override: 7999999 (rows 4000000)\n  checkpoint resumed: chunks completed before this session: 6, next source chunk start: 0x400000000000000000000015d3ef798000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x400000000000000000000015d3ef798000 size: 4000000000000\n  checkpoint saved: chunks 7, next source chunk start: 0x40000000000000000000001977420dc000\n  automatic source chunk start: 0x40000000000000000000001977420dc000 size: 4000000000000\n  checkpoint saved: chunks 8, next source chunk start: 0x40000000000000000000001d1a94a20000\n  automatic source chunk start: 0x40000000000000000000001d1a94a20000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 8,
+            "found": "0",
+            "giant steps": 4000016,
+            "plan fingerprint": "331edd6c2c8f7d49"
+          }
+        },
+        {
+          "killed": true,
+          "returncode": null,
+          "wall seconds": 4.0032,
+          "peak rss kb": 259164,
+          "recovered": null,
+          "resumed chunks before": 8,
+          "already recovered": false,
+          "counters": {},
+          "stdout tail": "torage: false\n  partner table: true\n  shifted targets: 0 (original target is always the fallback)\n  baby rows (shared): 4000000\n  table backend: mmap (CBT1 payload, no in-RAM table, no build EC work)\n  estimated shared table bytes: 192000000\n  table copies: 1 (read-only, shared by workers)\n  external cover start: 0x4000000000000000000000000000000000\n  external cover size: 0x2ba7def30000\n  building baby table with 2 builder threads...\n  giant stride (post-merge rows): 4000000\n  giant stride override: 7999999 (rows 4000000)\n  checkpoint resumed: chunks completed before this session: 8, next source chunk start: 0x40000000000000000000001d1a94a20000\n  checkpoint resume: search counters restored (printed totals are cumulative across sessions)\n\n  automatic source chunk start: 0x40000000000000000000001d1a94a20000 size: 4000000000000\n  checkpoint saved: chunks 9, next source chunk start: 0x400000000000000000000020bde7364000\n  automatic source chunk start: 0x400000000000000000000020bde7364000 size: 4000000000000\n  checkpoint saved: chunks 10, next source chunk start: 0x4000000000000000000000246139ca8000\n  automatic source chunk start: 0x4000000000000000000000246139ca8000 size: 4000000000000\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 10,
+            "found": "0",
+            "giant steps": 5000020,
+            "plan fingerprint": "331edd6c2c8f7d49"
+          }
+        },
+        {
+          "killed": false,
+          "returncode": 0,
+          "wall seconds": 2.9567,
+          "peak rss kb": 259204,
+          "recovered": "00000000000000000000000000000040000000000000000000002ba7def2ffff",
+          "resumed chunks before": 10,
+          "already recovered": false,
+          "counters": {
+            "giant steps": 5999927,
+            "giant steps planned": 6000024,
+            "giant steps/second": 344437,
+            "search hits": 1,
+            "invariant hits": 1,
+            "exact candidate checks": 4,
+            "partner recoveries": 0,
+            "automatic chunks attempted": 2
+          },
+          "stdout tail": "\n  EC scalar multiplications (exact candidate checks): 5\n  EC point additions: 5999962\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 5999962\n  total EC operations: 6000014\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 6000024\n  table build seconds: 3.09e-07\n  RSS after table load: 7104 kB (peak 7104 kB)\n  RSS after canonical pre-pass: 7104 kB (peak 7104 kB)\n  RSS after table build: 7172 kB (peak 7172 kB)\n  giant search seconds: 2.90302\n  giant steps/second: 344437\n  total seconds: 2.90311\n  cumulative elapsed seconds (checkpoint): 17.5321\n  time to solution seconds: 2.82422 (includes table build)\n  exact candidate checks per hit: 4 (exact 4 / search hits 1)\n  recovered scalar: 0x40000000000000000000002ba7def2ffff\n  recovered private key: 0x00000000000000000000000000000040000000000000000000002ba7def2ffff\n  shifted target scalar: 0x400000000000000000000003a352943fff\n  applied shift: 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd2368843d78141\n  recovered segment: 0\n  recovered local offset: 3999999999999\n  recovery correct: true\n",
+          "stderr tail": "",
+          "checkpoint after": {
+            "chunks completed": 12,
+            "found": "1",
+            "giant steps": 5999927,
+            "plan fingerprint": "331edd6c2c8f7d49"
+          }
+        }
+      ],
+      "done": true,
+      "killed sessions": 5,
+      "resume chain pass": true,
+      "pass": true
+    }
+  },
+  "miss runs": {
+    "canonical": [
+      {
+        "pass": true,
+        "expected giant steps": 13000000,
+        "zero-hit checks pass": true,
+        "run": {
+          "killed": false,
+          "returncode": 1,
+          "wall seconds": 36.5983,
+          "peak rss kb": 259168,
+          "recovered": null,
+          "resumed chunks before": null,
+          "already recovered": false,
+          "counters": {
+            "giant steps": 13000000,
+            "giant steps planned": 13000000,
+            "giant steps/second": 355732,
+            "search hits": 0,
+            "invariant hits": 0,
+            "exact candidate checks": 0,
+            "partner recoveries": 0,
+            "automatic chunks attempted": 12
+          },
+          "stdout tail": "ess: elapsed 35.0s | giant steps 12474713 | steps/s 355989.4 | rss kB 259168\n  segments completed: 13\n  raw baby rows built: 0\n  unique baby rows built: 0\n  duplicate baby keys: 0\n  giant steps: 13000000\n  giant steps scheduled: 13000000\n  invariant hits: 0\n  search hits: 0\n  merged rows: 0\n  insert collisions: 0\n  orbit factors scheduled: 0\n  exact candidate checks: 0\n  EC scalar multiplications: 50\n  EC scalar multiplications (build): 0\n  EC scalar multiplications (giant search, cumulative): 50\n  EC scalar multiplications (exact candidate checks): 0\n  EC point additions: 13000037\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 13000037\n  total EC operations: 13000087\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 0\n  giant steps planned: 13000000\n  table build seconds: 3.13e-07\n  RSS after table load: 7068 kB (peak 7068 kB)\n  RSS after canonical pre-pass: 7068 kB (peak 7068 kB)\n  RSS after table build: 7136 kB (peak 7136 kB)\n  giant search seconds: 36.5444\n  giant steps/second: 355732\n  total seconds: 36.5445\n  recovery correct: false (no scalar in interval)\n",
+          "stderr tail": ""
+        }
+      }
+    ],
+    "mirror": [
+      {
+        "pass": false,
+        "expected giant steps": 6500026,
+        "zero-hit checks pass": false,
+        "run": {
+          "killed": false,
+          "returncode": 0,
+          "wall seconds": 17.166,
+          "peak rss kb": 259168,
+          "recovered": "00000000000000000000000000000040000000000000000000002ba7def33039",
+          "resumed chunks before": null,
+          "already recovered": false,
+          "counters": {
+            "giant steps": 6000024,
+            "giant steps planned": 6000024,
+            "giant steps/second": 350471,
+            "search hits": 1,
+            "invariant hits": 1,
+            "exact candidate checks": 4,
+            "partner recoveries": 1,
+            "automatic chunks attempted": 12
+          },
+          "stdout tail": "ld): 0\n  EC scalar multiplications (giant search, cumulative): 47\n  EC scalar multiplications (exact candidate checks): 5\n  EC point additions: 6000059\n  EC point additions (build): 0\n  EC point additions (giant search, cumulative): 6000059\n  total EC operations: 6000111\n  Lambda calculations: 0\n  Lambda priority slices: 0\n  Lambda fallback slices: 0\n  orbit duplicate rows skipped: 0\n  partner recoveries: 1\n  giant steps planned: 6000024\n  table build seconds: 3.28e-07\n  RSS after table load: 7068 kB (peak 7068 kB)\n  RSS after canonical pre-pass: 7068 kB (peak 7068 kB)\n  RSS after table build: 7136 kB (peak 7136 kB)\n  giant search seconds: 17.1199\n  giant steps/second: 350471\n  total seconds: 17.12\n  time to solution seconds: 17.0523 (includes table build)\n  exact candidate checks per hit: 4 (exact 4 / search hits 1)\n  recovered scalar: 0x40000000000000000000002ba7def33039\n  recovered private key: 0x00000000000000000000000000000040000000000000000000002ba7def33039\n  shifted target scalar: 0x400000000000000000000003a352947039\n  applied shift: 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd2368843d78141\n  recovered segment: 0\n  recovered local offset: 0\n  recovery correct: true\n",
+          "stderr tail": ""
+        }
+      }
+    ]
+  }
+}

@@ -145,6 +145,21 @@ def main():
               "--giant-stride requires --glv-orbit" in result.stderr,
               f"exit={result.returncode}")
 
+        # [6] The mirror tail giant must not return a partner outside cover.
+        # The final extra center can otherwise match cover_end + 1 through
+        # the negative mirror row; partner-table hits still obey cover bounds.
+        cover_size = 20_000
+        outside_offset = cover_size + 1
+        rec_outside, _, outside_result = run(
+            args.binary, pubkey_hex(START + outside_offset), cover_size,
+            ["--cover-start", hex(START), "--cover-size", str(cover_size),
+             "--table-scalars", str(mirror_rows),
+             "--giant-stride", str(STRIDE), "--partner-table"]
+            + table_common)
+        check(6, rec_outside is None and outside_result.returncode == 1,
+              f"outside offset={outside_offset} recovered="
+              f"{rec_outside is not None} (expect False)")
+
     print("ALL PASS" if not failures else f"FAILURES: {failures}")
     return 0 if not failures else 1
 

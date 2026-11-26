@@ -465,8 +465,7 @@ bool check_orbit_candidate(Int &base_scalar, Int &row_scalar,
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
       Point original_check = hit_ec_mult(recovered);
-      if (!original_check.equals(target) ||
-          (!partner_table_mode && !candidate_in_cover(recovered))) {
+      if (!original_check.equals(target) || !candidate_in_cover(recovered)) {
         continue;
       }
       if (!in_interval) {
@@ -558,8 +557,7 @@ bool check_factor_pair(Int &base_factor, Int &base_scalar,
       Int recovered;
       subtract_order_mod(recovered, candidate, active_shift);
       Point original_check = hit_ec_mult(recovered);
-      if (!original_check.equals(target) ||
-          (!partner_table_mode && !candidate_in_cover(recovered))) {
+      if (!original_check.equals(target) || !candidate_in_cover(recovered)) {
         continue;
       }
       if (!in_interval) {

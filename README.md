@@ -391,6 +391,34 @@ W_j = max{k : q_b(k) = j} - min{k : q_b(k) = j} + 1.
 кандидатов, но не создаёт узкий непрерывный интервал, необходимый для
 ускорения kangaroo.
 
+### C++ bounded kangaroo
+
+Для точного контрольного прогона на локальном окне есть отдельный C++
+стенд `keyhunt/kangaroo_benchmark.cpp`. Он использует tame в правой границе
+окна, wild в относительной точке, distinguished points и полную проверку
+координат `(x,y)` кандидата:
+
+```bash
+cd keyhunt
+make kangaroo_benchmark
+./kangaroo_benchmark --bits 20 --trials 16 --threads 4 --dp-bits 6
+```
+
+`--start`, `--seed`, `--jumps`, `--step-factor` и `--dp-bits` позволяют
+зафиксировать окно и стоимость хранения DP. Режим `--glv-orbit` канонизирует
+каждую точку по шести элементам GLV-орбиты и сохраняет множитель
+`+/-lambda^r` для восстановления кандидата:
+
+```bash
+./kangaroo_benchmark --bits 16 --trials 8 --glv-orbit
+```
+
+Перед поиском этот режим проверяет `phi([s]G) = [lambda*s]G` и
+`phi^3 = identity`. На локальных окнах партнёры `lambda^r*k` обычно не
+попадают в тот же диапазон, поэтому канонизация добавляет вычисления, но не
+даёт дополнительного числа cross-collision; это измерительный режим, а не
+готовый production-поиск.
+
 ### Цифры и биты нормированной фазы
 
 Скрипт [phase_digit_bit_experiment.py](experiments/phase_digit_bit_experiment.py)

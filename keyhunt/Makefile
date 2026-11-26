@@ -68,3 +68,12 @@ eng_bsgs:
 		util.c hash/sha256.cpp hash/sha256_sse.cpp \
 		hash/ripemd160.cpp hash/ripemd160_sse.cpp \
 		-o eng_bsgs
+
+kangaroo_benchmark:
+	g++ -m64 -march=native -mtune=native -Wall -Wextra -Wno-deprecated-copy -Ofast -pthread \
+		kangaroo_benchmark.cpp secp256k1/Int.cpp secp256k1/Point.cpp \
+		secp256k1/SECP256K1.cpp secp256k1/IntMod.cpp \
+		secp256k1/Random.cpp secp256k1/IntGroup.cpp \
+		util.c hash/sha256.cpp hash/sha256_sse.cpp \
+		hash/ripemd160.cpp hash/ripemd160_sse.cpp \
+		-o kangaroo_benchmark

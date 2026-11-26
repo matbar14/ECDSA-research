@@ -1,5 +1,10 @@
 # --- build artifacts ---
 keyhunt/eng_bsgs
+keyhunt/kangaroo_benchmark
+
+# --- regenerable representative tables (deterministic: make_mirror_representatives_file) ---
+tables/representatives_mirror_*.txt
+keyhunt/tables/
 keyhunt/keyhunt
 keyhunt/keyhunt_legacy
 keyhunt/bsgsd
