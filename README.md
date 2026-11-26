@@ -433,6 +433,14 @@ P(exact) = e^{−2^{−δ}}, изолинии P(exact) вертикальны �
 даёт λ_eff = 3W/2^B — стена +1.58 бита по W, но ×0.17 памяти на покрываемый
 скаляр. График: [figures/angle_delta_sweep.html](figures/angle_delta_sweep.html),
 сырые ячейки: [results/angle_table_delta_sweep.json](results/angle_table_delta_sweep.json).
+Продолжение: теорема sig≡pair(δ−2) (производные биты добавляют ноль энтропии),
+y-бит как последняя независимая энтропия — ровно 1 бит
+([angle_table_ybit_sweep.py](experiments/angle_table_ybit_sweep.py),
+[results/angle_table_ybit_sweep.json](results/angle_table_ybit_sweep.json)),
+развод режимов filter/standalone и memory-vs-time frontier
+([figures/angle_delta_frontier.html](figures/angle_delta_frontier.html));
+Bentley–Saxe — отрицательный результат для пуассоновских таблиц;
+fast-verify 0.776→0.341 мс через precomputed [2^j]G.
 
 ### Цифры и биты нормированной фазы
 
